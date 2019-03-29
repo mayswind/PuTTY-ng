@@ -105,6 +105,9 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>additional.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\putty\windows\resource.h" />
@@ -331,6 +334,9 @@
     <Image Include="..\..\putty\windows\shortcut.ico" />
     <Image Include="..\..\putty\windows\start.ico" />
     <Image Include="..\..\putty\windows\up.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="additional.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
