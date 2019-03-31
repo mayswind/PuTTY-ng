@@ -719,7 +719,34 @@ void ZmodemSession::handleZfile()
 
 	if (zmodemFile_)
 		delete zmodemFile_;
-	zmodemFile_ = new ZmodemFile(recvFilePath_, filename, fileinfo);
+
+	std::string final_filename = filename;
+	std::string final_filepath = recvFilePath_ + "/" + final_filename;
+	std::ifstream fin(final_filepath.c_str());
+	int same_name_count = 0;
+
+	while (fin.good()) {
+		fin.close();
+
+		char buf[MAX_PATH];
+		unsigned dot_pos = filename.find_last_of(".");
+
+		if (dot_pos != std::string::npos) {
+			std::string file_purename = filename.substr(0, dot_pos);
+			std::string file_extname = filename.substr(dot_pos);
+			sprintf(buf, "%s (%d)%s", file_purename.c_str(), ++same_name_count, file_extname.c_str());
+		} else {
+			sprintf(buf, "%s (%d)", filename.c_str(), ++same_name_count);
+		}
+
+		final_filename = std::string(buf);
+		final_filepath = recvFilePath_ + "/" + final_filename;
+		fin = std::ifstream(final_filepath.c_str());
+	}
+
+	fin.close();
+
+	zmodemFile_ = new ZmodemFile(recvFilePath_, final_filename, fileinfo);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 
