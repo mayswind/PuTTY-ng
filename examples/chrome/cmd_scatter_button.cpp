@@ -8,13 +8,13 @@ CmdScatterMenuModel::CmdScatterMenuModel(CmdScatterMenuButton* button)
 	, button_(button)
 {
 	AddRadioItem(WindowInterface::CMD_DEFAULT,
-		WideToUTF16(L"not sharing input(default)"), kGroupMakeDecision);
+		WideToUTF16(L"Disable Sharing Input (Default)"), kGroupMakeDecision);
 	AddRadioItem(WindowInterface::CMD_TO_ACTIVE_TAB,
-		WideToUTF16(L"sharing input to the active tabs only"), kGroupMakeDecision);
+		WideToUTF16(L"Sharing Input to the Active Tabs Only"), kGroupMakeDecision);
 	AddRadioItem(WindowInterface::CMD_TO_WITHIN_WINDOW,
-		WideToUTF16(L"sharing input to all tabs within current window only"), kGroupMakeDecision);
+		WideToUTF16(L"Sharing Input to All Tabs Within Current Window Only"), kGroupMakeDecision);
 	AddRadioItem(WindowInterface::CMD_TO_ALL,
-		WideToUTF16(L"sharing input to all tabs among all windows"), kGroupMakeDecision);
+		WideToUTF16(L"Sharing Input to All Tabs Among All Windows"), kGroupMakeDecision);
 	menu_.reset(new view::Menu2(this));
 }
 

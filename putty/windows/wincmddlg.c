@@ -817,18 +817,18 @@ void setup_cmd_box(struct controlbox *b)
 		HELPCTX(no_help),
 		on_button_del_cmd, P(NULL));
 	c->generic.column = 1;
-	c = ctrl_pushbutton(s, "send", '\0',
+	c = ctrl_pushbutton(s, "Send", '\0',
 		HELPCTX(no_help),
 		on_button_send, P(NULL));
 	c->generic.column = 3;
-	c = ctrl_pushbutton(s, "send to all tab", '\0',
+	c = ctrl_pushbutton(s, "Send to All Tabs", '\0',
 		HELPCTX(no_help),
 		on_button_send_to_all, P(NULL));
 	c->generic.column = 4;
 
 	s = ctrl_getset(b, "Command", "", "");
 	ctrl_columns(s, 2, 20, 80);
-	c = ctrl_pushbutton(s, "save as:", '\0',
+	c = ctrl_pushbutton(s, "Save As:", '\0',
 		HELPCTX(no_help),
 		on_button_save_cmd, P(NULL));
 	c->generic.column = 0;
