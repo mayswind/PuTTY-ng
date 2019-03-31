@@ -1,3 +1,5 @@
+#include <Shlobj.h>
+
 #include "zmodem_session.h"
 #include "putty.h"
 #include "crctab.c"
@@ -100,6 +102,15 @@ unsigned getPos(frame_t* frame)
 	rxpos = (rxpos<<8) + (frame->flag[ZP1] & 0377);
 	rxpos = (rxpos<<8) + (frame->flag[ZP0] & 0377);
 	return rxpos;
+}
+
+int CALLBACK browseCallbackProc(HWND hWnd, UINT msg, LPARAM lParam, LPARAM lpData)
+{
+	if (msg == BFFM_INITIALIZED)
+	{
+		return SendMessage(hWnd, BFFM_SETSELECTION, TRUE, lpData);
+	}
+	return 0;
 }
 
 Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
@@ -428,10 +439,33 @@ void ZmodemSession::handleFrame()
 	bufferParsed_ = true;
 	switch (inputFrame_->type){
     case ZRQINIT:
+        recvFilePath_.clear();
         return sendZrinit();
 
     case ZFILE: 
 		isSz_ = true;
+		if (recvFilePath_.empty()) {
+			BROWSEINFO bi;
+			ZeroMemory(&bi, sizeof(BROWSEINFO));
+			bi.ulFlags = BIF_NEWDIALOGSTYLE | BIF_EDITBOX;
+			bi.lpszTitle = TEXT("Select a folder. Files sended by zmodem would be put in this folder.");
+			bi.lParam = (LPARAM)(LPCTSTR)lastRecvFilePath_.c_str();
+			bi.lpfn = browseCallbackProc;
+
+			LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+			if (pidl == NULL){
+				output("User canceled folder selection!\r\n");
+				sendBin32FrameHeader(ZABORT, 0);
+				return;
+			}
+
+			TCHAR path[MAX_PATH];
+			SHGetPathFromIDList(pidl, path);
+
+			USES_CONVERSION;
+			recvFilePath_ = W2A(path);
+			lastRecvFilePath_ = std::string(recvFilePath_);
+		}
 		return handleZfile();
     case ZDATA:
 		return handleZdata();
@@ -442,6 +476,7 @@ void ZmodemSession::handleFrame()
 		}
 		return sendZrinit();
     case ZFIN:
+		recvFilePath_.clear();
 		sendFinOnReset_ = true;
 		handleEvent(RESET_EVT);
 		return;
@@ -684,7 +719,7 @@ void ZmodemSession::handleZfile()
 
 	if (zmodemFile_)
 		delete zmodemFile_;
-	zmodemFile_ = new ZmodemFile(conf_get_str( frontend_->cfg, CONF_default_log_path), filename, fileinfo);
+	zmodemFile_ = new ZmodemFile(recvFilePath_, filename, fileinfo);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 

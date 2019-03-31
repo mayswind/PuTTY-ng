@@ -169,6 +169,8 @@ private:
 	bool sendFinOnReset_;
 	bool isSz_;
 	FilePath uploadFilePath_;
+	std::string recvFilePath_;
+	std::string lastRecvFilePath_;
 	unsigned char zsendline_tab[256];
 	FileSelectState file_select_state_;
 
