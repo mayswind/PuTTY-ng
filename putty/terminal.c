@@ -5677,6 +5677,11 @@ static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
 	freeclibuf(buf);
 }
 
+void term_copy(Terminal *term)
+{
+    clipme(term, term->selstart, term->selend, (term->seltype == RECTANGULAR), FALSE);
+}
+
 void term_copyall(Terminal *term)
 {
     pos top;
@@ -6493,8 +6498,10 @@ void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
 	     * We've completed a selection. We now transfer the
 	     * data to the clipboard.
 	     */
-	    clipme(term, term->selstart, term->selend,
-		   (term->seltype == RECTANGULAR), FALSE);
+		if (conf_get_int(term->conf, CONF_mouseautocopy)) {
+			clipme(term, term->selstart, term->selend,
+				(term->seltype == RECTANGULAR), FALSE);
+		}
 	    term->selstate = SELECTED;
 	} else
 	    term->selstate = NO_SELECTION;

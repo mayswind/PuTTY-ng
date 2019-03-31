@@ -644,6 +644,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		}
 		iStorage->write_setting_s(sesskey, buf, buf2);
     }
+    iStorage->write_setting_i(sesskey, "MouseAutocopy", conf_get_int(conf, CONF_mouseautocopy));
     iStorage->write_setting_s(sesskey, "LineCodePage", conf_get_str(conf, CONF_line_codepage));
     iStorage->write_setting_i(sesskey, "CJKAmbigWide", conf_get_int(conf, CONF_cjk_ambig_wide));
     iStorage->write_setting_i(sesskey, "UTF8Override", conf_get_int(conf, CONF_utf8_override));
@@ -1170,6 +1171,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	}
 	sfree(buf2);
     }
+	gppi(iStorage, sesskey, "MouseAutocopy", 0, conf, CONF_mouseautocopy);
     /*
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.

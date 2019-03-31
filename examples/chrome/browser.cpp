@@ -1262,7 +1262,7 @@ void Browser::ExecuteCommandWithDisposition(
 
     //    // Clipboard commands
     //case IDC_CUT:                   Cut();                            break;
-    //case IDC_COPY:                  Copy();                           break;
+    case IDC_COPY:                  if (tab) tab->do_copy();                           break;
     case IDC_PASTE:                 if (tab) tab->do_paste();                          break;
 
     //    // Find-in-page

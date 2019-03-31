@@ -1226,6 +1226,9 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			rename(NULL);
             break;
         }
+        case IDM_COPY:
+            term_copy(term);
+            break;
         case IDM_COPYALL:
             term_copyall(term);
             break;
@@ -2454,6 +2457,10 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	}
 	if ((wParam == VK_PRIOR || wParam == VK_NEXT) && shift_state == 3) {
 	    term_scroll_to_selection(term, (wParam == VK_PRIOR ? 0 : 1));
+	    return 0;
+	}
+	if (wParam == VK_INSERT && shift_state == 2) {
+	    term_copy(term);
 	    return 0;
 	}
 	if (wParam == VK_INSERT && shift_state == 1) {

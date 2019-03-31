@@ -121,7 +121,7 @@ namespace view{
 
 	void PuttyView::do_copy()
 	{
-
+		return term_copy(puttyController_->term);
 	}
 
 	void PuttyView::do_paste()

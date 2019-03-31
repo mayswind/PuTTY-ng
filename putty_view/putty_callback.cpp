@@ -86,8 +86,9 @@ void process_init()
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
 	NativePuttyController::popup_menu = CreatePopupMenu();
 	HMENU m = NativePuttyController::popup_menu;
-	AppendMenu(NativePuttyController::popup_menu, MF_ENABLED, IDM_PASTE, TEXT("&Paste"));
-	AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All to Clipboard"));
+	AppendMenu(m, MF_ENABLED, IDM_COPY, TEXT("&Copy"));
+	AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All"));
+	AppendMenu(m, MF_ENABLED, IDM_PASTE, TEXT("&Paste"));
 	//for (int j = 0; j < lenof(popup_menus); j++) {
 
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);

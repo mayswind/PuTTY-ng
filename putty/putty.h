@@ -888,6 +888,7 @@ void cleanup_exit(int);
     X(INT, NONE, rtf_paste) \
     X(INT, NONE, mouse_override) \
     X(INT, INT, wordness) \
+    X(INT, NONE, mouseautocopy) \
     /* translations */ \
     X(INT, NONE, vtmode) \
     X(STR, NONE, line_codepage) \
@@ -1134,6 +1135,7 @@ void term_blink(Terminal *, int set_cursor);
 void term_do_paste(Terminal *);
 void term_nopaste(Terminal *);
 int term_ldisc(Terminal *, int option);
+void term_copy(Terminal *);
 void term_copyall(Terminal *);
 void term_reconfig(Terminal *, Conf *);
 void term_seen_key_event(Terminal *); 

@@ -22,9 +22,10 @@
 #define IDM_SAVEDSESS 0x0160
 #define IDM_COPYALL   0x0170
 #define IDM_FULLSCREEN	0x0180
-#define IDM_PASTE     0x0190
-#define IDM_SFTP      0x0200
-#define IDM_SPECIALSEP 0x0210
+#define IDM_COPY      0x0190
+#define IDM_PASTE     0x01A0
+#define IDM_SPECIALSEP 0x0200
+#define IDM_SFTP      0x0210
 #define IDM_SEARCH_P  0x0220
 #define IDM_SEARCH_N  0x0230
 #define IDM_SEARCH_R  0x0240

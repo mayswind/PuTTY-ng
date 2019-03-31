@@ -2394,6 +2394,15 @@ void setup_config_box(struct controlbox *b, int midsession,
 		      "Normal", 'n', I(0),
 		      "Rectangular block", 'r', I(1), NULL);
 
+	/*
+	*
+	*/
+	s = ctrl_getset(b, "Window/Selection", "clipboards",
+		"Assign copy/paste actions to clipboards");
+	ctrl_checkbox(s, "Auto-copy selected text to system clipboard", 'f',
+		HELPCTX(selection_autocopy),
+		conf_checkbox_handler, I(CONF_mouseautocopy));
+
     s = ctrl_getset(b, "Window/Selection", "charclass",
 		    "Control the select-one-word-at-a-time mode");
     ccd = (struct charclass_data *)
