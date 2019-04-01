@@ -129,7 +129,7 @@ std::wstring FormatFilterForExtensions(
     const std::vector<std::wstring>& ext_desc,
     bool include_all_files) {
   const std::wstring all_ext = L"*.*";
-  const std::wstring all_desc = L"Save As dialog box default text"
+  const std::wstring all_desc = L"All Files (*.*)"
       /*l10n_util::GetStringUTF16(IDS_APP_SAVEAS_ALL_FILES)*/;
 
   DCHECK(file_ext.size() >= ext_desc.size());
