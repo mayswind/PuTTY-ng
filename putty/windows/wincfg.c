@@ -301,7 +301,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
      */
     s = ctrl_getset(b, "Window/Selection", "format",
 		    "Formatting of pasted characters");
-    ctrl_checkbox(s, "Paste to clipboard in RTF as well as plain text", 'f',
+    ctrl_checkbox(s, "Paste to clipboard in RTF as well as plain text", NO_SHORTCUT,
 		  HELPCTX(selection_rtf),
 		  conf_checkbox_handler, I(CONF_rtf_paste));
 
