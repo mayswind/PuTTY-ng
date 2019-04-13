@@ -42,6 +42,38 @@ static void variable_pitch_handler(union control *ctrl, void *dlg,
     }
 }
 
+static void mouse_button_override_handler(union control *ctrl, void *dlg,
+                                          void *data, int event)
+{
+	Conf *conf = (Conf *)data;
+	if (event == EVENT_REFRESH) {
+		int oldconf = conf_get_int(conf, ctrl->listbox.context.i);
+		dlg_update_start(ctrl, dlg);
+		dlg_listbox_clear(ctrl, dlg);
+		dlg_listbox_addwithid(ctrl, dlg, "Not override", BTN_OVERRIDE_DISABLE);
+		dlg_listbox_addwithid(ctrl, dlg, "No action", BTN_OVERRIDE_NO_ACTION);
+		dlg_listbox_addwithid(ctrl, dlg, "Pastes", BTN_OVERRIDE_PASTE);
+		dlg_listbox_addwithid(ctrl, dlg, "Extends", BTN_OVERRIDE_EXTENDS);
+		dlg_listbox_addwithid(ctrl, dlg, "Brings up menu", BTN_OVERRIDE_CONTEXTMENU);
+		switch (oldconf) {
+		case BTN_OVERRIDE_DISABLE:     dlg_listbox_select(ctrl, dlg, 0); break;
+		case BTN_OVERRIDE_NO_ACTION:   dlg_listbox_select(ctrl, dlg, 1); break;
+		case BTN_OVERRIDE_PASTE:       dlg_listbox_select(ctrl, dlg, 2); break;
+		case BTN_OVERRIDE_EXTENDS:     dlg_listbox_select(ctrl, dlg, 3); break;
+		case BTN_OVERRIDE_CONTEXTMENU: dlg_listbox_select(ctrl, dlg, 4); break;
+		}
+		dlg_update_done(ctrl, dlg);
+	}
+	else if (event == EVENT_SELCHANGE) {
+		int i = dlg_listbox_index(ctrl, dlg);
+		if (i < 0)
+			i = BTN_OVERRIDE_DISABLE;
+		else
+			i = dlg_listbox_getid(ctrl, dlg, i);
+		conf_set_int(conf, ctrl->listbox.context.i, i);
+	}
+}
+
 void create_session(union control *ctrl, void *dlg,
 			  void *data, int event);
 void fork_session(union control *ctrl, void *dlg,
@@ -319,14 +351,27 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 		      "Windows (Middle extends, Right brings up menu)", I(2),
 		      "Compromise (Middle extends, Right pastes)", I(0),
 		      "xterm (Right extends, Middle pastes)", I(1), NULL);
+
+    ctrl_droplist(s, "Override action of mouse middle button", NO_SHORTCUT, 30,
+        HELPCTX(selection_override_middle),
+        mouse_button_override_handler, I(CONF_mouse_middle_override));
+
+    ctrl_droplist(s, "Override action of mouse right button", NO_SHORTCUT, 30,
+        HELPCTX(selection_override_right),
+        mouse_button_override_handler, I(CONF_mouse_right_override));
+
     /*
      * This really ought to go at the _top_ of its box, not the
      * bottom, so we'll just do some shuffling now we've set it
      * up...
      */
-    c = s->ctrls[s->ncontrols-1];      /* this should be the new control */
-    memmove(s->ctrls+1, s->ctrls, (s->ncontrols-1)*sizeof(union control *));
+    c = s->ctrls[s->ncontrols-3];      /* this should be the new control */
+    union control *cm = s->ctrls[s->ncontrols - 2];      /* control of overation action of mouse middle button */
+    union control *cr = s->ctrls[s->ncontrols - 1];      /* control of overation action of mouse right button */
+    memmove(s->ctrls+3, s->ctrls, (s->ncontrols-3)*sizeof(union control *));
     s->ctrls[0] = c;
+    s->ctrls[1] = cm;
+    s->ctrls[2] = cr;
 
     /*
      * Logical palettes don't even make sense anywhere except Windows.

@@ -429,6 +429,10 @@ enum {
     SER_FLOW_NONE, SER_FLOW_XONXOFF, SER_FLOW_RTSCTS, SER_FLOW_DSRDTR
 };
 
+enum {
+    BTN_OVERRIDE_DISABLE, BTN_OVERRIDE_NO_ACTION, BTN_OVERRIDE_PASTE, BTN_OVERRIDE_EXTENDS, BTN_OVERRIDE_CONTEXTMENU
+};
+
 /*
  * Tables of string <-> enum value mappings used in settings.c.
  * Defined here so that backends can export their GSS library tables
@@ -888,6 +892,8 @@ void cleanup_exit(int);
     X(INT, NONE, rtf_paste) \
     X(INT, NONE, mouse_override) \
     X(INT, INT, wordness) \
+    X(INT, NONE, mouse_middle_override) \
+    X(INT, NONE, mouse_right_override) \
     X(INT, NONE, mouseautocopy) \
     /* translations */ \
     X(INT, NONE, vtmode) \

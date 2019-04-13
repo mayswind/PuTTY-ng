@@ -644,6 +644,8 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		}
 		iStorage->write_setting_s(sesskey, buf, buf2);
     }
+    iStorage->write_setting_i(sesskey, "MouseMiddleButtonOverride", conf_get_int(conf, CONF_mouse_middle_override));
+    iStorage->write_setting_i(sesskey, "MouseRightButtonOverride", conf_get_int(conf, CONF_mouse_right_override));
     iStorage->write_setting_i(sesskey, "MouseAutocopy", conf_get_int(conf, CONF_mouseautocopy));
     iStorage->write_setting_s(sesskey, "LineCodePage", conf_get_str(conf, CONF_line_codepage));
     iStorage->write_setting_i(sesskey, "CJKAmbigWide", conf_get_int(conf, CONF_cjk_ambig_wide));
@@ -1171,7 +1173,9 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	}
 	sfree(buf2);
     }
-	gppi(iStorage, sesskey, "MouseAutocopy", 0, conf, CONF_mouseautocopy);
+    gppi(iStorage, sesskey, "MouseMiddleButtonOverride", 0, conf, CONF_mouse_middle_override);
+    gppi(iStorage, sesskey, "MouseRightButtonOverride", 0, conf, CONF_mouse_right_override);
+    gppi(iStorage, sesskey, "MouseAutocopy", 0, conf, CONF_mouseautocopy);
     /*
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.

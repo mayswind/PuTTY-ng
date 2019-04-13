@@ -3210,8 +3210,9 @@ int NativePuttyController::on_button(HWND hWnd, UINT message,
 		|| message == WM_MBUTTONDOWN
 		|| message == WM_RBUTTONDOWN)
     	SetFocus(getNativePage());
-    if (message == WM_RBUTTONDOWN &&
-    	    ((wParam & MK_CONTROL) || (conf_get_int(cfg, CONF_mouse_is_xterm) == 2))) {
+    if ((message == WM_RBUTTONDOWN &&
+    	     ((wParam & MK_CONTROL) || (conf_get_int(cfg, CONF_mouse_is_xterm) == 2 && conf_get_int(cfg, CONF_mouse_right_override) == 0) || (conf_get_int(cfg, CONF_mouse_right_override) == 4)))
+		|| (message == WM_MBUTTONDOWN && ((conf_get_int(cfg, CONF_mouse_middle_override) == 4)))) {
 	    POINT cursorpos;
 
 	    show_mouseptr(1);	       /* make sure pointer is visible */
@@ -3441,10 +3442,28 @@ Mouse_Button NativePuttyController::translate_button(Mouse_Button button)
 {
     if (button == MBT_LEFT)
 		return is_shift_pressed() ? MBT_EXTEND : MBT_SELECT;
-    if (button == MBT_MIDDLE)
-	return conf_get_int(cfg, CONF_mouse_is_xterm) == 1 ? MBT_PASTE : MBT_EXTEND;
-    if (button == MBT_RIGHT)
-	return conf_get_int(cfg, CONF_mouse_is_xterm) == 1 ? MBT_EXTEND : MBT_PASTE;
+	if (button == MBT_MIDDLE) {
+		if (conf_get_int(cfg, CONF_mouse_middle_override) == 2) {
+			return MBT_PASTE;
+		}
+		else if (conf_get_int(cfg, CONF_mouse_middle_override) == 3) {
+			return MBT_EXTEND;
+		}
+		else if (conf_get_int(cfg, CONF_mouse_middle_override) == 0) {
+			return conf_get_int(cfg, CONF_mouse_is_xterm) == 1 ? MBT_PASTE : MBT_EXTEND;
+		}
+	}
+	if (button == MBT_RIGHT) {
+		if (conf_get_int(cfg, CONF_mouse_right_override) == 2) {
+			return MBT_PASTE;
+		}
+		else if (conf_get_int(cfg, CONF_mouse_right_override) == 3) {
+			return MBT_EXTEND;
+		}
+		else if (conf_get_int(cfg, CONF_mouse_right_override) == 0) {
+			return conf_get_int(cfg, CONF_mouse_is_xterm) == 1 ? MBT_EXTEND : MBT_PASTE;
+		}
+	}
     return (Mouse_Button)0;			       /* shouldn't happen */
 }
 
