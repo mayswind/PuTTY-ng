@@ -755,6 +755,11 @@ static DWORD WINAPI clipboard_read_threadfunc(void *param)
 void request_paste(void *frontend)
 {
     assert (frontend != NULL);
+
+    if (conf_get_int(cfg, CONF_mousepaste) == 0) {
+        return;
+    }
+
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     /*
      * I always thought pasting was synchronous in Windows; the

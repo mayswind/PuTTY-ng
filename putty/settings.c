@@ -452,6 +452,42 @@ static void wprefs(IStore* iStorage, void *sesskey, const char *name,
     sfree(buf);
 }
 
+static void write_clip_setting(IStore* iStorage, void *handle, const char *savekey,
+                               Conf *conf, int confkey)
+{
+    int val = conf_get_int(conf, confkey);
+    switch (val) {
+      case CLIPUI_NONE:
+      default:
+        iStorage->write_setting_s(handle, savekey, "none");
+        break;
+      case CLIPUI_IMPLICIT:
+        iStorage->write_setting_s(handle, savekey, "implicit");
+        break;
+      case CLIPUI_EXPLICIT:
+        iStorage->write_setting_s(handle, savekey, "explicit");
+        break;
+    }
+}
+
+static void read_clip_setting(IStore* iStorage, void *handle, const char *savekey,
+                              int def, Conf *conf, int confkey)
+{
+    char *setting = iStorage->read_setting_s(handle, savekey);
+    int val;
+
+    if (!setting) {
+        val = def;
+    } else if (!strcmp(setting, "implicit")) {
+        val = CLIPUI_IMPLICIT;
+    } else if (!strcmp(setting, "explicit")) {
+        val = CLIPUI_EXPLICIT;
+    } else {
+        val = CLIPUI_NONE;
+    }
+    conf_set_int(conf, confkey, val);
+}
+
 char *save_settings(const char *section, Conf *conf)
 {
     void *sesskey;
@@ -647,6 +683,9 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "MouseMiddleButtonOverride", conf_get_int(conf, CONF_mouse_middle_override));
     iStorage->write_setting_i(sesskey, "MouseRightButtonOverride", conf_get_int(conf, CONF_mouse_right_override));
     iStorage->write_setting_i(sesskey, "MouseAutocopy", conf_get_int(conf, CONF_mouseautocopy));
+	write_clip_setting(iStorage, sesskey, "MousePaste", conf, CONF_mousepaste);
+	write_clip_setting(iStorage, sesskey, "CtrlShiftIns", conf, CONF_ctrlshiftins);
+	write_clip_setting(iStorage, sesskey, "CtrlShiftCV", conf, CONF_ctrlshiftcv);
     iStorage->write_setting_s(sesskey, "LineCodePage", conf_get_str(conf, CONF_line_codepage));
     iStorage->write_setting_i(sesskey, "CJKAmbigWide", conf_get_int(conf, CONF_cjk_ambig_wide));
     iStorage->write_setting_i(sesskey, "UTF8Override", conf_get_int(conf, CONF_utf8_override));
@@ -1176,6 +1215,12 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "MouseMiddleButtonOverride", 0, conf, CONF_mouse_middle_override);
     gppi(iStorage, sesskey, "MouseRightButtonOverride", 0, conf, CONF_mouse_right_override);
     gppi(iStorage, sesskey, "MouseAutocopy", 0, conf, CONF_mouseautocopy);
+	read_clip_setting(iStorage, sesskey, "MousePaste", CLIPUI_DEFAULT_MOUSE,
+		conf, CONF_mousepaste);
+	read_clip_setting(iStorage, sesskey, "CtrlShiftIns", CLIPUI_DEFAULT_INS,
+		conf, CONF_ctrlshiftins);
+	read_clip_setting(iStorage, sesskey, "CtrlShiftCV", CLIPUI_NONE,
+		conf, CONF_ctrlshiftcv);
     /*
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.

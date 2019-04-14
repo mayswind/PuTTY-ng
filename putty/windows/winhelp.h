@@ -123,6 +123,7 @@
 #define WINHELP_CTX_selection_override_middle "selection.buttons-override:config-override-middle"
 #define WINHELP_CTX_selection_override_right "selection.buttons-override:config-override-right"
 #define WINHELP_CTX_selection_autocopy "selection.autocopy:config-selection-autocopy"
+#define WINHELP_CTX_selection_clipactions "selection.clipactions:config-selection-clipactions"
 #define WINHELP_CTX_colours_ansi "colours.ansi:config-ansicolour"
 #define WINHELP_CTX_colours_xterm256 "colours.xterm256:config-xtermcolour"
 #define WINHELP_CTX_colours_bold "colours.bold:config-boldcolour"

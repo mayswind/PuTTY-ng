@@ -2460,11 +2460,43 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return 0;
 	}
 	if (wParam == VK_INSERT && shift_state == 2) {
+	    switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
+	      case CLIPUI_EXPLICIT:
 	    term_copy(term);
+	    break;
+	      default:
+	    break;
+	    }
 	    return 0;
 	}
 	if (wParam == VK_INSERT && shift_state == 1) {
+	    switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
+	      case CLIPUI_EXPLICIT:
 	    request_paste();
+	    break;
+	      default:
+	    break;
+	    }
+	    return 0;
+	}
+	if (wParam == 'C' && shift_state == 3) {
+	    switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
+	      case CLIPUI_EXPLICIT:
+	    term_copy(term);
+	    break;
+	      default:
+	    break;
+	    }
+	    return 0;
+	}
+	if (wParam == 'V' && shift_state == 3) {
+	    switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
+	      case CLIPUI_EXPLICIT:
+	    request_paste();
+	    break;
+	      default:
+	    break;
+	    }
 	    return 0;
 	}
 	if (left_alt && wParam == VK_F4 && conf_get_int(cfg, CONF_alt_f4)) {
