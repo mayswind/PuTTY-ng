@@ -2403,8 +2403,14 @@ void setup_config_box(struct controlbox *b, int midsession,
 		HELPCTX(selection_autocopy),
 		conf_checkbox_handler, I(CONF_mouseautocopy));
 
-    s = ctrl_getset(b, "Window/Selection", "charclass",
-		    "Control the select-one-word-at-a-time mode");
+    /*
+     * The Window/Selection/Copy panel.
+     */
+    ctrl_settitle(b, "Window/Selection/Copy",
+                  "Options controlling copying from terminal to clipboard");
+
+    s = ctrl_getset(b, "Window/Selection/Copy", "charclass",
+		    "Classes of character that group together");
     ccd = (struct charclass_data *)
 	ctrl_alloc(b, sizeof(struct charclass_data));
     ccd->listbox = ctrl_listbox(s, "Character classes:", 'e',
