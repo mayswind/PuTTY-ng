@@ -220,7 +220,7 @@ static int CALLBACK AboutProc(HWND hwnd, UINT msg,
 	  case IDA_WEB:
 	    /* Load web browser */
 	    ShellExecute(hwnd, "open",
-			 "http://sourceforge.net/projects/putty-nd/",
+			 "https://github.com/mayswind/putty-ng",
 			 0, 0, SW_SHOWDEFAULT);
 	    return 0;
 	}
