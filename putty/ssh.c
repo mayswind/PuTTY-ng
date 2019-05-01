@@ -365,6 +365,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 			     struct Packet *pktin);
 static void ssh2_channel_check_close(struct ssh_channel *c);
 static void ssh_channel_destroy(struct ssh_channel *c);
+static void ssh2_msg_something_unimplemented(Ssh ssh, struct Packet *pktin);
 
 /*
  * Buffer management constants. There are several of these for
@@ -1837,6 +1838,15 @@ static struct Packet *ssh2_rdpkt(Ssh ssh, const unsigned char **data,
 	}
     }
 
+    /*
+     * RFC 4253 doesn't explicitly say that completely empty packets
+     * with no type byte are forbidden, so treat them as deserving
+     * an SSH_MSG_UNIMPLEMENTED.
+     */
+    if (st->pktin->length <= 5) { /* == 5 we hope, but robustness */
+        ssh2_msg_something_unimplemented(ssh, st->pktin);
+        crStop(NULL);
+    }
     /*
      * pktin->body and pktin->length should identify the semantic
      * content of the packet, excluding the initial type byte.
@@ -3595,9 +3605,11 @@ static int ssh_test_for_upstream(const char *host, int port, Conf *conf)
     int savedport;
     int ret;
 
+    random_ref(); /* platform may need this to determine share socket name */
     ssh_hostport_setup(host, port, conf, &savedhost, &savedport, NULL);
     ret = ssh_share_test_for_upstream(savedhost, savedport, conf);
     sfree(savedhost);
+    random_unref();
 
     return ret;
 }
@@ -6459,12 +6471,12 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	     * for which we have a host key for this host.
              */
             for (i = 0; i < lenof(hostkey_algs); i++) {
-		//if (have_ssh_host_key(ssh->savedhost, ssh->savedport,
-		//		      hostkey_algs[i]->keytype)) {
-		//    alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],
-		//			      hostkey_algs[i]->name);
-		//    alg->u.hostkey = hostkey_algs[i];
-		//}
+		if (have_ssh_host_key(ssh->savedhost, ssh->savedport,
+				      hostkey_algs[i]->keytype)) {
+		    alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],
+					      hostkey_algs[i]->name);
+		    alg->u.hostkey = hostkey_algs[i];
+		}
 	    }
             for (i = 0; i < lenof(hostkey_algs); i++) {
 		alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],

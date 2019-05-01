@@ -1190,6 +1190,23 @@ void modalfatalbox(char *fmt, ...)
     cleanup_exit(1);
 }
 
+/*
+* Print a message box and don't close the connection.
+*/
+void nonfatal(const char *fmt, ...)
+{
+	USES_CONVERSION;
+	va_list ap;
+	char *stuff, morestuff[100];
+
+	va_start(ap, fmt);
+	stuff = dupvprintf(fmt, ap);
+	va_end(ap);
+	sprintf(morestuff, "%.70s Error", appname);
+	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK);
+	sfree(stuff);
+}
+
 void frontend_keypress(void *handle)
 {
     /*

@@ -2417,6 +2417,9 @@ with sharing enabled, then it can act as a downstream and use an
 existing SSH connection set up by an instance of GUI PuTTY. The one
 special case is that PSCP and PSFTP will \e{never} act as upstreams.
 
+It is possible to test programmatically for the existence of a live
+upstream using Plink. See \k{plink-option-shareexists}.
+
 \H{config-ssh-kex} The Kex panel
 
 The Kex panel (short for \q{\i{key exchange}}) allows you to configure
@@ -2611,6 +2614,8 @@ top until it finds an algorithm supported by the server, and then
 use that.
 
 PuTTY currently supports the following algorithms:
+
+\b \i{ChaCha20-Poly1305}, a combined cipher and \i{MAC} (SSH-2 only)
 
 \b \i{AES} (Rijndael) - 256, 192, or 128-bit SDCTR or CBC (SSH-2 only)
 

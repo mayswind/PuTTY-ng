@@ -253,12 +253,13 @@ int WinRegStore::read_setting_i(void *handle, const char *key, int defvalue)
 FontSpec * WinRegStore::read_setting_fontspec(void *handle, const char *name)
 {
     char *settingname;
-	char* font_name = NULL;
+	char* fontname = NULL;
+    FontSpec *ret;
 	int isbold = 0, charset = 0, height = 0;
 
-    if (!(font_name = IStore::read_setting_s(handle, name))){
+    if (!(fontname = IStore::read_setting_s(handle, name))){
 		char *suffname = dupcat(name, "Name", NULL);
-	    if (font_name = IStore::read_setting_s(handle, suffname)) {
+	    if (fontname = IStore::read_setting_s(handle, suffname)) {
 			sfree(suffname);
 	    }else{
 	    	sfree(suffname);
@@ -268,19 +269,30 @@ FontSpec * WinRegStore::read_setting_fontspec(void *handle, const char *name)
     settingname = dupcat(name, "IsBold", NULL);
     isbold = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-	if (isbold == -1) { sfree(font_name); return 0;}
+    if (isbold == -1) {
+        sfree(fontname);
+        return NULL;
+    }
 
     settingname = dupcat(name, "CharSet", NULL);
     charset = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-    if (charset == -1) { sfree(font_name); return 0;}
+    if (charset == -1) {
+        sfree(fontname);
+        return NULL;
+    }
 
     settingname = dupcat(name, "Height", NULL);
     height = read_setting_i(handle, settingname, INT_MIN);
     sfree(settingname);
-    if (height == INT_MIN) { sfree(font_name); return 0;}
+    if (height == INT_MIN) {
+        sfree(fontname);
+        return NULL;
+    }
 
-    return fontspec_new(font_name, isbold, height, charset);
+    ret = fontspec_new(fontname, isbold, height, charset);
+    sfree(fontname);
+    return ret;
 }
 
 void WinRegStore::write_setting_fontspec(void *handle, const char *name, FontSpec* font)
@@ -305,14 +317,13 @@ void WinRegStore::write_setting_fontspec(void *handle, const char *name, FontSpe
 
 Filename * WinRegStore::read_setting_filename(void *handle, const char *name)
 {
-	char* path = IStore::read_setting_s(handle, name);
-	if (path)
-	{
-		Filename* ret = new Filename();
-		ret->path = path;
-		return ret;
-	}
-    return NULL;
+	char* tmp = IStore::read_setting_s(handle, name);
+    if (tmp) {
+        Filename *ret = filename_from_str(tmp);
+	sfree(tmp);
+	return ret;
+    } else
+	return NULL;
 }
 
 void WinRegStore::write_setting_filename(void *handle, const char *name, Filename* result)
@@ -503,16 +514,18 @@ int WinRegStore::verify_host_key(const char *hostname, int port,
      * Now read a saved key in from the registry and see what it
      * says.
      */
-    otherstr = snewn(len, char);
     regname = snewn(3 * (strlen(hostname) + strlen(keytype)) + 15, char);
 
     hostkey_regname(regname, hostname, port, keytype);
 
     if (RegOpenKey(HKEY_CURRENT_USER, PUTTY_REG_POS "\\SshHostKeys",
-		   &rkey) != ERROR_SUCCESS)
+		   &rkey) != ERROR_SUCCESS) {
+        sfree(regname);
 	return 1;		       /* key does not exist in registry */
+    }
 
     readlen = len;
+    otherstr = snewn(len, char);
     ret = RegQueryValueEx(rkey, regname, NULL, &type, (BYTE*)otherstr, &readlen);
 
     if (ret != ERROR_SUCCESS && ret != ERROR_MORE_DATA &&
@@ -575,6 +588,8 @@ int WinRegStore::verify_host_key(const char *hostname, int port,
 		RegSetValueEx(rkey, regname, 0, REG_SZ, (BYTE*)otherstr,
 			      strlen(otherstr) + 1);
 	}
+
+        sfree(oldstyle);
     }
 
     RegCloseKey(rkey);
@@ -591,6 +606,16 @@ int WinRegStore::verify_host_key(const char *hostname, int port,
 	return 1;		       /* key does not exist in registry */
     else
 	return 0;		       /* key matched OK in registry */
+}
+
+int have_ssh_host_key(const char *hostname, int port,
+		      const char *keytype)
+{
+    /*
+     * If we have a host key, verify_host_key will return 0 or 2.
+     * If we don't have one, it'll return 1.
+     */
+	return gStorage->verify_host_key(hostname, port, keytype, "") != 1;
 }
 
 void WinRegStore::store_host_key(const char *hostname, int port,
@@ -619,7 +644,10 @@ enum { DEL, OPEN_R, OPEN_W };
 static int try_random_seed(char const *path, int action, HANDLE *ret)
 {
     if (action == DEL) {
-	remove(path);
+        if (!DeleteFile(path) && GetLastError() != ERROR_FILE_NOT_FOUND) {
+            nonfatal("Unable to delete '%s': %s", path,
+                     win_strerror(GetLastError()));
+        }
 	*ret = INVALID_HANDLE_VALUE;
 	return FALSE;		       /* so we'll do the next ones too */
     }
@@ -783,7 +811,7 @@ static int transform_jumplist_registry
     int ret;
     HKEY pjumplist_key, psettings_tmp;
     DWORD type;
-    int value_length;
+    DWORD value_length;
     char *old_value, *new_value;
     char *piterator_old, *piterator_new, *piterator_tmp;
 
@@ -890,7 +918,7 @@ static int transform_jumplist_registry
     /*
      * Either return or free the result.
      */
-    if (out)
+    if (out && ret == ERROR_SUCCESS)
         *out = old_value;
     else
         sfree(old_value);
@@ -923,7 +951,7 @@ char *get_jumplist_registry_entries (void)
 {
     char *list_value;
 
-    if (transform_jumplist_registry(NULL,NULL,&list_value) != ERROR_SUCCESS) {
+    if (transform_jumplist_registry(NULL,NULL,&list_value) != JUMPLISTREG_OK) {
 	list_value = snewn(2, char);
         *list_value = '\0';
         *(list_value + 1) = '\0';
