@@ -403,7 +403,7 @@ IDR_DOCK_WIDE BINDATA                       "res\\dock_tab_wide.png"
 
 STRINGTABLE 
 BEGIN
-    IDS_PRODUCT_NAME                            "PuTTY-ND"
+    IDS_PRODUCT_NAME                            "PuTTY-ng"
     IDS_UI_FONT_FAMILY                          "default"
     IDS_UI_FONT_FAMILY_XP                       "default"
     IDS_UI_FONT_SIZE_SCALER                     "100"
@@ -513,9 +513,9 @@ END
 STRINGTABLE 
 BEGIN
     IDS_TAB_LOADING_TITLE       "正在载入..."
-    IDS_BROWSER_WINDOW_TITLE_FORMAT "$1 - PuTTY-ND"
+    IDS_BROWSER_WINDOW_TITLE_FORMAT "$1 - PuTTY-ng"
     IDS_NEW_TAB     "新建标签页(&T)"
-    IDS_ACCNAME_TOOLBAR "PuTTY-ND Toolbar"
+    IDS_ACCNAME_TOOLBAR "PuTTY-ng Toolbar"
     IDS_ACCNAME_INFOBAR_CONTAINER "信息栏容器"
     IDS_ACCNAME_BOOKMARKS "书签"
     IDS_ACCNAME_LOCATION "位置"
