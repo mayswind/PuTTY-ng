@@ -15,6 +15,7 @@
 #include "ssh.h"
 
 #include "winsecur.h"
+#include "wincapi.h"
 
 #define COVERITY
 #ifdef COVERITY

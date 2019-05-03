@@ -318,6 +318,9 @@
     <ClCompile Include="windows\wincmddlg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="windows\wincapi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">
@@ -402,6 +405,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="charset\internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\wincapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\winsecur.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

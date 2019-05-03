@@ -10,4 +10,4 @@
 
 #define TEXTVER "PuTTY-ng, "
 #define SSHVER "PuTTY-Local: "
-#define BINARY_VERSION 0,0,0,0
+#define BINARY_VERSION 6,7,0,0

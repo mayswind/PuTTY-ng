@@ -15,6 +15,7 @@
 #include "misc.h"
 #include "tree234.h"
 #include "winsecur.h"
+#include "licence.h"
 #include "pageant.h"
 
 #include <shellapi.h>
@@ -125,6 +126,7 @@ static INT_PTR CALLBACK LicenceProc(HWND hwnd, UINT msg,
 {
     switch (msg) {
       case WM_INITDIALOG:
+        SetDlgItemText(hwnd, 1000, LICENCE_TEXT("\r\n\r\n")); 
 	return 1;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -149,7 +151,14 @@ static INT_PTR CALLBACK AboutProc(HWND hwnd, UINT msg,
 {
     switch (msg) {
       case WM_INITDIALOG:
-	SetDlgItemText(hwnd, 100, ver);
+        {
+            char *text = dupprintf
+                ("Pageant\r\n\r\n%s\r\n\r\n%s",
+                 ver,
+                 "\251 " SHORT_COPYRIGHT_DETAILS ". All rights reserved.");
+            SetDlgItemText(hwnd, 1000, text);
+            sfree(text);
+        }
 	return 1;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -914,7 +923,6 @@ static void update_sessions(void)
 //			debug(("couldn't get default SID\n"));
 //#endif
 //                        CloseHandle(filemap);
-//                        sfree(ourself);
 //			return 0;
 //                    }
 //
@@ -927,7 +935,6 @@ static void update_sessions(void)
 //                               rc));
 //#endif
 //                        CloseHandle(filemap);
-//                        sfree(ourself);
 //                        sfree(ourself2);
 //			return 0;
 //		    }
@@ -948,7 +955,6 @@ static void update_sessions(void)
 //                        !EqualSid(mapowner, ourself2)) {
 //                        CloseHandle(filemap);
 //                        LocalFree(psd);
-//                        sfree(ourself);
 //                        sfree(ourself2);
 //			return 0;      /* security ID mismatch! */
 //                    }
@@ -956,7 +962,6 @@ static void update_sessions(void)
 //		    debug(("security stuff matched\n"));
 //#endif
 //                    LocalFree(psd);
-//                    sfree(ourself);
 //                    sfree(ourself2);
 //		} else {
 //#ifdef DEBUG_IPC

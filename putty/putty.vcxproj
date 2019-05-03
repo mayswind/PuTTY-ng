@@ -161,6 +161,7 @@
     <ClCompile Include="wcwidth.c" />
     <ClCompile Include="wildcard.c" />
     <ClCompile Include="windows\sizetip.c" />
+    <ClCompile Include="windows\wincapi.c" />
     <ClCompile Include="windows\wincfg.c" />
     <ClCompile Include="windows\winclouddlg.c" />
     <ClCompile Include="windows\wincmddlg.c" />
@@ -217,7 +218,9 @@
     <ClInclude Include="terminal.h" />
     <ClInclude Include="tree234.h" />
     <ClInclude Include="windows\rcstuff.h" />
+    <ClInclude Include="windows\wincapi.h" />
     <ClInclude Include="windows\winhelp.h" />
+    <ClInclude Include="windows\winsecur.h" />
     <ClInclude Include="windows\winstuff.h" />
     <ClInclude Include="windows\wintab.h" />
     <ClInclude Include="windows\wintabdraw.h" />
