@@ -8,6 +8,12 @@
  * default stuff used for local development runs of 'make'.
  */
 
-#define TEXTVER "PuTTY-ng, "
-#define SSHVER "PuTTY-Local: "
-#define BINARY_VERSION 6,7,0,0
+#define VERSION_MAJOR "0"
+#define VERSION_MINOR "67"
+#define PUTTY_ND_VERSION_MAJOR "6"
+#define PUTTY_ND_VERSION_MINOR "6"
+#define PUTTY_NG_VERSION "1"
+#define BINARY_VERSION 0,67,66,1
+
+#define TEXTVER "PuTTY-ng " VERSION_MAJOR "." VERSION_MINOR "." PUTTY_ND_VERSION_MAJOR "" PUTTY_ND_VERSION_MINOR "." PUTTY_NG_VERSION
+#define SSHVER "PuTTY-ng-" VERSION_MAJOR "." VERSION_MINOR

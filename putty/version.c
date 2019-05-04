@@ -10,8 +10,10 @@
 
 #include "version.h"
 
-char ver[] = TEXTVER  __DATE__ " " __TIME__;
-char sshver[] = SSHVER  __DATE__ " " __TIME__;
+#define BUILD_DATETIME __DATE__ " " __TIME__
+
+char ver[] = TEXTVER " (build at " BUILD_DATETIME ")";
+char sshver[] = SSHVER;
 
 /*
  * SSH local version string MUST be under 40 characters. Here's a
