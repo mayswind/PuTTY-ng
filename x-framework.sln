@@ -15,8 +15,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui_base", "library\ui_base\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui_gfx", "library\ui_gfx\ui_gfx.vcxproj", "{B3729B7B-E55E-4B0B-ABAE-F00D31623867}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "status_tray", "examples\status_tray\status_tray.vcxproj", "{E6255DF6-0C35-4F2E-A240-8022073520CA}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bubble", "examples\bubble\bubble.vcxproj", "{6E501D02-9396-4B35-970C-9144AD7404FC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chrome", "examples\chrome\chrome.vcxproj", "{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}"
@@ -61,10 +59,6 @@ Global
 		{B3729B7B-E55E-4B0B-ABAE-F00D31623867}.Debug|Win32.Build.0 = Debug|Win32
 		{B3729B7B-E55E-4B0B-ABAE-F00D31623867}.Release|Win32.ActiveCfg = Release|Win32
 		{B3729B7B-E55E-4B0B-ABAE-F00D31623867}.Release|Win32.Build.0 = Release|Win32
-		{E6255DF6-0C35-4F2E-A240-8022073520CA}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E6255DF6-0C35-4F2E-A240-8022073520CA}.Debug|Win32.Build.0 = Debug|Win32
-		{E6255DF6-0C35-4F2E-A240-8022073520CA}.Release|Win32.ActiveCfg = Release|Win32
-		{E6255DF6-0C35-4F2E-A240-8022073520CA}.Release|Win32.Build.0 = Release|Win32
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Debug|Win32.ActiveCfg = Debug|Win32
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Debug|Win32.Build.0 = Debug|Win32
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Release|Win32.ActiveCfg = Release|Win32

@@ -19,7 +19,6 @@ class PrefService;
 class Profile;
 class ProfileManager;
 class SidebarManager;
-class StatusTray;
 class TabCloseableStateWatcher;
 
 namespace base
@@ -76,11 +75,6 @@ public:
 
     // Returns the object that watches for changes in the closeable state of tab.
     virtual TabCloseableStateWatcher* tab_closeable_state_watcher() = 0;
-
-    // Returns the StatusTray, which provides an API for displaying status icons
-    // in the system status tray. Returns NULL if status icons are not supported
-    // on this platform (or this is a unit test).
-    virtual StatusTray* status_tray() = 0;
 
     // This will start a timer that, if Chrome is in persistent mode, will check
     // whether an update is available, and if that's the case, restart the

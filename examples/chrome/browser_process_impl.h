@@ -47,7 +47,6 @@ public:
     virtual const std::string& GetApplicationLocale();
     virtual void SetApplicationLocale(const std::string& locale);
     virtual TabCloseableStateWatcher* tab_closeable_state_watcher();
-    virtual StatusTray* status_tray();
 
     virtual void StartAutoupdateTimer();
 
@@ -72,9 +71,7 @@ private:
     void CreateIconManager();
     void CreateSidebarManager();
     void CreateNotificationUIManager();
-    void CreateStatusTrayManager();
     void CreateTabCloseableStateWatcher();
-    void CreateStatusTray();
 
     void ApplyDisabledSchemesPolicy();
     void ApplyAllowCrossOriginAuthPromptPolicy();
@@ -124,8 +121,6 @@ private:
     //scoped_ptr<AutomationProviderList> automation_provider_list_;
 
     //scoped_ptr<TabCloseableStateWatcher> tab_closeable_state_watcher_;
-
-    scoped_ptr<StatusTray> status_tray_;
 
     unsigned int module_ref_count_;
     bool did_start_;

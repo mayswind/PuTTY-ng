@@ -17,8 +17,6 @@
 
 #include "view/focus/view_storage.h"
 
-#include "../status_tray/status_tray.h"
-
 #include "browser_list.h"
 #include "profile.h"
 #include "profile_manager.h"
@@ -375,16 +373,6 @@ TabCloseableStateWatcher* BrowserProcessImpl::tab_closeable_state_watcher()
     return NULL;
 }
 
-StatusTray* BrowserProcessImpl::status_tray()
-{
-    DCHECK(CalledOnValidThread());
-    if(!status_tray_.get())
-    {
-        CreateStatusTray();
-    }
-    return status_tray_.get();
-}
-
 void BrowserProcessImpl::StartAutoupdateTimer()
 {
     autoupdate_timer_.Start(
@@ -624,12 +612,6 @@ void BrowserProcessImpl::CreateTabCloseableStateWatcher()
 {
     //DCHECK(tab_closeable_state_watcher_.get() == NULL);
     //tab_closeable_state_watcher_.reset(TabCloseableStateWatcher::Create());
-}
-
-void BrowserProcessImpl::CreateStatusTray()
-{
-    DCHECK(status_tray_.get() == NULL);
-    status_tray_.reset(StatusTray::Create());
 }
 
 void BrowserProcessImpl::ApplyDisabledSchemesPolicy()
