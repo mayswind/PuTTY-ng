@@ -1785,21 +1785,6 @@ void import(union control *ctrl, void *dlg,
 		refresh_session_treeview(hwndSess, &tvfaff, "");
 	}
 }
-void show_cloud_dlg(union control *ctrl, void *dlg,
-	void *data, int event)
-{
-	if (event == EVENT_ACTION) {
-		int do_cloud(void);
-		do_cloud();
-
-		struct treeview_faff tvfaff;
-		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-		tvfaff.treeview = hwndSess;
-		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
-		refresh_session_treeview(hwndSess, &tvfaff, "");
-	}
-}
-
 
 /*
  * This function is the configuration box.

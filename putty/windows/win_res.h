@@ -24,7 +24,6 @@
 #define IDI_START_LOG    216
 
 #define IDD_MAINBOX      102
-#define IDD_CLOUD_SESSION_BOX      103
 #define IDD_LOGBOX       110
 #define IDD_ABOUTBOX     111
 #define IDD_RECONF       112
@@ -51,6 +50,5 @@
 
 #define IDB_TREE        2001 
 
-#define IDC_CLOUD       3001
 #define IDC_CMD         4001
 #endif

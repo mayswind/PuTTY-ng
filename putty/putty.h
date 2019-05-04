@@ -65,8 +65,6 @@ typedef HDC Context;
 #define SHORTCUT_SETTING_NAME " Global Shotcuts"
 #define BUGS_SETTING_NAME " Global Bugs"
 #define DISABLE_WINDOWS_NATIVE_THEME_KEY "DisableWindowsNativeTheme"
-#define ACCESS_TOKEN_SETTING_KEY "Gat"
-#define REFRESH_TOKEN_SETTING_KEY "Grt"
 #define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
 
 #define TMP_CMD_NAME "Default Temp Scripts"

@@ -309,9 +309,6 @@
     <ClCompile Include="tmplstore.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\winclouddlg.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="globalcfg.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -84,8 +84,6 @@ void export_all(union control *ctrl, void *dlg,
 			  void *data, int event);
 void import(union control *ctrl, void *dlg,
 			  void *data, int event);
-void show_cloud_dlg(union control *ctrl, void *dlg,
-			  void *data, int event);
 
 void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 			  int midsession, int protocol)
@@ -111,13 +109,9 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 			    delete_item, P(hwndp));
 	c->generic.column = 2;
 
-	c = ctrl_pushbutton(s, "<=>Google", NULL, HELPCTX(no_help),
-		show_cloud_dlg, P(hwndp));
-	c->generic.column = 3;
-
 	c = ctrl_pushbutton(s, "About", NULL, HELPCTX(no_help),
 			    about_handler, P(hwndp));
-	c->generic.column = 4;
+	c->generic.column = 3;
 	//if (has_help) {
 	//    c = ctrl_pushbutton(s, "Help", 'h', HELPCTX(no_help),
 	//			help_handler, P(hwndp));

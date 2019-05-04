@@ -194,7 +194,6 @@ typedef void *Ssh_gss_name;
 GLOBAL HWND hTopWnd;	/* the main terminal window */
 GLOBAL HWND hConfigWnd;
 GLOBAL HWND hInputWnd;
-GLOBAL HWND hCloudWnd;
 GLOBAL HWND hCmdWnd;
 //GLOBAL HWND hwnd;	/* the main terminal window */
 //GLOBAL HWND logbox;
