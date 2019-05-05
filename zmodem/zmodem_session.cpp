@@ -1,4 +1,5 @@
 #include <Shlobj.h>
+#include "atlstr.h"
 
 #include "zmodem_session.h"
 #include "putty.h"
@@ -238,6 +239,11 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	file_select_state_ = FILE_SELECT_NONE;
 	tick_ = 0;
 
+	char* lastRecvFilePath = load_global_ssetting("LastZModemRecvPath", "");
+	USES_CONVERSION;
+	_tcscpy(lastRecvFilePath_, A2T(lastRecvFilePath));
+	sfree(lastRecvFilePath);
+
 	int i;
 	for (i=0;i<256;i++) {	
 		if (i & 0140){
@@ -449,7 +455,7 @@ void ZmodemSession::handleFrame()
 			ZeroMemory(&bi, sizeof(BROWSEINFO));
 			bi.ulFlags = BIF_NEWDIALOGSTYLE | BIF_EDITBOX;
 			bi.lpszTitle = TEXT("Select a folder. Files sended by zmodem would be put in this folder.");
-			bi.lParam = (LPARAM)(LPCTSTR)lastRecvFilePath_.c_str();
+			bi.lParam = (LPARAM)(LPCTSTR)lastRecvFilePath_;
 			bi.lpfn = browseCallbackProc;
 
 			LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
@@ -464,7 +470,8 @@ void ZmodemSession::handleFrame()
 
 			USES_CONVERSION;
 			recvFilePath_ = W2A(path);
-			lastRecvFilePath_ = std::string(recvFilePath_);
+			lstrcpyn(lastRecvFilePath_, path, MAX_PATH);
+			save_global_ssetting("LastZModemRecvPath", recvFilePath_.c_str());
 		}
 		return handleZfile();
     case ZDATA:

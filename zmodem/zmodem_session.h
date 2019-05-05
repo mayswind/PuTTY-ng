@@ -170,7 +170,7 @@ private:
 	bool isSz_;
 	FilePath uploadFilePath_;
 	std::string recvFilePath_;
-	std::string lastRecvFilePath_;
+	TCHAR lastRecvFilePath_[MAX_PATH] = {};
 	unsigned char zsendline_tab[256];
 	FileSelectState file_select_state_;
 
