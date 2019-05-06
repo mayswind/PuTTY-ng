@@ -470,8 +470,11 @@ void ZmodemSession::handleFrame()
 
 			USES_CONVERSION;
 			recvFilePath_ = W2A(path);
-			lstrcpyn(lastRecvFilePath_, path, MAX_PATH);
-			save_global_ssetting("LastZModemRecvPath", recvFilePath_.c_str());
+
+			if (lstrcmp(path, lastRecvFilePath_) != 0) {
+				lstrcpyn(lastRecvFilePath_, path, MAX_PATH);
+				save_global_ssetting("LastZModemRecvPath", recvFilePath_.c_str());
+			}
 		}
 		return handleZfile();
     case ZDATA:
