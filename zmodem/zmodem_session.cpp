@@ -730,6 +730,12 @@ void ZmodemSession::handleZfile()
 	if (zmodemFile_)
 		delete zmodemFile_;
 
+	if (frontend_->term->ucsdata->line_codepage < 65536) {
+		USES_CONVERSION;
+		std::wstring w_filename = A2W_CP(filename.c_str(), frontend_->term->ucsdata->line_codepage);
+		filename = W2A(w_filename.c_str());
+	}
+
 	std::string final_filename = filename;
 	std::string final_filepath = recvFilePath_ + "/" + final_filename;
 	std::ifstream fin(final_filepath.c_str());
@@ -756,7 +762,7 @@ void ZmodemSession::handleZfile()
 
 	fin.close();
 
-	zmodemFile_ = new ZmodemFile(recvFilePath_, final_filename, fileinfo);
+	zmodemFile_ = new ZmodemFile(frontend_, recvFilePath_, final_filename, fileinfo);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 
@@ -794,7 +800,14 @@ void ZmodemSession::sendFileInfo()
 	USES_CONVERSION;
 	base::PlatformFileInfo info;
 	bool res = GetFileInfo(uploadFilePath_, &info);
-	std::string basename(W2A(uploadFilePath_.BaseName().value().c_str()));
+
+	std::string basename = "";
+	if (frontend_->term->ucsdata->line_codepage < 65536) {
+		basename = W2A_CP(uploadFilePath_.BaseName().value().c_str(), frontend_->term->ucsdata->line_codepage);
+	} else {
+		basename = W2A(uploadFilePath_.BaseName().value().c_str());
+	}
+
 	if (res == false){
 		std::string out(std::string("can't get info of file:") + basename + "\r\n");
 		output(out.c_str());
@@ -824,7 +837,15 @@ void ZmodemSession::sendFileInfo()
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
 	}
-	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()), basename, info.size);
+
+	std::string uploadFilePath = "";
+	if (frontend_->term->ucsdata->line_codepage < 65536) {
+		uploadFilePath = W2A_CP(uploadFilePath_.value().c_str(), frontend_->term->ucsdata->line_codepage);
+	} else {
+		uploadFilePath = W2A(uploadFilePath_.value().c_str());
+	}
+
+	zmodemFile_ = new ZmodemFile(frontend_, uploadFilePath, basename, info.size);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 }

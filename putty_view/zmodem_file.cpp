@@ -1,10 +1,13 @@
 #include "zmodem_file.h"
+#include "native_putty_controller.h"
 #include <stdio.h>
+#include <atlconv.h>
 #include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <terminal.h>
 
 
 int mkdir(const char* dir, int attr);
@@ -47,10 +50,12 @@ void createDir(const std::string& thePath)
 
 
 ZmodemFile::ZmodemFile(
+	NativePuttyController* frontend,
 	const std::string& dir, 
 	const std::string& filename, 
 	const std::string& fileinfo)
-	: filename_(filename),
+	: frontend_(frontend),
+	filename_(filename),
 	file_size_(0),
 	file_time_(0),
 	pos_(0),
@@ -66,6 +71,12 @@ ZmodemFile::ZmodemFile(
 
 	full_path = full_path + filename;
 	prompt_ += full_path + " :";
+
+	if (frontend_->term->ucsdata->line_codepage < 65536) {
+		USES_CONVERSION;
+		std::wstring w_prompt = A2W(prompt_.c_str());
+		prompt_ = W2A_CP(w_prompt.c_str(), frontend->term->ucsdata->line_codepage);
+	}
 
 	unsigned found = full_path.find_last_of("/\\");
 	createDir(full_path.substr(0,found));
@@ -103,8 +114,9 @@ bool ZmodemFile::parseInfo(const std::string& fileinfo)
 	return 1;
 }
 
-ZmodemFile::ZmodemFile(const std::string& filepath, const std::string& basename, unsigned long filesize)
-	: filename_(filepath),
+ZmodemFile::ZmodemFile(NativePuttyController* frontend, const std::string& filepath, const std::string& basename, unsigned long filesize)
+	: frontend_(frontend),
+	filename_(filepath),
 	file_size_(filesize),
 	file_time_(0),
 	pos_(0),

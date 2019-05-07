@@ -4,10 +4,13 @@
 #include <string>
 #include <fstream>
 
+class NativePuttyController;
+
 class ZmodemFile
 {
 public:
 	ZmodemFile(
+	NativePuttyController* frontend,
 	const std::string& dir, 
 	const std::string& filename, 
 	const std::string& fileinfo);
@@ -21,7 +24,7 @@ public:
 	const std::string& getPrompt(){return prompt_;}
 	std::string getProgressLine();
 
-	ZmodemFile(const std::string& filepath, const std::string& basename, unsigned long filesize);
+	ZmodemFile(NativePuttyController* frontend, const std::string& filepath, const std::string& basename, unsigned long filesize);
 	unsigned read(char*buf, unsigned size);
 	void setPos(unsigned pos);
 
@@ -30,6 +33,7 @@ public:
 private:
 	bool parseInfo(const std::string& fileinfo);
 
+	NativePuttyController* frontend_;
 	std::fstream file_;
 	std::string filename_;
 	unsigned long file_size_;
