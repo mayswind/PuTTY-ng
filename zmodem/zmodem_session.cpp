@@ -365,7 +365,7 @@ void ZmodemSession::parseHexFrame()
 	frame_t frame;
     convHex2Plain(&hexframe, &frame);
     if (frame.crc != calcFrameCrc(&frame)){
-		output("crc error!\r\n");
+		output("\r\nZMODEM hex frame CRC error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -376,12 +376,12 @@ void ZmodemSession::parseHexFrame()
 			|| '\n' == buffer_[decodeIndex_]
 			|| -118 == buffer_[decodeIndex_]) ; decodeIndex_ ++);
 	if (old_index == decodeIndex_){
-		output("no line seed found!\r\n");
+		output("\r\nZMODEM hex frame error, no line seed found!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
 	if (frame.type != ZACK && frame.type != ZFIN && buffer_[decodeIndex_++] != XON){
-		output("XON expected!\r\n");
+		output("\r\nZMODEM hex frame error, XON is expected!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -405,7 +405,7 @@ void ZmodemSession::parseBinFrame()
 	decodeIndex_ += frame_len;
 
     if (frame.crc != calcFrameCrc(&frame)){
-		output("bin crc error!\r\n");
+		output("\r\nZMODEM bin frame CRC error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -429,7 +429,7 @@ void ZmodemSession::parseBin32Frame()
 	decodeIndex_ += frame_len;
 
     if (frame.crc != calcFrameCrc32(&frame)){
-		output("bin32 crc error!\r\n");
+		output("\r\nZMODEM bin32 frame CRC error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -461,7 +461,7 @@ void ZmodemSession::handleFrame()
 
 			LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
 			if (pidl == NULL){
-				output("User canceled folder selection!\r\n");
+				output("\r\nUser canceled folder selection!\r\n");
 				sendBin32FrameHeader(ZABORT, 0);
 				return;
 			}
@@ -489,6 +489,7 @@ void ZmodemSession::handleFrame()
     case ZFIN:
 		recvFilePath_.clear();
 		sendFinOnReset_ = true;
+		term_data(frontend_->term, 0, "\r\n\r\n", 4);
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
@@ -541,7 +542,7 @@ void ZmodemSession::handleFrame()
     case ZSTDERR: 
 
     default:
-        output("invalid frame type!\r\n");
+        output("\r\nZMODEM invalid frame type!\r\n");
 		bufferParsed_ = false;
         handleEvent(RESET_EVT);
         return ;
@@ -576,9 +577,6 @@ void ZmodemSession::sendZdata()
 		sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
 		term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
 				report_line.c_str(), report_line.length());
-		if (uploadFilePaths_.empty()) { // the last file, append a line break and a blank line
-			term_data(frontend_->term, 0, "\r\n\r\n", 4);
-		}
 		return;
 	}else{
 		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_EVT);
@@ -724,7 +722,7 @@ void ZmodemSession::handleZfile()
 	}
 
 	if (recv_crc != crc){
-		output("zfile frame crc invalid!\r\n");
+		output("\r\nZMODEM file frame CRC invalid!\r\n");
 		bufferParsed_ = false;
 		sendFinOnReset_ = true;
         handleEvent(RESET_EVT);
@@ -821,8 +819,16 @@ void ZmodemSession::sendFileInfo()
 		basename = W2A(filePath.BaseName().value().c_str());
 	}
 
+	std::string uploadFilePath = "";
+	if (frontend_->term->ucsdata->line_codepage < 65536) {
+		uploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
+	}
+	else {
+		uploadFilePath = W2A(filePath.value().c_str());
+	}
+
 	if (res == false){
-		std::string out(std::string("can't get info of file:") + basename + "\r\n");
+		std::string out(std::string("\r\nCannot read file: ") + uploadFilePath + "\r\n");
 		output(out.c_str());
 		bufferParsed_ = false;
 		handleEvent(RESET_EVT);
@@ -849,13 +855,6 @@ void ZmodemSession::sendFileInfo()
 	if (zmodemFile_){
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
-	}
-
-	std::string uploadFilePath = "";
-	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		uploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
-	} else {
-		uploadFilePath = W2A(filePath.value().c_str());
 	}
 
 	zmodemFile_ = new ZmodemFile(frontend_, uploadFilePath, basename, info.size);
@@ -915,7 +914,6 @@ void ZmodemSession::handleZdata()
 					std::string report_line(zmodemFile_->getProgressLine());
 					term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
 						report_line.c_str(), report_line.length());
-					term_data(frontend_->term, 0, "\r\n", 2);
 					handleEvent(NETWORK_INPUT_EVT);
 					return;
 				}
@@ -1026,7 +1024,7 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len)
 	if (getCurState().getId() ==  HANDLE_FRAME_STATE
 		&& len == 1
 		&& (*str == 'C' || *str == 'G' )){
-		output("It has been timeout for file selection! Server starts to try xmodem/ymodem which is not supported!\r\n");
+		output("\r\nIt has been timeout for file selection! Server starts to try xmodem/ymodem which is not supported!\r\n");
 		reset();
 		return true;
 	}
