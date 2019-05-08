@@ -7,6 +7,7 @@
 #include "native_putty_controller.h"
 #include "zmodem_file.h"
 #include "PuttyFileDialog.h"
+#include "PuttyMultiFileDialog.h"
 #include "base/file_util.h"
 #include "terminal.h"
 
@@ -306,7 +307,7 @@ void ZmodemSession::initState()
 	recv_len_ = 0;
 	lastEscaped_ = false;
 	sendFinOnReset_ = false;
-	uploadFilePath_.clear();
+	uploadFilePaths_.clear();
 	file_select_state_ = FILE_SELECT_NONE;
 	tick_ = 0;
 	return;
@@ -494,16 +495,19 @@ void ZmodemSession::handleFrame()
 		isSz_ = false;
 		if (file_select_state_ == FILE_SELECT_NONE){
 			file_select_state_ = FILE_SELECTING;
-			PuttyFileDialogSingleton::instance()->showOpenDialog(
+			PuttyMultiFileDialogSingleton::instance()->showOpenDialog(
 				frontend_->getNativeParentWindow(), this);
 			sendFinOnReset_ = true;
 			//no timer for user to select file
 			cancelTimer();
 		}else if (file_select_state_ == FILE_SELECTED && zmodemFile_ && !zmodemFile_->isGood()){
-			//complete or send other files;
+			if (!uploadFilePaths_.empty()) { // has another files, send next file
+				handleEvent(FILE_SELECTED_EVT);
+				return;
+			}
 			sendBin32FrameHeader(ZCOMPL, 0);
 			handleEvent(RESET_EVT);
-			file_select_state_ = FILE_SELECT_NONE;;
+			file_select_state_ = FILE_SELECT_NONE;
 		}
 		return;
     case ZRPOS:
@@ -572,7 +576,9 @@ void ZmodemSession::sendZdata()
 		sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
 		term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
 				report_line.c_str(), report_line.length());
-		term_data(frontend_->term, 0, "\r\n", 2);
+		if (uploadFilePaths_.empty()) { // the last file, append a line break and a blank line
+			term_data(frontend_->term, 0, "\r\n\r\n", 4);
+		}
 		return;
 	}else{
 		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_EVT);
@@ -797,15 +803,22 @@ void ZmodemSession::send_zsda32(char *buf, size_t length, char frameend)
 
 void ZmodemSession::sendFileInfo()
 {
+	if (uploadFilePaths_.empty()) {
+		return;
+	}
+
+	FilePath filePath = uploadFilePaths_.at(0);
+	uploadFilePaths_.erase(uploadFilePaths_.begin());
+
 	USES_CONVERSION;
 	base::PlatformFileInfo info;
-	bool res = GetFileInfo(uploadFilePath_, &info);
+	bool res = GetFileInfo(filePath, &info);
 
 	std::string basename = "";
 	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		basename = W2A_CP(uploadFilePath_.BaseName().value().c_str(), frontend_->term->ucsdata->line_codepage);
+		basename = W2A_CP(filePath.BaseName().value().c_str(), frontend_->term->ucsdata->line_codepage);
 	} else {
-		basename = W2A(uploadFilePath_.BaseName().value().c_str());
+		basename = W2A(filePath.BaseName().value().c_str());
 	}
 
 	if (res == false){
@@ -840,9 +853,9 @@ void ZmodemSession::sendFileInfo()
 
 	std::string uploadFilePath = "";
 	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		uploadFilePath = W2A_CP(uploadFilePath_.value().c_str(), frontend_->term->ucsdata->line_codepage);
+		uploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
 	} else {
-		uploadFilePath = W2A(uploadFilePath_.value().c_str());
+		uploadFilePath = W2A(filePath.value().c_str());
 	}
 
 	zmodemFile_ = new ZmodemFile(frontend_, uploadFilePath, basename, info.size);
@@ -1027,10 +1040,10 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len)
 
 //-----------------------------------------------------------------------------
 
-int ZmodemSession::onFileSelected(const FilePath& path)
+int ZmodemSession::onMultiFileSelected(const std::vector<FilePath>& paths)
 {
-	uploadFilePath_ = path;
-	file_select_state_ = FILE_SELECTED;;
+	uploadFilePaths_ = paths;
+	file_select_state_ = FILE_SELECTED;
 	handleEvent(FILE_SELECTED_EVT);
 	return 0;
 }

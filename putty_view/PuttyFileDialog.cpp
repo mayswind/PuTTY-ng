@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "PuttyFileDialog.h"
 #include "ui_base/shell_dialogs/select_file_policy.h"
 #include "zmodem_session.h"
@@ -44,7 +46,9 @@ void PuttyFileDialog::FileSelected(const FilePath& path,
 						int index, void* params)
 {
 	ZmodemSession* zSession = (ZmodemSession*) params;
-	zSession->onFileSelected(path);
+	std::vector<FilePath> files;
+	files.push_back(path);
+	zSession->onMultiFileSelected(files);
 }
 
 void PuttyFileDialog::FileSelectionCanceled(void* params)

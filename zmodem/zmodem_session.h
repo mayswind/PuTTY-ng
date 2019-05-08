@@ -10,6 +10,7 @@
 #include <base/synchronization/lock.h>
 #include <base/file_path.h>
 #include <string>
+#include <vector>
 #include <fstream>
 #include "zmodem.h"
 
@@ -72,7 +73,7 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len);
-	int onFileSelected(const FilePath& path);
+	int onMultiFileSelected(const std::vector<FilePath>& paths);
 	void reset();
 	void destroy();
 
@@ -168,7 +169,7 @@ private:
 
 	bool sendFinOnReset_;
 	bool isSz_;
-	FilePath uploadFilePath_;
+	std::vector<FilePath> uploadFilePaths_;
 	std::string recvFilePath_;
 	TCHAR lastRecvFilePath_[MAX_PATH] = {};
 	unsigned char zsendline_tab[256];
