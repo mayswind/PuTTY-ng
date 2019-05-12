@@ -1,7 +1,13 @@
 #ifndef PUTTY_CALLBACK_H
 #define PUTTY_CALLBACK_H
 
-void process_init();
+struct init_config {
+	int width;
+	int height;
+	bool maximized;
+};
+
+init_config* process_init();
 void process_fini();
 
 

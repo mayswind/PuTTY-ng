@@ -53,6 +53,20 @@ static void global_key_checkbox_handler(union control *ctrl, void *dlg,
 	}
 }
 
+static void global_key_checkbox_handler2(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	char* key = (char*)ctrl->checkbox.context.p;
+	if (event == EVENT_REFRESH) {
+		int val = load_global_isetting(key, 0);
+		dlg_checkbox_set(ctrl, dlg, val);
+	}
+	else if (event == EVENT_VALCHANGE) {
+		int val = dlg_checkbox_get(ctrl, dlg);
+		save_global_isetting(key, val);
+	}
+}
+
 static void global_key_editbox_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
@@ -224,7 +238,6 @@ void global_setup_config_box(struct controlbox *b)
 	/*
 	* Resize-by-changing-font is a Windows insanity.
 	*/
-	s = ctrl_getset(b, WINDOW_SETTING_NAME, "size", "Set the size of the window");
 	ctrl_radiobuttons(s, "When window is resized:", 'z', 1,
 		HELPCTX(window_resize),
 		global_key_radiobutton_handler,
@@ -233,6 +246,8 @@ void global_setup_config_box(struct controlbox *b)
 		"Change the size of the font", I(RESIZE_FONT),
 		"Change font size only when maximised", I(RESIZE_EITHER),
 		"Forbid resizing completely", I(RESIZE_DISABLED), NULL);
+
+	ctrl_checkbox(s, "Maximize window on startup", '\0', HELPCTX(no_help), global_key_checkbox_handler2, P(WINDOW_MAXIMIZED));
 
 	ctrl_settitle(b, SHORTCUT_SETTING_NAME, "Global Shortcut Settings");
 	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "~general", "Function to Keys(No check for duplicated keys)");

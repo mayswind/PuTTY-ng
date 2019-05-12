@@ -1963,9 +1963,9 @@ void NativePuttyController::resize_term()
         prev_rows = term->rows;
         prev_cols = term->cols;
         if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_TERM) {
-            w = width / font_width;
+            w = width / 10;
             if (w < 1) w = 1;
-            h = height / font_height;
+            h = height / 20;
             if (h < 1) h = 1;
             save_global_isetting(WINDOW_HEIGHT_KEY, h);
             save_global_isetting(WINDOW_WIDTH_KEY, w);

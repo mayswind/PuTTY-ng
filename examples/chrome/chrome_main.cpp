@@ -37,11 +37,11 @@ void ChromeMain::Run()
 
     MessageLoop main_message_loop(MessageLoop::TYPE_UI);
 	
-	process_init();
+	init_config* config = process_init();
 	CmdLineHandler::GetInstance()->handleCmd();
 
     // Show Main Window...
-    Browser* chrome = Browser::Create();
+    Browser* chrome = Browser::CreateInSpecifiedSize(config->width, config->height, config->maximized);
 
 	TabContentsWrapper* tabContent = 
 		CmdLineHandler::GetInstance()->isLeaderStartWithCmd() ? chrome->AddTabWithGlobalCfg(true)

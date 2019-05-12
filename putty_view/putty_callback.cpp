@@ -16,6 +16,7 @@
 #include "WinProcessor.h"
 #include "CmdLineHandler.h"
 #include "putty_global_config.h"
+#include "putty_callback.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -26,7 +27,7 @@ void pageant_init();
 //void fini_local_agent();
 base::RepeatingTimer<Processor::WinWorker>  gUITimer;
 
-void process_init()
+init_config* process_init()
 {
 	USES_CONVERSION;
 	flags = FLAG_INTERACTIVE;
@@ -122,6 +123,13 @@ void process_init()
 	ToolbarView::is_show_ = (is_show_toolbar != 0);
 	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
 	PuttyGlobalConfig::GetInstance()->initShortcutRules();
+
+	init_config* config = snew(struct init_config);
+	config->width = 800;
+	config->height = 600;
+	config->maximized = global_conf_get_int(WINDOW_MAXIMIZED) == 1;
+
+	return config;
 }
 
 void process_fini()

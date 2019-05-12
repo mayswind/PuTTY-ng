@@ -79,6 +79,7 @@ static const char *const saved_cmd_settings_folder = "__SavedCmds#";
 #define WINDOW_HEIGHT_DEFAULT "24"
 #define WINDOW_RESIZE_ACTION_KEY "WindowResizeAction"
 #define WINDOW_RESIZE_ACTION_DEFAULT "0"
+#define WINDOW_MAXIMIZED "WindowMaximized"
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
 #define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"

@@ -133,6 +133,17 @@ Browser* Browser::CreateForType(Type type)
     return CreateWithParams(params);
 }
 
+// static
+Browser* Browser::CreateInSpecifiedSize(int width, int height, bool maximized)
+{
+    Browser* browser = new Browser(TYPE_TABBED);
+    gfx::Rect monitorRect = view::GetMonitorBoundsForRect(gfx::Rect(0, 0, 10, 10));
+	browser->set_override_bounds(gfx::Rect((monitorRect.width() - width) / 2, (monitorRect.height() - height) / 2, width, height));
+	browser->set_show_state(maximized ? ui::SHOW_STATE_MAXIMIZED : ui::SHOW_STATE_NORMAL);
+    browser->InitBrowserWindow();
+    return browser;
+}
+
 void Browser::InitBrowserWindow()
 {
     DCHECK(!window_);

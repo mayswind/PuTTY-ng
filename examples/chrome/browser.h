@@ -94,6 +94,8 @@ public:
     // Like Create, but creates a browser of the specified type.
     static Browser* CreateForType(Type type);
 
+    static Browser* CreateInSpecifiedSize(int width, int height, bool maximized);
+
     // Set overrides for the initial window bounds and maximized state.
     void set_override_bounds(const gfx::Rect& bounds)
     {
