@@ -1408,8 +1408,8 @@ void term_copy_stuff_from_conf(Terminal *term)
     term->blink_cur = conf_get_int(term->conf, CONF_blink_cur);
     term->blinktext = conf_get_int(term->conf, CONF_blinktext);
     term->cjk_ambig_wide = conf_get_int(term->conf, CONF_cjk_ambig_wide);
-    term->conf_height = conf_get_int(term->conf, CONF_height);
-    term->conf_width = conf_get_int(term->conf, CONF_width);
+    term->conf_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
+    term->conf_width = global_conf_get_int(WINDOW_WIDTH_KEY);
     term->crhaslf = conf_get_int(term->conf, CONF_crhaslf);
     term->erase_to_scrollback = conf_get_int(term->conf, CONF_erase_to_scrollback);
     term->funky_type = conf_get_int(term->conf, CONF_funky_type);

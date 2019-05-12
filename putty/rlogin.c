@@ -182,8 +182,8 @@ static const char *rlogin_init(void *frontend_handle, void **backend_handle,
     rlogin->s = NULL;
     rlogin->closed_on_socket_error = FALSE;
     rlogin->frontend = frontend_handle;
-    rlogin->term_width = conf_get_int(conf, CONF_width);
-    rlogin->term_height = conf_get_int(conf, CONF_height);
+    rlogin->term_width = global_conf_get_int(WINDOW_WIDTH_KEY);
+    rlogin->term_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
     rlogin->firstbyte = 1;
     rlogin->cansize = 0;
     rlogin->prompt = NULL;

@@ -9,6 +9,36 @@ static const char* all_key_str[] = {"TAB", "`~",     "1", "2", "3", "4", "5", "6
 static const int all_key_val[] = { VK_TAB, VK_OEM_3, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', VK_OEM_MINUS, VK_OEM_PLUS, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6, VK_OEM_5, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1, VK_OEM_7, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2 };
 static const int all_key_val_count = sizeof(all_key_str) / sizeof(all_key_str[0]);
 
+static void global_key_radiobutton_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	char* key = (char*)ctrl->checkbox.context.p;
+	int button;
+	Conf *conf = (Conf *)data;
+
+	/*
+	* For a standard radio button set, the context parameter gives
+	* the primary key (CONF_foo), and the extra data per button
+	* gives the value the target field should take if that button
+	* is the one selected.
+	*/
+	if (event == EVENT_REFRESH) {
+		int val = global_conf_get_int(key);
+		for (button = 0; button < ctrl->radio.nbuttons; button++)
+			if (val == ctrl->radio.buttondata[button].i)
+				break;
+		/* We expected that `break' to happen, in all circumstances. */
+		assert(button < ctrl->radio.nbuttons);
+		dlg_radiobutton_set(ctrl, dlg, button);
+	}
+	else if (event == EVENT_VALCHANGE) {
+		button = dlg_radiobutton_get(ctrl, dlg);
+		assert(button >= 0 && button < ctrl->radio.nbuttons);
+		save_global_isetting(key,
+			ctrl->radio.buttondata[button].i);
+	}
+}
+
 static void global_key_checkbox_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
@@ -20,6 +50,45 @@ static void global_key_checkbox_handler(union control *ctrl, void *dlg,
 	else if (event == EVENT_VALCHANGE) {
 		int val = dlg_checkbox_get(ctrl, dlg);
 		save_global_isetting(key, val);
+	}
+}
+
+static void global_key_editbox_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	char* key = (char*)ctrl->checkbox.context.p;
+	int length = ctrl->editbox.context2.i;
+	Conf *conf = (Conf *)data;
+
+	if (length > 0) {
+		if (event == EVENT_REFRESH) {
+			char *field = load_global_ssetting(key, "");
+			dlg_editbox_set(ctrl, dlg, field);
+		}
+		else if (event == EVENT_VALCHANGE) {
+			char *field = dlg_editbox_get(ctrl, dlg);
+			save_global_ssetting(key, field);
+			sfree(field);
+		}
+	}
+	else if (length < 0) {
+		if (event == EVENT_REFRESH) {
+			char str[80];
+			int value = global_conf_get_int(key);
+			if (length == -1)
+				sprintf(str, "%d", value);
+			else
+				sprintf(str, "%g", (double)value / (double)(-length));
+			dlg_editbox_set(ctrl, dlg, str);
+		}
+		else if (event == EVENT_VALCHANGE) {
+			char *str = dlg_editbox_get(ctrl, dlg);
+			if (length == -1)
+				save_global_isetting(key, atoi(str));
+			else
+				save_global_isetting(key, (int)((-length) * atof(str)));
+			sfree(str);
+		}
 	}
 }
 
@@ -136,6 +205,34 @@ void global_setup_config_box(struct controlbox *b)
     struct controlset *s;
     union control *c;
 	
+	char* str = dupprintf("Options controlling %s's window", appname);
+	ctrl_settitle(b, WINDOW_SETTING_NAME, str);
+	sfree(str);
+
+	s = ctrl_getset(b, WINDOW_SETTING_NAME, "size", "Set the size of the window");
+	ctrl_columns(s, 2, 50, 50);
+	c = ctrl_editbox(s, "Columns", 'm', 100,
+		HELPCTX(window_size),
+		global_key_editbox_handler, P(WINDOW_WIDTH_KEY), I(-1));
+	c->generic.column = 0;
+	c = ctrl_editbox(s, "Rows", 'r', 100,
+		HELPCTX(window_size),
+		global_key_editbox_handler, P(WINDOW_HEIGHT_KEY), I(-1));
+	c->generic.column = 1;
+	ctrl_columns(s, 1, 100);
+
+	/*
+	* Resize-by-changing-font is a Windows insanity.
+	*/
+	s = ctrl_getset(b, WINDOW_SETTING_NAME, "size", "Set the size of the window");
+	ctrl_radiobuttons(s, "When window is resized:", 'z', 1,
+		HELPCTX(window_resize),
+		global_key_radiobutton_handler,
+		P(WINDOW_RESIZE_ACTION_KEY),
+		"Change the number of rows and columns", I(RESIZE_TERM),
+		"Change the size of the font", I(RESIZE_FONT),
+		"Change font size only when maximised", I(RESIZE_EITHER),
+		"Forbid resizing completely", I(RESIZE_DISABLED), NULL);
 
 	ctrl_settitle(b, SHORTCUT_SETTING_NAME, "Global Shortcut Settings");
 	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "~general", "Function to Keys(No check for duplicated keys)");

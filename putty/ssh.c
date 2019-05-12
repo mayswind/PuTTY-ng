@@ -10998,8 +10998,8 @@ static const char *ssh_init(void *frontend_handle, void **backend_handle,
 #endif
 
     ssh->frontend = frontend_handle;
-    ssh->term_width = conf_get_int(ssh->conf, CONF_width);
-    ssh->term_height = conf_get_int(ssh->conf, CONF_height);
+    ssh->term_width = global_conf_get_int(WINDOW_WIDTH_KEY);
+    ssh->term_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
 
     ssh->channels = NULL;
     ssh->rportfwds = NULL;

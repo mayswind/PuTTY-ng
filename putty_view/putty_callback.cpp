@@ -971,7 +971,7 @@ void move_window(void *frontend, int x, int y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-	int resize_action = conf_get_int( puttyController->cfg, CONF_resize_action);
+	int resize_action = global_conf_get_int(WINDOW_RESIZE_ACTION_KEY);
     if (resize_action == RESIZE_DISABLED || 
         resize_action == RESIZE_FONT ||
 		IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))

@@ -379,20 +379,6 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
                   HELPCTX(colours_system),
                   conf_checkbox_handler, I(CONF_system_colour));
 
-
-    /*
-     * Resize-by-changing-font is a Windows insanity.
-     */
-    s = ctrl_getset(b, "Window", "size", "Set the size of the window");
-    ctrl_radiobuttons(s, "When window is resized:", 'z', 1,
-		      HELPCTX(window_resize),
-		      conf_radiobutton_handler,
-		      I(CONF_resize_action),
-		      "Change the number of rows and columns", I(RESIZE_TERM),
-		      "Change the size of the font", I(RESIZE_FONT),
-		      "Change font size only when maximised", I(RESIZE_EITHER),
-		      "Forbid resizing completely", I(RESIZE_DISABLED), NULL);
-
     /*
      * Most of the Window/Behaviour stuff is there to mimic Windows
      * conventions which PuTTY can optionally disregard. Hence,

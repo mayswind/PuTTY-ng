@@ -62,6 +62,7 @@ typedef HDC Context;
 #define ANDROID_SETTING_NAME " ADB Manager"
 
 #define GLOBAL_SESSION_NAME "Global Settings"
+#define WINDOW_SETTING_NAME " Global Window"
 #define SHORTCUT_SETTING_NAME " Global Shotcuts"
 #define BUGS_SETTING_NAME " Global Bugs"
 #define DISABLE_WINDOWS_NATIVE_THEME_KEY "DisableWindowsNativeTheme"
@@ -71,6 +72,13 @@ typedef HDC Context;
 #define TMP_CMD_SESSION "__SavedCmds#Default Temp Scripts"
 static const char *const saved_cmd_settings_key = "SavedCmds#";
 static const char *const saved_cmd_settings_folder = "__SavedCmds#";
+
+#define WINDOW_WIDTH_KEY "WindowColumnSize"
+#define WINDOW_WIDTH_DEFAULT "80"
+#define WINDOW_HEIGHT_KEY "WindowRowSize"
+#define WINDOW_HEIGHT_DEFAULT "24"
+#define WINDOW_RESIZE_ACTION_KEY "WindowResizeAction"
+#define WINDOW_RESIZE_ACTION_DEFAULT "0"
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
 #define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
@@ -401,7 +409,7 @@ enum {
 };
 
 enum {
-    /* Resize actions (CONF_resize_action) */
+    /* Resize actions (CONF_resize_action / Global Settings: WINDOW_RESIZE_ACTION_KEY) */
     RESIZE_TERM, RESIZE_DISABLED, RESIZE_FONT, RESIZE_EITHER
 };
 
@@ -855,12 +863,9 @@ void cleanup_exit(int);
     X(FILENAME, NONE, bell_wavefile) \
     X(INT, NONE, scrollbar) \
     X(INT, NONE, scrollbar_in_fullscreen) \
-    X(INT, NONE, resize_action) \
     X(INT, NONE, bce) \
     X(INT, NONE, blinktext) \
     X(INT, NONE, win_name_always) \
-    X(INT, NONE, width) \
-    X(INT, NONE, height) \
     X(FONT, NONE, font) \
     X(INT, NONE, font_quality) \
     X(FILENAME, NONE, logfilename) \
@@ -1088,6 +1093,7 @@ void registry_cleanup(void);
 char* load_global_ssetting(char* setting, const char* def);
 void save_global_ssetting(char* setting, const char* value);
 int load_global_isetting(char* setting, int def);
+int global_conf_get_int(char* setting);
 void save_global_isetting(char* setting, int value);
 bool is_pre_defined_session(const char* session_name);
 bool cannot_save_session(const char* session_name);

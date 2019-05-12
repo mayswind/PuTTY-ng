@@ -743,8 +743,8 @@ static const char *telnet_init(void *frontend_handle, void **backend_handle,
     telnet->sb_buf = NULL;
     telnet->sb_size = 0;
     telnet->frontend = frontend_handle;
-    telnet->term_width = conf_get_int(telnet->conf, CONF_width);
-    telnet->term_height = conf_get_int(telnet->conf, CONF_height);
+    telnet->term_width = global_conf_get_int(WINDOW_WIDTH_KEY);
+    telnet->term_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
     telnet->state = TOP_LEVEL;
     telnet->ldisc = NULL;
     telnet->pinger = NULL;

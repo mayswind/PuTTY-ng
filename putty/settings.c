@@ -643,8 +643,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "DisableBidi", conf_get_int(conf, CONF_bidi));
     iStorage->write_setting_i(sesskey, "WinNameAlways", conf_get_int(conf, CONF_win_name_always));
     iStorage->write_setting_s(sesskey, "WinTitle", conf_get_str(conf, CONF_wintitle));
-    iStorage->write_setting_i(sesskey, "TermWidth", conf_get_int(conf, CONF_width));
-    iStorage->write_setting_i(sesskey, "TermHeight", conf_get_int(conf, CONF_height));
     iStorage->write_setting_fontspec(sesskey, "Font", conf_get_fontspec(conf, CONF_font));
     iStorage->write_setting_i(sesskey, "FontQuality", conf_get_int(conf, CONF_font_quality));
     iStorage->write_setting_i(sesskey, "FontVTMode", conf_get_int(conf, CONF_vtmode));
@@ -696,7 +694,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "ScrollOnKey", conf_get_int(conf, CONF_scroll_on_key));
     iStorage->write_setting_i(sesskey, "ScrollOnDisp", conf_get_int(conf, CONF_scroll_on_disp));
     iStorage->write_setting_i(sesskey, "EraseToScrollback", conf_get_int(conf, CONF_erase_to_scrollback));
-    iStorage->write_setting_i(sesskey, "LockSize", conf_get_int(conf, CONF_resize_action));
     iStorage->write_setting_i(sesskey, "BCE", conf_get_int(conf, CONF_bce));
     iStorage->write_setting_i(sesskey, "BlinkText", conf_get_int(conf, CONF_blinktext));
     iStorage->write_setting_i(sesskey, "X11Forward", conf_get_int(conf, CONF_x11_forward));
@@ -1151,8 +1148,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "DisableBidi", 0, conf, CONF_bidi);
     gppi(iStorage, sesskey, "WinNameAlways", 1, conf, CONF_win_name_always);
     gpps(iStorage, sesskey, "WinTitle", "", conf, CONF_wintitle);
-    gppi(iStorage, sesskey, "TermWidth", 80, conf, CONF_width);
-    gppi(iStorage, sesskey, "TermHeight", 24, conf, CONF_height);
     gppfont(iStorage, sesskey, "Font", conf, CONF_font);
     gppi(iStorage, sesskey, "FontQuality", FQ_DEFAULT, conf, CONF_font_quality);
     gppi(iStorage, sesskey, "FontVTMode", VT_UNICODE, conf, CONF_vtmode);
@@ -1235,7 +1230,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "ScrollOnKey", 0, conf, CONF_scroll_on_key);
     gppi(iStorage, sesskey, "ScrollOnDisp", 1, conf, CONF_scroll_on_disp);
     gppi(iStorage, sesskey, "EraseToScrollback", 1, conf, CONF_erase_to_scrollback);
-    gppi(iStorage, sesskey, "LockSize", 0, conf, CONF_resize_action);
     gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
     gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
     gppi(iStorage, sesskey, "X11Forward", 1, conf, CONF_x11_forward);
@@ -1629,6 +1623,20 @@ char *backup_settings(const char *section,const char* path)
     return NULL;
 }
 
+int get_default_int_value(char* key) {
+	if (!strcmp(key, WINDOW_WIDTH_KEY)) {
+		return atoi(WINDOW_WIDTH_DEFAULT);
+	}
+	else if (!strcmp(key, WINDOW_HEIGHT_KEY)) {
+		return atoi(WINDOW_HEIGHT_DEFAULT);
+	}
+	else if (!strcmp(key, WINDOW_RESIZE_ACTION_KEY)) {
+		return atoi(WINDOW_RESIZE_ACTION_DEFAULT);
+	}
+
+	return 0;
+}
+
 char* load_global_ssetting(char* setting, const char* def)
 {
 	void *sesskey = gStorage->open_global_settings();
@@ -1652,6 +1660,12 @@ int load_global_isetting(char* setting, int def)
 	int ret = gStorage->read_setting_i(sesskey, setting, def);
 	gStorage->close_settings_r(sesskey);
 	return ret;
+}
+
+int global_conf_get_int(char* setting)
+{
+	int def = get_default_int_value(setting);
+	return load_global_isetting(setting, def);
 }
 
 char* savedcmd_to_string(const SavedCmd& cmd)

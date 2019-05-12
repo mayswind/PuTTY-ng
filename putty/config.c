@@ -2277,18 +2277,6 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_settitle(b, "Window", str);
     sfree(str);
 
-    s = ctrl_getset(b, "Window", "size", "Set the size of the window");
-    ctrl_columns(s, 2, 50, 50);
-    c = ctrl_editbox(s, "Columns", 'm', 100,
-		     HELPCTX(window_size),
-		     conf_editbox_handler, I(CONF_width), I(-1));
-    c->generic.column = 0;
-    c = ctrl_editbox(s, "Rows", 'r', 100,
-		     HELPCTX(window_size),
-		     conf_editbox_handler, I(CONF_height),I(-1));
-    c->generic.column = 1;
-    ctrl_columns(s, 1, 100);
-
     s = ctrl_getset(b, "Window", "scrollback",
 		    "Control the scrollback in the window");
     ctrl_editbox(s, "Lines of scrollback", 's', 50,
