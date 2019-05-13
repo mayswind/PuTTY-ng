@@ -84,7 +84,13 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
     char *disrawname = strrchr(session_name, '#');
     disrawname = (disrawname == NULL)? session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
-	disName = A2W(disrawname);
+    char* wintitle = conf_get_str(cfg, CONF_wintitle);
+    if (strlen(wintitle) > 0) {
+        disName = A2W(wintitle);
+    }
+    else {
+        disName = A2W(disrawname);
+    }
     close_mutex= CreateMutex(NULL, FALSE, NULL);
 	backend_state = LOADING;
 	isClickingOnPage = false;
@@ -1036,7 +1042,6 @@ int NativePuttyController::on_reconfig()
 	int init_lvl = 1;
 	int reconfig_result;
    
-	//GetWindowText(hwnd, conf_get_int(cfg, CONF_wintitle), sizeof(conf_get_int(cfg, CONF_wintitle)));
 	prev_cfg = conf_copy(this->cfg);
     conf_copy_into(::cfg, this->cfg);
 
@@ -1140,7 +1145,32 @@ int NativePuttyController::on_reconfig()
 	//    init_lvl = 2;
 	//}
 
-	////set_title(this, this->conf_get_int(cfg, CONF_wintitle));
+	USES_CONVERSION;
+	bool needUpdateTabName = false;
+	char* prev_wintitle = conf_get_str(prev_cfg, CONF_wintitle);
+	char* wintitle = conf_get_str(cfg, CONF_wintitle);
+	if (strcmp(prev_wintitle, wintitle) != 0) {
+		disName = A2W(wintitle);
+		needUpdateTabName = true;
+	}
+
+	char* prev_session_name = conf_get_str(prev_cfg, CONF_session_name);
+	char* session_name = conf_get_str(cfg, CONF_session_name);
+	if (strlen(wintitle) == 0 || strcmp(prev_session_name, session_name) != 0) {
+		char* disrawname = strrchr(prev_session_name, '#');
+		disrawname = (disrawname == NULL) ? session_name : (disrawname + 1);
+		strncpy(disRawName, disrawname, 256);
+
+		if (strlen(wintitle) == 0) {
+			disName = A2W(disrawname);
+			needUpdateTabName = true;
+		}
+	}
+
+	if (needUpdateTabName) {
+		this->updateTab();
+	}
+
 	//if (IsIconic(hwnd)) {
 	//    SetWindowText(hwnd,
 	//		  this->conf_get_int(cfg, CONF_win_name_always) ? this->window_name :
@@ -3809,11 +3839,31 @@ void NativePuttyController::rename(const char* input_name)
 		char *disrawname = strrchr(session_name, '#');
 		disrawname = (disrawname == NULL) ? session_name : (disrawname + 1);
 		strncpy(disRawName, disrawname, 256);
-		disName = A2W(disrawname);
+		char* wintitle = conf_get_str(cfg, CONF_wintitle);
+		if (strlen(wintitle) > 0) {
+			disName = A2W(wintitle);
+		}
+		else {
+			disName = A2W(disrawname);
+		}
 	}
 	else{
 		disName = A2W(name);
 	}
+
+	this->updateTab();
+}
+
+void NativePuttyController::hide_toolbar()
+{
+	ToolbarView::is_show_ = !ToolbarView::is_show_;
+	save_global_isetting(IF_SHOW_TOOLBAR_SETTING, ToolbarView::is_show_);
+	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
+}
+
+void NativePuttyController::updateTab() {
+	view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(view_);
+	if (puttyView == NULL){ return; }
 
 	TabContents* contents = puttyView->GetContents();
 	Browser* browser = dynamic_cast<Browser*>(contents->delegate());
@@ -3839,14 +3889,6 @@ void NativePuttyController::rename(const char* input_name)
 	//baseTab->SetData(data);
 	//browserView->UpdateTitleBar();
 }
-
-void NativePuttyController::hide_toolbar()
-{
-	ToolbarView::is_show_ = !ToolbarView::is_show_;
-	save_global_isetting(IF_SHOW_TOOLBAR_SETTING, ToolbarView::is_show_);
-	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
-}
-
 
 bool NativePuttyController::isActive()
 {

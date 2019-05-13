@@ -2346,8 +2346,8 @@ void setup_config_box(struct controlbox *b, int midsession,
     sfree(str);
 
     s = ctrl_getset(b, "Window/Behaviour", "title",
-		    "Adjust the behaviour of the window title");
-    ctrl_editbox(s, "Window title:", 't', 100,
+		    "Adjust the behaviour of the tab title");
+    ctrl_editbox(s, "Tab title:", 't', 100,
 		 HELPCTX(appearance_title),
 		 conf_editbox_handler, I(CONF_wintitle), I(1));
     ctrl_checkbox(s, "Separate window and icon titles", 'i',

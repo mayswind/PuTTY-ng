@@ -128,6 +128,7 @@ public:
 	void rename(const char* input_name = NULL); 
 	void rename_cfg();
 	void hide_toolbar();
+	void updateTab();
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
 	bool isActive();
