@@ -216,6 +216,7 @@
     <ClInclude Include="storage.h" />
     <ClInclude Include="terminal.h" />
     <ClInclude Include="tree234.h" />
+    <ClInclude Include="version.h" />
     <ClInclude Include="windows\rcstuff.h" />
     <ClInclude Include="windows\wincapi.h" />
     <ClInclude Include="windows\winhelp.h" />
