@@ -219,9 +219,7 @@ void global_setup_config_box(struct controlbox *b)
     struct controlset *s;
     union control *c;
 	
-	char* str = dupprintf("Options controlling %s's window", appname);
-	ctrl_settitle(b, WINDOW_SETTING_NAME, str);
-	sfree(str);
+	ctrl_settitle(b, WINDOW_SETTING_NAME, "Options controlling PuTTY-ng's window");
 
 	s = ctrl_getset(b, WINDOW_SETTING_NAME, "size", "Set the size of the window");
 	ctrl_columns(s, 2, 50, 50);
