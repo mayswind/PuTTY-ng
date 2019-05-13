@@ -1997,8 +1997,8 @@ void NativePuttyController::resize_term()
             if (w < 1) w = 1;
             h = height / 20;
             if (h < 1) h = 1;
-            save_global_isetting(WINDOW_HEIGHT_KEY, h);
-            save_global_isetting(WINDOW_WIDTH_KEY, w);
+//            save_global_isetting(WINDOW_HEIGHT_KEY, h);
+//            save_global_isetting(WINDOW_WIDTH_KEY, w);
             term_size(term, h, w, conf_get_int(cfg, CONF_savelines));
 			reset_window(RESET_FONT);
         } else if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) != RESIZE_FONT){
