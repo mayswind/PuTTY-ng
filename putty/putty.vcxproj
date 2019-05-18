@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>PUTTY_ND;SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;DEBUG;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../vendor/fsm;../library;../putty_view/;.;./charset;./windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../vendor/framework-nd/DesignPattern/include;../vendor/framework-nd/Fsm/include;../vendor/framework-nd/Log/include;../vendor/framework-nd/Net/include;../vendor/framework-nd/Utility/include;../vendor/framework-nd;../vendor;../library;../putty_view/;.;./charset;./windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -67,7 +67,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../vendor/fsm;../library;../putty_view/;.;./charset;./windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../vendor/framework-nd/DesignPattern/include;../vendor/framework-nd/Fsm/include;../vendor/framework-nd/Log/include;../vendor/framework-nd/Net/include;../vendor/framework-nd/Utility/include;../vendor/framework-nd;../vendor;../library;../putty_view/;.;./charset;./windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PUTTY_ND;NDEBUG;SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

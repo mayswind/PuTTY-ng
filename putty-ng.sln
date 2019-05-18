@@ -23,7 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "putty", "putty\putty.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "putty_view", "putty_view\putty_view.vcxproj", "{71E270A4-9025-43E2-9827-EC8ECB079CF7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsm", "vendor\fsm\fsm.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "framework-nd", "vendor\framework-nd\framework-nd.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adb", "adb\adb.vcxproj", "{C707947D-11F3-46FD-8831-D870D623511D}"
 EndProject
