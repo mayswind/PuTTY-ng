@@ -42,10 +42,10 @@
     <ClInclude Include="window_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\zmodem\zmodem_session.h">
+    <ClInclude Include="zmodem_session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\zmodem\zmodem.h">
+    <ClInclude Include="zmodem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zmodem_file.h">
@@ -80,7 +80,7 @@
     <ClCompile Include="CmdLineHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\zmodem\zmodem_session.cpp">
+    <ClCompile Include="zmodem_session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zmodem_file.cpp">

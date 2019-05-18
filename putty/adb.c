@@ -8,8 +8,8 @@
 
 #include "putty.h"
 #include "ldisc.h"
-#include "../fsm/KfifoBuffer.h"
-#include "../fsm/WinProcessor.h"
+#include "../vendor/fsm/KfifoBuffer.h"
+#include "../vendor/fsm/WinProcessor.h"
 
 #ifndef FALSE
 #define FALSE 0

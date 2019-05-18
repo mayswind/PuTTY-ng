@@ -23,11 +23,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "putty", "putty\putty.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "putty_view", "putty_view\putty_view.vcxproj", "{71E270A4-9025-43E2-9827-EC8ECB079CF7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsm", "fsm\fsm.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsm", "vendor\fsm\fsm.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adb", "adb\adb.vcxproj", "{C707947D-11F3-46FD-8831-D870D623511D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libevent", "libevent\libevent.vcxproj", "{70F53B4C-505A-4FAE-9871-94824D9FE12B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libevent", "vendor\libevent\libevent.vcxproj", "{70F53B4C-505A-4FAE-9871-94824D9FE12B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vendor", "vendor", "{9D7587A6-FC94-42CB-972D-592107A1F009}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -90,5 +92,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{06084ADD-B115-414D-9659-894A8865E713} = {9D7587A6-FC94-42CB-972D-592107A1F009}
+		{70F53B4C-505A-4FAE-9871-94824D9FE12B} = {9D7587A6-FC94-42CB-972D-592107A1F009}
 	EndGlobalSection
 EndGlobal

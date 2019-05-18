@@ -56,7 +56,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../fsm;../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;../../putty_view/;../../putty/;../../putty/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vendor/fsm;../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;../../putty_view/;../../putty/;../../putty/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -86,7 +86,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../../fsm;../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;../../putty_view/;../../putty/;../../putty/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../vendor/fsm;../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;../../putty_view/;../../putty/;../../putty/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -275,10 +275,10 @@
     <ProjectReference Include="..\..\adb\adb.vcxproj">
       <Project>{c707947d-11f3-46fd-8831-d870d623511d}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\fsm\fsm.vcxproj">
+    <ProjectReference Include="..\..\vendor\fsm\fsm.vcxproj">
       <Project>{06084add-b115-414d-9659-894a8865e713}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\libevent\libevent.vcxproj">
+    <ProjectReference Include="..\..\vendor\libevent\libevent.vcxproj">
       <Project>{70f53b4c-505a-4fae-9871-94824d9fe12b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\library\base\base.vcxproj">

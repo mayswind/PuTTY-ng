@@ -1,6 +1,6 @@
 #include "window_interface.h"
 
-#include "../fsm/WinProcessor.h"
+#include "../vendor/fsm/WinProcessor.h"
 #include "putty_callback.h"
 
 void WindowInterface::at_exit()
