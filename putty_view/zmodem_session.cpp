@@ -6,7 +6,6 @@
 #include "crctab.c"
 #include "native_putty_controller.h"
 #include "zmodem_file.h"
-#include "PuttyFileDialog.h"
 #include "PuttyMultiFileDialog.h"
 #include "base/file_util.h"
 #include "terminal.h"

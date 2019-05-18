@@ -18,7 +18,7 @@
 #include "Mmsystem.h"
 
 #include "zmodem_session.h"
-#include "PuttyFileDialog.h"
+#include "PuttyMultiFileDialog.h"
 #include "putty_view.h"
 
 extern int is_session_log_enabled(void *handle);

@@ -51,9 +51,6 @@
     <ClInclude Include="zmodem_file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PuttyFileDialog.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="RulesTable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,9 +81,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zmodem_file.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PuttyFileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="readlnk.cpp">

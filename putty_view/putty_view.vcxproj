@@ -87,7 +87,6 @@
     <ClInclude Include="native_putty_common.h" />
     <ClInclude Include="native_putty_controller.h" />
     <ClInclude Include="native_putty_page.h" />
-    <ClInclude Include="PuttyFileDialog.h" />
     <ClInclude Include="PuttyMultiFileDialog.h" />
     <ClInclude Include="putty_callback.h" />
     <ClInclude Include="putty_global_config.h" />
@@ -103,7 +102,6 @@
     <ClCompile Include="native_putty_common.cpp" />
     <ClCompile Include="native_putty_controller.cpp" />
     <ClCompile Include="native_putty_page.cpp" />
-    <ClCompile Include="PuttyFileDialog.cpp" />
     <ClCompile Include="PuttyMultiFileDialog.cpp" />
     <ClCompile Include="putty_callback.cpp" />
     <ClCompile Include="putty_view.cpp" />
