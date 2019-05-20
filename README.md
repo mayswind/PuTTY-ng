@@ -3,7 +3,7 @@
 [![Lastest Release](https://img.shields.io/github/release/mayswind/putty-ng.svg?style=flat)](https://github.com/mayswind/putty-ng/releases)
 
 ## Introduction
-A improved PuTTY with better user experience. This project is based on noddle1983's [putty-nd](https://github.com/noodle1983/putty-nd3.x).
+An improved multi-tabbed PuTTY with better user experience. This project is based on noddle1983's [putty-nd](https://github.com/noodle1983/putty-nd3.x).
 
 ## Features
 1. Multi-tabbed PuTTY with tab dragging and input sharing
