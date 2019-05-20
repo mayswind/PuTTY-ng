@@ -3,7 +3,7 @@
 [![Lastest Release](https://img.shields.io/github/release/mayswind/putty-ng.svg?style=flat)](https://github.com/mayswind/putty-ng/releases)
 
 ## Introduction
-A improved PuTTY with better user experience. This project is based on noddle's [putty-nd](https://github.com/noodle1983/putty-nd3.x).
+A improved PuTTY with better user experience. This project is based on noddle1983's [putty-nd](https://github.com/noodle1983/putty-nd3.x).
 
 ## Features
 1. Multi-tabbed PuTTY with tab dragging and input sharing
@@ -20,9 +20,10 @@ A improved PuTTY with better user experience. This project is based on noddle's 
 ## Dependencies
 - [PuTTY](https://www.putty.org)
 - [Chromium](https://www.chromium.org)
-- [libevent](http://libevent.org)
+- [libevent](https://libevent.org)
 - [boost](https://www.boost.org)
 - [RapidJSON](http://rapidjson.org)
+- [x-framework](https://x-framework.googlecode.com)
 - [framework-nd](https://github.com/noodle1983/framework-nd)
 - [putty-nd](https://github.com/noodle1983/putty-nd3.x)
 
