@@ -613,7 +613,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "LocalEcho", conf_get_int(conf, CONF_localecho));
     iStorage->write_setting_i(sesskey, "LocalEdit", conf_get_int(conf, CONF_localedit));
     iStorage->write_setting_s(sesskey, "Answerback", conf_get_str(conf, CONF_answerback));
-    iStorage->write_setting_i(sesskey, "AlwaysOnTop", conf_get_int(conf, CONF_alwaysontop));
     iStorage->write_setting_i(sesskey, "FullScreenOnAltEnter", conf_get_int(conf, CONF_fullscreenonaltenter));
     iStorage->write_setting_i(sesskey, "HideMousePtr", conf_get_int(conf, CONF_hide_mouseptr));
     iStorage->write_setting_i(sesskey, "SunkenEdge", conf_get_int(conf, CONF_sunken_edge));
@@ -1104,7 +1103,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "LocalEcho", AUTO, conf, CONF_localecho);
     gppi(iStorage, sesskey, "LocalEdit", AUTO, conf, CONF_localedit);
     gpps(iStorage, sesskey, "Answerback", "PuTTY", conf, CONF_answerback);
-    gppi(iStorage, sesskey, "AlwaysOnTop", 0, conf, CONF_alwaysontop);
     gppi(iStorage, sesskey, "FullScreenOnAltEnter", 0, conf, CONF_fullscreenonaltenter);
     gppi(iStorage, sesskey, "HideMousePtr", 0, conf, CONF_hide_mouseptr);
     gppi(iStorage, sesskey, "SunkenEdge", 0, conf, CONF_sunken_edge);

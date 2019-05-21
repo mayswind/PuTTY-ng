@@ -128,6 +128,7 @@ init_config* process_init()
 	config->width = 800;
 	config->height = 600;
 	config->maximized = global_conf_get_int(WINDOW_MAXIMIZED) == 1;
+	config->alwaysontop = global_conf_get_int(WINDOW_ALWAYS_TOP) == 1;
 
 	return config;
 }
@@ -996,9 +997,9 @@ void set_zorder(void *frontend, int top)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    if (conf_get_int( puttyController->cfg, CONF_alwaysontop))
+    if (global_conf_get_int(WINDOW_ALWAYS_TOP) == 1)
 	return;			       /* ignore */
-    SetWindowPos(puttyController->getNativePage(), top ? HWND_TOP : HWND_BOTTOM, 0, 0, 0, 0,
+    SetWindowPos(puttyController->getNativeParentWindow(), top ? HWND_TOP : HWND_BOTTOM, 0, 0, 0, 0,
 		 SWP_NOMOVE | SWP_NOSIZE);
 }
 

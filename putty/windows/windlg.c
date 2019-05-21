@@ -386,6 +386,11 @@ static int SaneDialogBox(HINSTANCE hinst,
 	ShowWindow(hwnd, SW_SHOW);
 
 	bringToForeground(hwnd);
+
+	if (global_conf_get_int(WINDOW_ALWAYS_TOP) == 1) {
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	}
+
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
     SetWindowLongPtr(hwnd, BOXRESULT, 0); /* result from SaneEndDialog */
 

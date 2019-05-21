@@ -1103,17 +1103,6 @@ int NativePuttyController::on_reconfig()
 
 	    nexflag = exflag;
         nflg = flag;
-	    if (conf_get_int(cfg, CONF_alwaysontop) != conf_get_int(prev_cfg, CONF_alwaysontop)) {
-    		if (conf_get_int(cfg, CONF_alwaysontop)) {
-    		    nexflag |= WS_EX_TOPMOST;
-    		    SetWindowPos(getNativePage(), HWND_TOPMOST, 0, 0, 0, 0,
-    				 SWP_NOMOVE | SWP_NOSIZE);
-    		} else {
-    		    nexflag &= ~(WS_EX_TOPMOST);
-    		    SetWindowPos(getNativePage(), HWND_NOTOPMOST, 0, 0, 0, 0,
-    				 SWP_NOMOVE | SWP_NOSIZE);
-    		}
-	    }
 
 	    if (nflg != flag || nexflag != exflag) {
     		if (nflg != flag)

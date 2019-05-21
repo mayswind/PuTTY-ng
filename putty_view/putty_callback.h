@@ -5,6 +5,7 @@ struct init_config {
 	int width;
 	int height;
 	bool maximized;
+	bool alwaysontop;
 };
 
 init_config* process_init();

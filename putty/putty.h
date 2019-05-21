@@ -79,6 +79,7 @@ static const char *const saved_cmd_settings_folder = "__SavedCmds#";
 #define WINDOW_HEIGHT_DEFAULT "24"
 #define WINDOW_RESIZE_ACTION_KEY "WindowResizeAction"
 #define WINDOW_RESIZE_ACTION_DEFAULT "0"
+#define WINDOW_ALWAYS_TOP "WindowAlwaysOnTop"
 #define WINDOW_MAXIMIZED "WindowMaximized"
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
@@ -838,7 +839,6 @@ void cleanup_exit(int);
     X(INT, NONE, alt_only) /* is it special? */ \
     X(INT, NONE, localecho) \
     X(INT, NONE, localedit) \
-    X(INT, NONE, alwaysontop) \
     X(INT, NONE, fullscreenonaltenter) \
     X(INT, NONE, scroll_on_key) \
     X(INT, NONE, scroll_on_disp) \

@@ -41,7 +41,7 @@ void ChromeMain::Run()
 	CmdLineHandler::GetInstance()->handleCmd();
 
     // Show Main Window...
-    Browser* chrome = Browser::CreateInSpecifiedSize(config->width, config->height, config->maximized);
+    Browser* chrome = Browser::CreateInSpecifiedSize(config->width, config->height, config->maximized, config->alwaysontop);
 
 	TabContentsWrapper* tabContent = 
 		CmdLineHandler::GetInstance()->isLeaderStartWithCmd() ? chrome->AddTabWithGlobalCfg(true)

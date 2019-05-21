@@ -38,6 +38,7 @@ void BrowserFrame::InitBrowserFrame()
         // created.
         params.bounds = browser_view_->browser()->GetSavedWindowBounds();
         params.show_state = browser_view_->browser()->GetSavedWindowShowState();
+        params.keep_on_top = browser_view_->browser()->GetIsAlwaysOnTop();
     }
     Init(params);
 }

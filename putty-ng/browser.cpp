@@ -134,12 +134,13 @@ Browser* Browser::CreateForType(Type type)
 }
 
 // static
-Browser* Browser::CreateInSpecifiedSize(int width, int height, bool maximized)
+Browser* Browser::CreateInSpecifiedSize(int width, int height, bool maximized, bool alwaysontop)
 {
     Browser* browser = new Browser(TYPE_TABBED);
     gfx::Rect monitorRect = view::GetMonitorBoundsForRect(gfx::Rect(0, 0, 10, 10));
 	browser->set_override_bounds(gfx::Rect((monitorRect.width() - width) / 2, (monitorRect.height() - height) / 2, width, height));
 	browser->set_show_state(maximized ? ui::SHOW_STATE_MAXIMIZED : ui::SHOW_STATE_NORMAL);
+	browser->set_is_always_on_top(alwaysontop);
     browser->InitBrowserWindow();
     return browser;
 }
@@ -244,6 +245,11 @@ ui::WindowShowState Browser::GetSavedWindowShowState() const
     //WindowSizer::GetBrowserWindowBounds(app_name_, restored_bounds, this,
     //    &restored_bounds, &maximized);
     return maximized ? ui::SHOW_STATE_MAXIMIZED : ui::SHOW_STATE_NORMAL;
+}
+
+bool Browser::GetIsAlwaysOnTop() const
+{
+    return is_always_on_top_;
 }
 
 SkBitmap Browser::GetCurrentPageIcon() const

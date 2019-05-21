@@ -94,7 +94,7 @@ public:
     // Like Create, but creates a browser of the specified type.
     static Browser* CreateForType(Type type);
 
-    static Browser* CreateInSpecifiedSize(int width, int height, bool maximized);
+    static Browser* CreateInSpecifiedSize(int width, int height, bool maximized, bool alwaysontop);
 
     // Set overrides for the initial window bounds and maximized state.
     void set_override_bounds(const gfx::Rect& bounds)
@@ -104,6 +104,10 @@ public:
     void set_show_state(ui::WindowShowState show_state)
     {
         show_state_ = show_state;
+    }
+    void set_is_always_on_top(bool is_always_on_top)
+    {
+        is_always_on_top_ = is_always_on_top;
     }
     // Return true if the initial window bounds have been overridden.
     bool bounds_overridden() const
@@ -164,6 +168,7 @@ public:
         ui::WindowShowState show_state);
     gfx::Rect GetSavedWindowBounds() const;
     ui::WindowShowState GetSavedWindowShowState() const;
+    bool GetIsAlwaysOnTop() const;
 
     // Gets the Favicon of the page in the selected tab.
     SkBitmap GetCurrentPageIcon() const;
@@ -820,6 +825,7 @@ private:
     // shell shortcut's startup info.
     gfx::Rect override_bounds_;
     ui::WindowShowState show_state_;
+    bool is_always_on_top_;
 
     // Tracks when this browser is being created by session restore.
     bool is_session_restore_;
