@@ -2231,10 +2231,11 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_checkbox(s, "Disable xterm-style mouse reporting", 'x',
 		  HELPCTX(features_mouse),
 		  conf_checkbox_handler, I(CONF_no_mouse_rep));
-    ctrl_checkbox(s, "Disable remote-controlled terminal resizing", 's',
-		  HELPCTX(features_resize),
-		  conf_checkbox_handler,
-		  I(CONF_no_remote_resize));
+// PuTTY-ng does not support remote-controlled window resizing
+//    ctrl_checkbox(s, "Disable remote-controlled terminal resizing", 's',
+//		  HELPCTX(features_resize),
+//		  conf_checkbox_handler,
+//		  I(CONF_no_remote_resize));
     ctrl_checkbox(s, "Disable switching to alternate terminal screen", 'w',
 		  HELPCTX(features_altscreen),
 		  conf_checkbox_handler, I(CONF_no_alt_screen));

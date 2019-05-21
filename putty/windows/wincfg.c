@@ -397,10 +397,11 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
     ctrl_checkbox(s, "Ensure window is always on top", 'e',
 		  HELPCTX(behaviour_alwaysontop),
 		  conf_checkbox_handler, I(CONF_alwaysontop));
-    ctrl_checkbox(s, "Full screen on Alt-Enter", 'f',
-		  HELPCTX(behaviour_altenter),
-		  conf_checkbox_handler,
-		  I(CONF_fullscreenonaltenter));
+// PuTTY-ng does not support full screen mode
+//    ctrl_checkbox(s, "Full screen on Alt-Enter", 'f',
+//		  HELPCTX(behaviour_altenter),
+//		  conf_checkbox_handler,
+//		  I(CONF_fullscreenonaltenter));
 
     /*
      * Windows supports a local-command proxy. This also means we
