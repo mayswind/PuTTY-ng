@@ -735,9 +735,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "ConnectionSharingUpstream", conf_get_int(conf, CONF_ssh_connection_sharing_upstream));
     iStorage->write_setting_i(sesskey, "ConnectionSharingDownstream", conf_get_int(conf, CONF_ssh_connection_sharing_downstream));
     wmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys, FALSE);
-
-	iStorage->write_setting_i(sesskey, "NoRemoteTabName", conf_get_int(conf, CONF_no_remote_tabname));
-	iStorage->write_setting_i(sesskey, "NoRemoteTabNameInIcon", conf_get_int(conf, CONF_no_remote_tabname_in_icon));
     iStorage->write_setting_i(sesskey, "LinesAtAScroll", conf_get_int(conf, CONF_scrolllines));
     iStorage->write_setting_i(sesskey, "PasteDelay", conf_get_int(conf, CONF_paste_delay));
 	for (i = 0; i < AUTOCMD_COUNT; i++){
@@ -1281,9 +1278,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "ConnectionSharingUpstream", 1, conf, CONF_ssh_connection_sharing_upstream);
     gppi(iStorage, sesskey, "ConnectionSharingDownstream", 1, conf, CONF_ssh_connection_sharing_downstream);
     gppmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
-
-	gppi(iStorage, sesskey, "NoRemoteTabName", 0, conf, CONF_no_remote_tabname);
-	gppi(iStorage, sesskey, "NoRemoteTabNameInIcon", 1, conf, CONF_no_remote_tabname_in_icon);
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
 	gppi(iStorage, sesskey, "PasteDelay", 0, conf, CONF_paste_delay);
 	int autocmd_count = gppi_raw(iStorage, sesskey, "AutocmdCount", AUTOCMD_COUNT);

@@ -2238,18 +2238,10 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_checkbox(s, "Disable switching to alternate terminal screen", 'w',
 		  HELPCTX(features_altscreen),
 		  conf_checkbox_handler, I(CONF_no_alt_screen));
-    ctrl_checkbox(s, "Disable remote-controlled window title changing", 't',
+    ctrl_checkbox(s, "Disable remote-controlled tab title changing", 't',
 		  HELPCTX(features_retitle),
 		  conf_checkbox_handler,
 		  I(CONF_no_remote_wintitle));
-    ctrl_checkbox(s, "Disable remote-controlled tab title changing", NULL,
-		  HELPCTX(features_retitle),
-		  conf_checkbox_handler,
-		  I(CONF_no_remote_tabname));
-    ctrl_checkbox(s, "Disable tracing directory in tab title", NULL,
-		  HELPCTX(features_retitle),
-		  conf_checkbox_handler,
-		  I(CONF_no_remote_tabname_in_icon));
     ctrl_radiobuttons(s, "Response to remote title query (SECURITY):", 'q', 3,
 		      HELPCTX(features_qtitle),
 		      conf_radiobutton_handler,

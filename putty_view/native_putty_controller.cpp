@@ -1065,7 +1065,7 @@ int NativePuttyController::on_reconfig()
 	//	ShowWindow(hwnd, SW_RESTORE);
 	//    }
 	//}
-	//if (!prev_cfg.no_remote_tabname && conf_get_int(cfg, CONF_no_remote_tabname)){
+	//if (!prev_cfg.no_remote_wintitle && conf_get_int(cfg, CONF_no_remote_wintitle)){
  //       char *disrawname = strrchr(conf_get_int(this->cfg, CONF_session_name), '#');
  //       disrawname = (disrawname == NULL)? conf_get_int(this->cfg, CONF_session_name) : (disrawname + 1);
  //       strncpy(this->disRawName, disrawname, 256);
