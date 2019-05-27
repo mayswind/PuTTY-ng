@@ -1357,7 +1357,7 @@ void update_specials_menu(void *frontend)
 		saved_menu = new_menu; /* XXX lame stacking */
 		new_menu = CreatePopupMenu();
 		AppendMenu(saved_menu, MF_POPUP | MF_ENABLED,
-			   (UINT) new_menu, A2W(puttyController->specials[i].name));
+			   (UINT_PTR) new_menu, A2W(puttyController->specials[i].name));
 		break;
 	      case TS_EXITMENU:
 		nesting--;
@@ -1382,13 +1382,14 @@ void update_specials_menu(void *frontend)
     for (j = 0; j < lenof(popup_menus); j++) {
 	if (puttyController->specials_menu) {
 	    // XXX does this free up all submenus? 
-	    DeleteMenu(popup_menus[j].menu, (UINT)specials_menu, MF_BYCOMMAND);
+	    DeleteMenu(popup_menus[j].menu, (UINT_PTR)specials_menu,
+                       MF_BYCOMMAND);
 	    DeleteMenu(popup_menus[j].menu, IDM_SPECIALSEP, MF_BYCOMMAND);
 	}
 	if (new_menu) {
 	    InsertMenu(popup_menus[j].menu, IDM_SHOWLOG,
 		       MF_BYCOMMAND | MF_POPUP | MF_ENABLED,
-		       (UINT) new_menu, "S&pecial Command");
+		       (UINT_PTR) new_menu, "S&pecial Command");
 	    InsertMenu(popup_menus[j].menu, IDM_SHOWLOG,
 		       MF_BYCOMMAND | MF_SEPARATOR, IDM_SPECIALSEP, 0);
 	}
@@ -1617,8 +1618,8 @@ void logevent(void *frontend, const char *str)
     puttyController->nevents++;
 }
 
-static int CALLBACK LogProc(HWND hwnd, UINT msg,
-			    WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
+                                WPARAM wParam, LPARAM lParam)
 {
 	USES_CONVERSION;
     int i;

@@ -14,8 +14,8 @@
 #include "proxy.h"
 #include "ssh.h"
 
-#include "winsecur.h"
 #include "wincapi.h"
+#include "winsecur.h"
 
 #define COVERITY
 #ifdef COVERITY

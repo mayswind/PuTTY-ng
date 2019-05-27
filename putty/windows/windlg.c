@@ -165,8 +165,8 @@ void force_normal(HWND hwnd)
 
 
 
-static int CALLBACK LicenceProc(HWND hwnd, UINT msg,
-				WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK LicenceProc(HWND hwnd, UINT msg,
+                                    WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
       case WM_INITDIALOG:
@@ -192,8 +192,8 @@ static int CALLBACK LicenceProc(HWND hwnd, UINT msg,
     return 0;
 }
 
-static int CALLBACK AboutProc(HWND hwnd, UINT msg,
-			      WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK AboutProc(HWND hwnd, UINT msg,
+                                  WPARAM wParam, LPARAM lParam)
 {
     char *str;
 
@@ -505,8 +505,8 @@ static int SaneDialogBox(HINSTANCE hinst,
 /*
  * Null dialog procedure.
  */
-static int CALLBACK NullDlgProc(HWND hwnd, UINT msg,
-				WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK NullDlgProc(HWND hwnd, UINT msg,
+                                    WPARAM wParam, LPARAM lParam)
 {
     return 0;
 }
@@ -1796,8 +1796,8 @@ void import(union control *ctrl, void *dlg,
  * (Being a dialog procedure, in general it returns 0 if the default
  * dialog processing should be performed, and 1 if it should not.)
  */
-static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
-				       WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
+                                           WPARAM wParam, LPARAM lParam)
 {
     HWND hw, sessionview, treeview;
     struct treeview_faff tvfaff;
@@ -2329,6 +2329,33 @@ int askalg(void *frontend, const char *algtype, const char *algname,
     title = dupprintf(mbtitle, appname);
     mbret = MessageBox(NULL, message, title,
 		MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2 | MB_TOPMOST);
+    socket_reselect_all();
+    sfree(message);
+    sfree(title);
+    if (mbret == IDYES)
+	return 1;
+    else
+	return 0;
+}
+
+int askhk(void *frontend, const char *algname, const char *betteralgs,
+          void (*callback)(void *ctx, int result), void *ctx)
+{
+    static const char mbtitle[] = "%s Security Alert";
+    static const char msg[] =
+	"The first host key type we have stored for this server\n"
+	"is %s, which is below the configured warning threshold.\n"
+	"The server also provides the following types of host key\n"
+        "above the threshold, which we do not have stored:\n"
+        "%s\n"
+	"Do you want to continue with this connection?\n";
+    char *message, *title;
+    int mbret;
+
+    message = dupprintf(msg, algname, betteralgs);
+    title = dupprintf(mbtitle, appname);
+    mbret = MessageBox(NULL, message, title,
+		       MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2);
     socket_reselect_all();
     sfree(message);
     sfree(title);
