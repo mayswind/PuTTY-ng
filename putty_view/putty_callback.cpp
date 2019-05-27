@@ -1504,6 +1504,13 @@ int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, i
     return ret;
 }
 
+int frontend_is_utf8(void *frontend)
+{
+    assert(frontend != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+    return puttyController->term->ucsdata->line_codepage == CP_UTF8;
+}
+
 char *get_ttymode(void *frontend, const char *mode)
 {
     assert(frontend != NULL);

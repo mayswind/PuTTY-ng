@@ -5521,7 +5521,7 @@ typedef struct {
 static void clip_addchar(clip_workbuf *b, wchar_t chr, int attr)
 {
     if (b->bufpos >= b->buflen) {
-	b->buflen += 128;
+	b->buflen *= 2;
 	b->textbuf = sresize(b->textbuf, b->buflen, wchar_t);
 	b->textptr = b->textbuf + b->bufpos;
 	b->attrbuf = sresize(b->attrbuf, b->buflen, int);
@@ -6819,6 +6819,8 @@ char *term_get_ttymode(Terminal *term, const char *mode)
     const char *val = NULL;
     if (strcmp(mode, "ERASE") == 0) {
 	val = term->bksp_is_delete ? "^?" : "^H";
+    } else if (strcmp(mode, "IUTF8") == 0) {
+	val = frontend_is_utf8(term->frontend) ? "yes" : "no";
     }
     /* FIXME: perhaps we should set ONLCR based on lfhascr as well? */
     /* FIXME: or ECHO and friends based on local echo state? */

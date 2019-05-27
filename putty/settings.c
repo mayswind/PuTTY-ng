@@ -34,11 +34,15 @@ static const struct keyvalwhere ciphernames[] = {
     { "des",        CIPHER_DES,             -1, -1 }
 };
 
+/* The default order here is sometimes overridden by the backward-
+ * compatibility warts in load_open_settings(), and should be kept
+ * in sync with those. */
 static const struct keyvalwhere kexnames[] = {
     { "ecdh",               KEX_ECDH,       -1, +1 },
+    /* This name is misleading: it covers both SHA-256 and SHA-1 variants */
     { "dh-gex-sha1",        KEX_DHGEX,      -1, -1 },
     { "dh-group14-sha1",    KEX_DHGROUP14,  -1, -1 },
-    { "dh-group1-sha1",     KEX_DHGROUP1,   -1, -1 },
+    { "dh-group1-sha1",     KEX_DHGROUP1,   KEX_WARN, +1 },
     { "rsa",                KEX_RSA,        KEX_WARN, -1 },
     { "WARN",               KEX_WARN,       -1, -1 }
 };
@@ -65,11 +69,11 @@ const char *const ttymodes[] = {
     "SWTCH",	"STATUS",   "DISCARD",	"IGNPAR",   "PARMRK",
     "INPCK",	"ISTRIP",   "INLCR",	"IGNCR",    "ICRNL",
     "IUCLC",	"IXON",     "IXANY",	"IXOFF",    "IMAXBEL",
-    "ISIG",	"ICANON",   "XCASE",	"ECHO",     "ECHOE",
-    "ECHOK",	"ECHONL",   "NOFLSH",	"TOSTOP",   "IEXTEN",
-    "ECHOCTL",	"ECHOKE",   "PENDIN",	"OPOST",    "OLCUC",
-    "ONLCR",	"OCRNL",    "ONOCR",	"ONLRET",   "CS7",
-    "CS8",	"PARENB",   "PARODD",	NULL
+    "IUTF8",    "ISIG",     "ICANON",   "XCASE",    "ECHO",
+    "ECHOE",    "ECHOK",    "ECHONL",   "NOFLSH",   "TOSTOP",
+    "IEXTEN",   "ECHOCTL",  "ECHOKE",   "PENDIN",   "OPOST",
+    "OLCUC",    "ONLCR",    "OCRNL",    "ONOCR",    "ONLRET",
+    "CS7",      "CS8",      "PARENB",   "PARODD",   NULL
 };
 
 /*
@@ -340,19 +344,14 @@ static const char *val2key(const struct keyvalwhere *mapping,
  * to the end and duplicates are weeded.
  * XXX: assumes vals in 'mapping' are small +ve integers
  */
-static void gprefs(IStore* iStorage, void *sesskey, const char *name, const char *def,
-		   const struct keyvalwhere *mapping, int nvals,
-		   Conf *conf, int primary)
+static void gprefs_from_str(const char *str,
+			    const struct keyvalwhere *mapping, int nvals,
+			    Conf *conf, int primary)
 {
-    char *commalist;
+    char *commalist = dupstr(str);
     char *p, *q;
     int i, j, n, v, pos;
     unsigned long seen = 0;	       /* bitmap for weeding dups etc */
-
-    /*
-     * Fetch the string which we'll parse as a comma-separated list.
-     */
-    commalist = gpps_raw(iStorage, sesskey, name, def);
 
     /*
      * Go through that list and convert it into values.
@@ -422,6 +421,106 @@ static void gprefs(IStore* iStorage, void *sesskey, const char *name, const char
             }
         }
     }
+}
+
+/*
+ * Helper function to parse a comma-separated list of strings into
+ * a preference list array of values. Any missing values are added
+ * to the end and duplicates are weeded.
+ * XXX: assumes vals in 'mapping' are small +ve integers
+ */
+static void gprefs(const char *str,
+			    const struct keyvalwhere *mapping, int nvals,
+			    Conf *conf, int primary)
+{
+    char *commalist = dupstr(str);
+    char *p, *q;
+    int i, j, n, v, pos;
+    unsigned long seen = 0;	       /* bitmap for weeding dups etc */
+
+    /*
+     * Go through that list and convert it into values.
+     */
+    n = 0;
+    p = commalist;
+    while (1) {
+        while (*p && *p == ',') p++;
+        if (!*p)
+            break;                     /* no more words */
+
+        q = p;
+        while (*p && *p != ',') p++;
+        if (*p) *p++ = '\0';
+
+        v = key2val(mapping, nvals, q);
+        if (v != -1 && !(seen & (1 << v))) {
+	    seen |= (1 << v);
+            conf_set_int_int(conf, primary, n, v);
+            n++;
+	}
+    }
+
+    sfree(commalist);
+
+    /*
+     * Now go through 'mapping' and add values that weren't mentioned
+     * in the list we fetched. We may have to loop over it multiple
+     * times so that we add values before other values whose default
+     * positions depend on them.
+     */
+    while (n < nvals) {
+        for (i = 0; i < nvals; i++) {
+	    assert(mapping[i].v < 32);
+
+	    if (!(seen & (1 << mapping[i].v))) {
+                /*
+                 * This element needs adding. But can we add it yet?
+                 */
+                if (mapping[i].vrel != -1 && !(seen & (1 << mapping[i].vrel)))
+                    continue;          /* nope */
+
+                /*
+                 * OK, we can work out where to add this element, so
+                 * do so.
+                 */
+                if (mapping[i].vrel == -1) {
+                    pos = (mapping[i].where < 0 ? n : 0);
+                } else {
+                    for (j = 0; j < n; j++)
+                        if (conf_get_int_int(conf, primary, j) ==
+                            mapping[i].vrel)
+                            break;
+                    assert(j < n);     /* implied by (seen & (1<<vrel)) */
+                    pos = (mapping[i].where < 0 ? j : j+1);
+                }
+
+                /*
+                 * And add it.
+                 */
+                for (j = n-1; j >= pos; j--)
+                    conf_set_int_int(conf, primary, j+1,
+                                     conf_get_int_int(conf, primary, j));
+                conf_set_int_int(conf, primary, pos, mapping[i].v);
+                seen |= (1 << mapping[i].v);
+                n++;
+            }
+        }
+    }
+}
+
+/*
+ * Read a preference list.
+ */
+static void gprefs(IStore* iStorage, void *sesskey, const char *name, const char *def,
+		   const struct keyvalwhere *mapping, int nvals,
+		   Conf *conf, int primary)
+{
+    /*
+     * Fetch the string which we'll parse as a comma-separated list.
+     */
+    char *value = gpps_raw(iStorage, sesskey, name, def);
+    gprefs_from_str(value, mapping, nvals, conf, primary);
+    sfree(value);
 }
 
 /* 
@@ -1039,20 +1138,44 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gprefs(iStorage, sesskey, "Cipher", "\0",
 	   ciphernames, CIPHER_MAX, conf, CONF_ssh_cipherlist);
     {
-	/* Backward-compatibility: we used to have an option to
+	/* Backward-compatibility: before 0.58 (when the "KEX"
+	 * preference was first added), we had an option to
 	 * disable gex under the "bugs" panel after one report of
 	 * a server which offered it then choked, but we never got
 	 * a server version string or any other reports. */
-	const char *default_kexes;
+	const char *default_kexes,
+	           *normal_default = "ecdh,dh-gex-sha1,dh-group14-sha1,rsa,"
+		       "WARN,dh-group1-sha1",
+		   *bugdhgex2_default = "ecdh,dh-group14-sha1,rsa,"
+		       "WARN,dh-group1-sha1,dh-gex-sha1";
+	char *raw;
 	i = 2 - gppi_raw(iStorage, sesskey, "BugDHGEx2", 0);
 	if (i == FORCE_ON)
-            default_kexes = "ecdh,dh-group14-sha1,dh-group1-sha1,rsa,"
-                "WARN,dh-gex-sha1";
+            default_kexes = bugdhgex2_default;
 	else
-            default_kexes = "ecdh,dh-gex-sha1,dh-group14-sha1,"
-                "dh-group1-sha1,rsa,WARN";
-	gprefs(iStorage, sesskey, "KEX", default_kexes,
-	       kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
+            default_kexes = normal_default;
+	/* Migration: after 0.67 we decided we didn't like
+	 * dh-group1-sha1. If it looks like the user never changed
+	 * the defaults, quietly upgrade their settings to demote it.
+	 * (If they did, they're on their own.) */
+	raw = gpps_raw(iStorage, sesskey, "KEX", default_kexes);
+	assert(raw != NULL);
+	/* Lack of 'ecdh' tells us this was saved by 0.58-0.67
+	 * inclusive. If it was saved by a later version, we need
+	 * to leave it alone. */
+	if (strcmp(raw, "dh-group14-sha1,dh-group1-sha1,rsa,"
+		   "WARN,dh-gex-sha1") == 0) {
+	    /* Previously migrated from BugDHGEx2. */
+	    sfree(raw);
+	    raw = dupstr(bugdhgex2_default);
+	} else if (strcmp(raw, "dh-gex-sha1,dh-group14-sha1,"
+			  "dh-group1-sha1,rsa,WARN") == 0) {
+	    /* Untouched old default setting. */
+	    sfree(raw);
+	    raw = dupstr(normal_default);
+	}
+	gprefs_from_str(raw, kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
+	sfree(raw);
     }
     gprefs(iStorage, sesskey, "HostKey", "ed25519,ecdsa,rsa,dsa,WARN",
            hknames, HK_MAX, conf, CONF_ssh_hklist);
