@@ -32,11 +32,18 @@ init_config* process_init()
 	USES_CONVERSION;
 	flags = FLAG_INTERACTIVE;
 
+	dll_hijacking_protection();
+
 	WindowInterface::GetInstance()->init_ui_msg_loop();
 	cfg = conf_new();
 	sk_init();
 	init_flashwindow();
 	pageant_init();
+
+	/* Set Explicit App User Model Id so that jump lists don't cause
+	PuTTY to hang on to removable media. */
+
+	set_explicit_app_user_model_id();
 
 	if (!init_winver())
     {

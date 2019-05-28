@@ -352,6 +352,7 @@ void sftp_register(struct sftp_request *req)
 struct sftp_request *sftp_find_request(struct sftp_packet *pktin)
 {
     unsigned long id;
+    unsigned fid;
     struct sftp_request *req;
 
     if (!pktin) {
@@ -363,7 +364,8 @@ struct sftp_request *sftp_find_request(struct sftp_packet *pktin)
 	fxp_internal_error("did not receive a valid SFTP packet\n");
 	return NULL;
     }
-    req = (struct sftp_request *)find234(sftp_requests, &id, sftp_reqfind);
+    fid = (unsigned)id;
+    req = (struct sftp_request *)find234(sftp_requests, &fid, sftp_reqfind);
 
     if (!req || !req->registered) {
 	fxp_internal_error("request ID mismatch\n");
@@ -656,11 +658,12 @@ struct sftp_request *fxp_close_send(struct fxp_handle *handle)
     return req;
 }
 
-void fxp_close_recv(struct sftp_packet *pktin, struct sftp_request *req)
+int fxp_close_recv(struct sftp_packet *pktin, struct sftp_request *req)
 {
     sfree(req);
     fxp_got_status(pktin);
     sftp_pkt_free(pktin);
+    return fxp_errtype == SSH_FX_OK;
 }
 
 struct sftp_request *fxp_mkdir_send(const char *path)
