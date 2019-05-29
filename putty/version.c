@@ -8,12 +8,17 @@
  * to do here is to drop it into variables of the right names.
  */
 
+#ifdef SOURCE_COMMIT
+// #include "empty.h"
+#endif
+
 #include "version.h"
 
 #define BUILD_DATETIME __DATE__ " " __TIME__
 
 char ver[] = TEXTVER " (build at " BUILD_DATETIME ")";
 char sshver[] = SSHVER;
+char commitid[] = SOURCE_COMMIT;
 
 /*
  * SSH local version string MUST be under 40 characters. Here's a

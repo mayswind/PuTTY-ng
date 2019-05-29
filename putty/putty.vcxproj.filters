@@ -318,6 +318,9 @@
     <ClCompile Include="windows\wincapi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="aqsync.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">
