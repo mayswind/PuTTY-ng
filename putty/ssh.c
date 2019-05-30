@@ -814,6 +814,7 @@ struct ssh_tag {
     int send_ok;
     int echoing, editing;
 
+    int session_started;
 
     int ospeed, ispeed;		       /* temporaries */
     int term_width, term_height;
@@ -3077,6 +3078,10 @@ static void ssh_send_verstring(Ssh ssh, const char *protoname, char *svers)
     }
 
     ssh_fix_verstring(verstring + strlen(protoname));
+#ifdef FUZZING
+    /* FUZZING make PuTTY insecure, so make live use difficult. */
+    verstring[0] = 'I';
+#endif
 
     if (ssh->version == 2) {
 	size_t len;
@@ -3125,6 +3130,8 @@ static int do_ssh_init(Ssh ssh, unsigned char c)
 	    crReturn(1);
 	crReturn(1);
     }
+
+    ssh->session_started = TRUE;
 
     s->vstrsize = sizeof(protoname) + 16;
     s->vstring = snewn(s->vstrsize, char);
@@ -3506,34 +3513,20 @@ static void ssh_socket_log(Plug plug, int type, SockAddr addr, int port,
                            const char *error_msg, int error_code)
 {
     Ssh ssh = (Ssh) plug;
-    char addrbuf[256], *msg;
 
-    if (ssh->attempting_connshare) {
-        /*
-         * While we're attempting connection sharing, don't loudly log
-         * everything that happens. Real TCP connections need to be
-         * logged when we _start_ trying to connect, because it might
-         * be ages before they respond if something goes wrong; but
-         * connection sharing is local and quick to respond, and it's
-         * sufficient to simply wait and see whether it worked
-         * afterwards.
-         */
-    } else {
-        sk_getaddr(addr, addrbuf, lenof(addrbuf));
+    /*
+     * While we're attempting connection sharing, don't loudly log
+     * everything that happens. Real TCP connections need to be logged
+     * when we _start_ trying to connect, because it might be ages
+     * before they respond if something goes wrong; but connection
+     * sharing is local and quick to respond, and it's sufficient to
+     * simply wait and see whether it worked afterwards.
+     */
 
-        if (type == 0) {
-            if (sk_addr_needs_port(addr)) {
-                msg = dupprintf("Connecting to %s port %d", addrbuf, port);
-            } else {
-                msg = dupprintf("Connecting to %s", addrbuf);
-            }
-        } else {
-            msg = dupprintf("Failed to connect to %s: %s", addrbuf, error_msg);
-        }
-
-        logevent(msg);
-        sfree(msg);
-    }
+    if (!ssh->attempting_connshare)
+        backend_socket_log(ssh->frontend, type, addr, port,
+                           error_msg, error_code, ssh->conf,
+                           ssh->session_started);
 }
 
 void ssh_connshare_log(Ssh ssh, int event, const char *logtext,
@@ -3729,10 +3722,8 @@ static const char *connect_to_host(Ssh ssh, const char *host, int port,
          * Try to find host.
          */
         addressfamily = conf_get_int(ssh->conf, CONF_addressfamily);
-        logeventf(ssh, "Looking up host \"%s\"%s", host,
-                  (addressfamily == ADDRTYPE_IPV4 ? " (IPv4)" :
-                   (addressfamily == ADDRTYPE_IPV6 ? " (IPv6)" : "")));
-        addr = name_lookup(host, port, realhost, ssh->conf, addressfamily);
+        addr = name_lookup(host, port, realhost, ssh->conf, addressfamily,
+                           ssh->frontend, "SSH connection");
         if ((err = sk_addr_error(addr)) != NULL) {
             sk_addr_free(addr);
             return err;
@@ -4227,6 +4218,9 @@ static int do_ssh1_login(Ssh ssh, const unsigned char *in, int inlen,
                                             "rsa", keystr, fingerprint,
                                             ssh_dialog_callback, ssh);
             sfree(keystr);
+#ifdef FUZZING
+	    s->dlgret = 1;
+#endif
             if (s->dlgret < 0) {
                 do {
                     crReturn(0);
@@ -6612,6 +6606,11 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	/* List encryption algorithms (client->server then server->client). */
 	for (k = KEXLIST_CSCIPHER; k <= KEXLIST_SCCIPHER; k++) {
 	    warn = FALSE;
+#ifdef FUZZING
+	    alg = ssh2_kexinit_addalg(s->kexlists[k], "none");
+	    alg->u.cipher.cipher = NULL;
+	    alg->u.cipher.warn = warn;
+#endif /* FUZZING */
 	    for (i = 0; i < s->n_preferred_ciphers; i++) {
 		const struct ssh2_ciphers *c = s->preferred_ciphers[i];
 		if (!c) warn = TRUE;
@@ -6625,6 +6624,11 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	}
 	/* List MAC algorithms (client->server then server->client). */
 	for (j = KEXLIST_CSMAC; j <= KEXLIST_SCMAC; j++) {
+#ifdef FUZZING
+	    alg = ssh2_kexinit_addalg(s->kexlists[j], "none");
+	    alg->u.mac.mac = NULL;
+	    alg->u.mac.etm = FALSE;
+#endif /* FUZZING */
 	    for (i = 0; i < s->nmacs; i++) {
 		alg = ssh2_kexinit_addalg(s->kexlists[j], s->maclist[i]->name);
 		alg->u.mac.mac = s->maclist[i];
@@ -6993,8 +6997,8 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
         {
             int csbits, scbits;
 
-            csbits = s->cscipher_tobe->real_keybits;
-            scbits = s->sccipher_tobe->real_keybits;
+            csbits = s->cscipher_tobe ? s->cscipher_tobe->real_keybits : 0;
+            scbits = s->sccipher_tobe ? s->sccipher_tobe->real_keybits : 0;
             s->nbits = (csbits > scbits ? csbits : scbits);
         }
         /* The keys only have hlen-bit entropy, since they're based on
@@ -7330,12 +7334,18 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
     dmemdump(s->exchange_hash, ssh->kex->hash->hlen);
 #endif
 
-    if (!s->hkey ||
-	!ssh->hostkey->verifysig(s->hkey, s->sigdata, s->siglen,
+    if (!s->hkey) {
+	bombout(("Server's host key is invalid"));
+	crStopV;
+    }
+
+    if (!ssh->hostkey->verifysig(s->hkey, s->sigdata, s->siglen,
 				 (char *)s->exchange_hash,
 				 ssh->kex->hash->hlen)) {
+#ifndef FUZZING
 	bombout(("Server's host key did not match the signature supplied"));
 	crStopV;
+#endif
     }
 
     s->keystr = ssh->hostkey->fmtkey(s->hkey);
@@ -7396,6 +7406,9 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
                                             ssh->hostkey->keytype, s->keystr,
                                             s->fingerprint,
                                             ssh_dialog_callback, ssh);
+#ifdef FUZZING
+	    s->dlgret = 1;
+#endif
             if (s->dlgret < 0) {
                 do {
                     crReturnV;
@@ -7441,8 +7454,10 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
          * the one we saw before.
          */
         if (strcmp(ssh->hostkey_str, s->keystr)) {
+#ifndef FUZZING
             bombout(("Host key was different in repeat key exchange"));
             crStopV;
+#endif
         }
         sfree(s->keystr);
     }
@@ -7476,13 +7491,14 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
     if (ssh->cs_cipher_ctx)
 	ssh->cscipher->free_context(ssh->cs_cipher_ctx);
     ssh->cscipher = s->cscipher_tobe;
-    ssh->cs_cipher_ctx = ssh->cscipher->make_context();
+    if (ssh->cscipher) ssh->cs_cipher_ctx = ssh->cscipher->make_context();
 
     if (ssh->cs_mac_ctx)
 	ssh->csmac->free_context(ssh->cs_mac_ctx);
     ssh->csmac = s->csmac_tobe;
     ssh->csmac_etm = s->csmac_etm_tobe;
-    ssh->cs_mac_ctx = ssh->csmac->make_context(ssh->cs_cipher_ctx);
+    if (ssh->csmac)
+        ssh->cs_mac_ctx = ssh->csmac->make_context(ssh->cs_cipher_ctx);
 
     if (ssh->cs_comp_ctx)
 	ssh->cscomp->compress_cleanup(ssh->cs_comp_ctx);
@@ -7493,7 +7509,7 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
      * Set IVs on client-to-server keys. Here we use the exchange
      * hash from the _first_ key exchange.
      */
-    {
+    if (ssh->cscipher) {
 	unsigned char *key;
 
 	key = ssh2_mkkey(ssh, s->K, s->exchange_hash, 'C',
@@ -7507,6 +7523,9 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	ssh->cscipher->setiv(ssh->cs_cipher_ctx, key);
         smemclr(key, ssh->cscipher->blksize);
         sfree(key);
+    }
+    if (ssh->csmac) {
+	unsigned char *key;
 
 	key = ssh2_mkkey(ssh, s->K, s->exchange_hash, 'E',
                          ssh->csmac->keylen);
@@ -7515,12 +7534,14 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
         sfree(key);
     }
 
-    logeventf(ssh, "Initialised %.200s client->server encryption",
-	      ssh->cscipher->text_name);
-    logeventf(ssh, "Initialised %.200s client->server MAC algorithm%s%s",
-	      ssh->csmac->text_name,
-              ssh->csmac_etm ? " (in ETM mode)" : "",
-              ssh->cscipher->required_mac ? " (required by cipher)" : "");
+    if (ssh->cscipher)
+	logeventf(ssh, "Initialised %.200s client->server encryption",
+		  ssh->cscipher->text_name);
+    if (ssh->csmac)
+	logeventf(ssh, "Initialised %.200s client->server MAC algorithm%s%s",
+		  ssh->csmac->text_name,
+		  ssh->csmac_etm ? " (in ETM mode)" : "",
+		  ssh->cscipher->required_mac ? " (required by cipher)" : "");
     if (ssh->cscomp->text_name)
 	logeventf(ssh, "Initialised %s compression",
 		  ssh->cscomp->text_name);
@@ -7548,14 +7569,18 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
      */
     if (ssh->sc_cipher_ctx)
 	ssh->sccipher->free_context(ssh->sc_cipher_ctx);
-    ssh->sccipher = s->sccipher_tobe;
-    ssh->sc_cipher_ctx = ssh->sccipher->make_context();
+    if (s->sccipher_tobe) {
+	ssh->sccipher = s->sccipher_tobe;
+	ssh->sc_cipher_ctx = ssh->sccipher->make_context();
+    }
 
     if (ssh->sc_mac_ctx)
 	ssh->scmac->free_context(ssh->sc_mac_ctx);
-    ssh->scmac = s->scmac_tobe;
-    ssh->scmac_etm = s->scmac_etm_tobe;
-    ssh->sc_mac_ctx = ssh->scmac->make_context(ssh->sc_cipher_ctx);
+    if (s->scmac_tobe) {
+	ssh->scmac = s->scmac_tobe;
+	ssh->scmac_etm = s->scmac_etm_tobe;
+	ssh->sc_mac_ctx = ssh->scmac->make_context(ssh->sc_cipher_ctx);
+    }
 
     if (ssh->sc_comp_ctx)
 	ssh->sccomp->decompress_cleanup(ssh->sc_comp_ctx);
@@ -7566,7 +7591,7 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
      * Set IVs on server-to-client keys. Here we use the exchange
      * hash from the _first_ key exchange.
      */
-    {
+    if (ssh->sccipher) {
 	unsigned char *key;
 
 	key = ssh2_mkkey(ssh, s->K, s->exchange_hash, 'D',
@@ -7580,6 +7605,9 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	ssh->sccipher->setiv(ssh->sc_cipher_ctx, key);
         smemclr(key, ssh->sccipher->blksize);
         sfree(key);
+    }
+    if (ssh->scmac) {
+	unsigned char *key;
 
 	key = ssh2_mkkey(ssh, s->K, s->exchange_hash, 'F',
                          ssh->scmac->keylen);
@@ -7587,12 +7615,14 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
         smemclr(key, ssh->scmac->keylen);
         sfree(key);
     }
-    logeventf(ssh, "Initialised %.200s server->client encryption",
-	      ssh->sccipher->text_name);
-    logeventf(ssh, "Initialised %.200s server->client MAC algorithm%s%s",
-	      ssh->scmac->text_name,
-              ssh->scmac_etm ? " (in ETM mode)" : "",
-              ssh->sccipher->required_mac ? " (required by cipher)" : "");
+    if (ssh->sccipher)
+	logeventf(ssh, "Initialised %.200s server->client encryption",
+		  ssh->sccipher->text_name);
+    if (ssh->scmac)
+	logeventf(ssh, "Initialised %.200s server->client MAC algorithm%s%s",
+		  ssh->scmac->text_name,
+		  ssh->scmac_etm ? " (in ETM mode)" : "",
+		  ssh->sccipher->required_mac ? " (required by cipher)" : "");
     if (ssh->sccomp->text_name)
 	logeventf(ssh, "Initialised %s decompression",
 		  ssh->sccomp->text_name);
@@ -11223,6 +11253,7 @@ static const char *ssh_init(void *frontend_handle, void **backend_handle,
     ssh->X11_fwd_enabled = FALSE;
     ssh->connshare = NULL;
     ssh->attempting_connshare = FALSE;
+    ssh->session_started = FALSE;
     ssh->specials = NULL;
     ssh->n_uncert_hostkeys = 0;
     ssh->cross_certifying = FALSE;

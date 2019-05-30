@@ -447,7 +447,8 @@ char *pfd_connect(void* frontend, struct PortForwarding **pf_ret, char *hostname
     /*
      * Try to find host.
      */
-    addr = name_lookup(hostname, port, &dummy_realhost, conf, addressfamily);
+    addr = name_lookup(hostname, port, &dummy_realhost, conf, addressfamily,
+                       NULL, NULL);
     if ((err = sk_addr_error(addr)) != NULL) {
         char *err_ret = dupstr(err);
 	sk_addr_free(addr);

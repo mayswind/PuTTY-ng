@@ -660,6 +660,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_s(sesskey, "ProxyUsername", conf_get_str(conf, CONF_proxy_username));
     iStorage->write_setting_s(sesskey, "ProxyPassword", conf_get_str(conf, CONF_proxy_password));
     iStorage->write_setting_s(sesskey, "ProxyTelnetCommand", conf_get_str(conf, CONF_proxy_telnet_command));
+    iStorage->write_setting_i(sesskey, "ProxyLogToTerm", conf_get_int(conf, CONF_proxy_log_to_term));
     wmap(iStorage, sesskey, "Environment", conf, CONF_environmt, TRUE);
     iStorage->write_setting_s(sesskey, "UserName", conf_get_str(conf, CONF_username));
     iStorage->write_setting_i(sesskey, "UserNameFromEnvironment", conf_get_int(conf, CONF_username_from_env));
@@ -1126,6 +1127,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gpps(iStorage, sesskey, "ProxyPassword", "", conf, CONF_proxy_password);
     gpps(iStorage, sesskey, "ProxyTelnetCommand", "connect %host %port\\n",
 	 conf, CONF_proxy_telnet_command);
+    gppi(iStorage, sesskey, "ProxyLogToTerm", FORCE_OFF, conf, CONF_proxy_log_to_term);
     gppmap(iStorage, sesskey, "Environment", conf, CONF_environmt);
     gpps(iStorage, sesskey, "UserName", "", conf, CONF_username);
     gppi(iStorage, sesskey, "UserNameFromEnvironment", 0, conf, CONF_username_from_env);
