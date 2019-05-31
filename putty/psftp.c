@@ -2657,6 +2657,8 @@ static void usage(void)
     printf("  -hostkey aa:bb:cc:...\n");
     printf("            manually specify a host key (may be repeated)\n");
     printf("  -batch    disable all interactive prompts\n");
+    printf("  -proxycmd command\n");
+    printf("            use 'command' as local proxy\n");
     printf("  -sshlog file\n");
     printf("  -sshrawlog file\n");
     printf("            log protocol details to a file\n");
@@ -2668,7 +2670,7 @@ static void version(void)
   char *buildinfo_text = buildinfo("\n");
   printf("psftp: %s\n%s\n", ver, buildinfo_text);
   sfree(buildinfo_text);
-  cleanup_exit(1);
+  exit(0);
 }
 
 /*
@@ -2837,6 +2839,11 @@ static int psftp_connect(char *userhost, char *user, int portnumber)
 
     back = &ssh_backend;
 
+    logctx = log_init(NULL, conf);
+    console_provide_logctx(logctx);
+
+    platform_psftp_pre_conn_setup();
+
     err = back->init(NULL, &backhandle, conf,
 		     conf_get_str(conf, CONF_host),
 		     conf_get_int(conf, CONF_port),
@@ -2846,9 +2853,7 @@ static int psftp_connect(char *userhost, char *user, int portnumber)
 	fprintf(stderr, "ssh_init: %s\n", err);
 	return 1;
     }
-    logctx = log_init(NULL, conf);
     back->provide_logctx(backhandle, logctx);
-    console_provide_logctx(logctx);
     while (!back->sendok(backhandle)) {
 	if (back->exitcode(backhandle) >= 0)
 	    return 1;
@@ -2952,8 +2957,6 @@ int psftp_main(int argc, char *argv[])
     argc -= i;
     argv += i;
     back = NULL;
-
-    platform_psftp_post_option_setup();
 
     /*
      * If the loaded session provides a hostname, and a hostname has not

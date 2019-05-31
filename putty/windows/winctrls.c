@@ -76,7 +76,7 @@ HWND doctl(struct ctlpos *cp, RECT r,
     if (cp->hwnd) {
 	ctl = CreateWindowEx(exstyle, wclass, wtext, wstyle,
 			     r.left, r.top, r.right, r.bottom,
-			     cp->hwnd, (HMENU) wid, hinst, NULL);
+			     cp->hwnd, (HMENU)(ULONG_PTR)wid, hinst, NULL);
 	SendMessage(ctl, WM_SETFONT, cp->font, MAKELPARAM(TRUE, 0));
 
 	if (!strcmp(wclass, "LISTBOX")) {
@@ -301,6 +301,7 @@ void bareradioline(struct ctlpos *cp, int nacross, ...)
 	if (!btext)
 	    break;
 	(void) va_arg(ap, int); /* id */
+        nbuttons++;
     }
     va_end(ap);
     buttons = snewn(nbuttons, struct radio);
@@ -331,6 +332,7 @@ void radiobig(struct ctlpos *cp, char *text, int id, ...)
 	if (!btext)
 	    break;
 	(void) va_arg(ap, int); /* id */
+        nbuttons++;
     }
     va_end(ap);
     buttons = snewn(nbuttons, struct radio);
