@@ -112,6 +112,7 @@
     <ClCompile Include="memstore.c" />
     <ClCompile Include="minibidi.c" />
     <ClCompile Include="misc.c" />
+    <ClCompile Include="miscucs.c" />
     <ClCompile Include="pageant.c" />
     <ClCompile Include="pgssapi.c" />
     <ClCompile Include="pinger.c" />

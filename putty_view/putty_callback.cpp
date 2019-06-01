@@ -18,11 +18,19 @@
 #include "putty_global_config.h"
 #include "putty_callback.h"
 
+DECL_WINDOWS_FUNCTION(static, BOOL, PlaySound, (LPCTSTR, HMODULE, DWORD));
+
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Conf* cfg = NULL;
 SavedCmd g_saved_cmd;
 void init_flashwindow();
+void init_winfuncs()
+{
+    init_flashwindow();
+    HMODULE winmm_module = load_system32_dll("winmm.dll");
+    GET_WINDOWS_FUNCTION_PP(winmm_module, PlaySound);
+}
 void pageant_init();
 //void fini_local_agent();
 base::RepeatingTimer<Processor::WinWorker>  gUITimer;
@@ -37,7 +45,7 @@ init_config* process_init()
 	WindowInterface::GetInstance()->init_ui_msg_loop();
 	cfg = conf_new();
 	sk_init();
-	init_flashwindow();
+	init_winfuncs();
 	pageant_init();
 
 	/* Set Explicit App User Model Id so that jump lists don't cause
@@ -926,8 +934,8 @@ void do_beep(void *frontend, int mode)
 	lastbeep = GetTickCount();
     } else if (mode == BELL_WAVEFILE) {
 		Filename* file = conf_get_filename(puttyController->cfg, CONF_bell_wavefile);
-		if (!PlaySound(A2W(file->path), NULL,
-		       SND_ASYNC | SND_FILENAME)) {
+		if (!p_PlaySound || !p_PlaySound(A2W(file->path), NULL,
+                         SND_ASYNC | SND_FILENAME)) {
 	    char buf[1024 + 80];
 	    char otherbuf[100];
 	    sprintf(buf, "Unable to play sound file\n%s\n"
@@ -1091,7 +1099,7 @@ void request_resize(void *frontend, int w, int h)
  //   int extra_width, extra_height;
  //   wintabitem_get_extra_size(tabitem, &extra_width, &extra_height);
 
- //   /* If the window is maximized supress resizing attempts */
+ //   /* If the window is maximized suppress resizing attempts */
  //   if (IsZoomed(hwnd)) {
  //   	if (puttyController->cfg->resize_action == RESIZE_TERM)
  //   	    return;

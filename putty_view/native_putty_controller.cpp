@@ -3091,7 +3091,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
 	    return p - output;
 	}
-	/* If we're definitly not building up an ALT-54321 then clear it */
+	/* If we're definitely not building up an ALT-54321 then clear it */
 	if (!left_alt)
 	    keys[0] = 0;
 	/* If we will be using alt_sum fix the 256s */
