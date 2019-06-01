@@ -202,11 +202,20 @@ int CmdLineHandler::process_cmdline(LPSTR cmdline)
 	 * Process a couple of command-line options which are more
 	 * easily dealt with before the line is broken up into words.
 	 * These are the old-fashioned but convenient @sessionname and
-	 * the internal-use-only &sharedmemoryhandle, neither of which
-	 * are combined with anything else.
+	 * the internal-use-only &sharedmemoryhandle, plus the &R
+	 * prefix for -restrict-acl, all of which are used by PuTTYs
+	 * auto-launching each other via System-menu options.
 	 */
 	while (*p && isspace(*p))
 	    p++;
+        if (*p == '&' && p[1] == 'R' &&
+            (!p[2] || p[2] == '@' || p[2] == '&')) {
+            /* &R restrict-acl prefix */
+            restrict_process_acl();
+            restricted_acl = TRUE;
+            p += 2;
+        }
+
 	if (*p == '@') {
             /*
              * An initial @ means that the whole of the rest of the
@@ -243,7 +252,11 @@ int CmdLineHandler::process_cmdline(LPSTR cmdline)
 		cleanup_exit(0);
 	    //}
 	    //allow_launch = TRUE;
-	} else {
+	} else if (!*p) {
+            /* Do-nothing case for an empty command line - or rather,
+             * for a command line that's empty _after_ we strip off
+             * the &R prefix. */
+        } else {
 	    /*
 	     * Otherwise, break up the command line and deal with
 	     * it sensibly.
@@ -266,39 +279,22 @@ int CmdLineHandler::process_cmdline(LPSTR cmdline)
 		    i++;	       /* skip next argument */
 		} else if (ret == 1) {
 		    continue;	       /* nothing further needs doing */
-		} else if (!strcmp(p, "-cleanup") ||
-			   !strcmp(p, "-cleanup-during-uninstall")) {
+		} else if (!strcmp(p, "-cleanup")) {
 		    /*
 		     * `putty -cleanup'. Remove all registry
 		     * entries associated with PuTTY, and also find
 		     * and delete the random seed file.
 		     */
 		    char *s1, *s2;
-		    /* Are we being invoked from an uninstaller? */
-		    if (!strcmp(p, "-cleanup-during-uninstall")) {
-			s1 = dupprintf("Remove saved sessions and random seed file?\n"
-				       "\n"
-				       "If you hit Yes, ALL Registry entries associated\n"
-				       "with %s will be removed, as well as the\n"
-				       "random seed file. THIS PROCESS WILL\n"
-				       "DESTROY YOUR SAVED SESSIONS.\n"
-				       "(This only affects the currently logged-in user.)\n"
-				       "\n"
-				       "If you hit No, uninstallation will proceed, but\n"
-				       "saved sessions etc will be left on the machine.",
-				       appname);
-			s2 = dupprintf("%s Uninstallation", appname);
-		    } else {
-			s1 = dupprintf("This procedure will remove ALL Registry entries\n"
-				       "associated with %s, and will also remove\n"
-				       "the random seed file. (This only affects the\n"
-				       "currently logged-in user.)\n"
-				       "\n"
-				       "THIS PROCESS WILL DESTROY YOUR SAVED SESSIONS.\n"
-				       "Are you really sure you want to continue?",
-				       appname);
-			s2 = dupprintf("%s Warning", appname);
-		    }
+		    s1 = dupprintf("This procedure will remove ALL Registry entries\n"
+				   "associated with %s, and will also remove\n"
+				   "the random seed file. (This only affects the\n"
+				   "currently logged-in user.)\n"
+				   "\n"
+				   "THIS PROCESS WILL DESTROY YOUR SAVED SESSIONS.\n"
+				   "Are you really sure you want to continue?",
+				   appname);
+		    s2 = dupprintf("%s Warning", appname);
 		    //if (message_box(A2W(s1), A2W(s2),
 			//	    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2,
 			//	    HELPCTXID(option_cleanup)) == IDYES) {

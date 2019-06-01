@@ -155,6 +155,10 @@ int NativePuttyController::init(HWND hwndParent)
 		}
 	}
 
+    if (restricted_acl) {
+	logevent(NULL, "Running with restricted process ACL");
+    }
+
     if (start_backend() != 0){
         //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
 		setDisconnected();
@@ -385,7 +389,8 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
 	if (cset == OEM_CHARSET)
 	    ucsdata.font_codepage = GetOEMCP();
 	else
-	    if (TranslateCharsetInfo ((DWORD *) cset, &info, TCI_SRCCHARSET))
+	    if (TranslateCharsetInfo ((DWORD *)(ULONG_PTR)cset,
+                                      &info, TCI_SRCCHARSET))
 		ucsdata.font_codepage = info.ciACP;
 	else
 	    ucsdata.font_codepage = -1;
@@ -2554,7 +2559,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		*p++ = "hH\010\010"[shift_state & 3];
 		return p - output;
 	      case VK_NUMPAD5:
-		*p++ = shift_state ? '.' : '.';
+		*p++ = '.';
 		return p - output;
 	      case VK_NUMPAD6:
 		*p++ = "lL\014\014"[shift_state & 3];
