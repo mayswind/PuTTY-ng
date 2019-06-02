@@ -2078,7 +2078,7 @@ void NativePuttyController::reset_window(int reinit)
 void NativePuttyController::enact_pending_netevent()
 {
     static int reentering = 0;
-    extern int select_result(WPARAM, LPARAM);
+    extern void select_result(WPARAM, LPARAM);
 
     if (reentering)
 	return;			       /* don't unpend the pending */

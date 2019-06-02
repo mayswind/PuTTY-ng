@@ -163,11 +163,11 @@ static void adb_check_close(Adb adb)
     notify_remote_exit(adb->frontend);
 }
 
-static int adb_closing(Plug plug, const char *error_msg, int error_code,
+static void adb_closing(Plug plug, const char *error_msg, int error_code,
 		       int calling_back)
 {
     Adb adb = (Adb) plug;
-	if (adb->is_stopped){ return 0; }
+	if (adb->is_stopped){ return; }
 
     if (error_msg) {
         /* A socket error has occurred. */
@@ -175,15 +175,13 @@ static int adb_closing(Plug plug, const char *error_msg, int error_code,
         /* Otherwise, the remote side closed the connection normally. */
         adb_check_close(adb);
     }
-    return 0;
 }
 
-static int adb_receive(Plug plug, int urgent, char *data, int len)
+static void adb_receive(Plug plug, int urgent, char *data, int len)
 {
     Adb adb = (Adb) plug;
-	if (adb->is_stopped){ return 1; }
+	if (adb->is_stopped){ return; }
     c_write(adb, data, len);
-    return 1;
 }
 
 static void adb_sent(Plug plug, int bufsize)

@@ -20,7 +20,7 @@
  * stddef.h. So here we try to make sure _some_ standard header is
  * included which defines uintptr_t. */
 #include <stddef.h>
-#if !defined _MSC_VER || _MSC_VER >= 1600
+#if !defined _MSC_VER || _MSC_VER >= 1600 || defined __clang__
 #include <stdint.h>
 #endif
 
@@ -289,7 +289,7 @@ void quit_help(HWND hwnd);
 /*
  * Exports from winnet.c.
  */
-extern int select_result(WPARAM, LPARAM);
+extern void select_result(WPARAM, LPARAM);
 
 /*
  * winnet.c dynamically loads WinSock 2 or WinSock 1 depending on
