@@ -101,7 +101,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 			    create_session, P(hwndp));
 	c->generic.column = 0;
 	
-	c = ctrl_pushbutton(s, "Fork", NULL, HELPCTX(no_help),
+	c = ctrl_pushbutton(s, "Duplicate", NULL, HELPCTX(no_help),
 			    fork_session, P(hwndp));
 	c->generic.column = 1;
 	
