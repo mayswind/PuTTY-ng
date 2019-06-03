@@ -23,6 +23,7 @@ An improved multi-tabbed PuTTY with better user experience. This project is base
 - [libevent](https://libevent.org)
 - [boost](https://www.boost.org)
 - [RapidJSON](http://rapidjson.org)
+- [dirent](https://github.com/tronkko/dirent)
 - [x-framework](https://x-framework.googlecode.com)
 - [framework-nd](https://github.com/noodle1983/framework-nd)
 - [putty-nd](https://github.com/noodle1983/putty-nd3.x)
