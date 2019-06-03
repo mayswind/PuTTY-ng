@@ -45,6 +45,7 @@ init_config* process_init()
 	WindowInterface::GetInstance()->init_ui_msg_loop();
 	cfg = conf_new();
 	sk_init();
+	init_common_controls();
 	init_winfuncs();
 	pageant_init();
 
