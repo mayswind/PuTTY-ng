@@ -10,7 +10,7 @@ using namespace Net;
 
 //-----------------------------------------------------------------------------
 
-void on_heartbeat(int theFd, short theEvt, void *theArg)
+void on_heartbeat(evutil_socket_t theFd, short theEvt, void *theArg)
 {
     //DEBUG("reactor heartbeat.");
 }

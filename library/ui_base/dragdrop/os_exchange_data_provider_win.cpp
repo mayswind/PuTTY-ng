@@ -733,7 +733,7 @@ namespace ui
         wcsncpy_s(descriptor->fgd[0].cFileName,
             MAX_PATH,
             file_name.c_str(),
-            std::min(file_name.size(), MAX_PATH - 1u));
+            std::min((unsigned int) file_name.size(), MAX_PATH - 1u));
 
         STGMEDIUM* storage = new STGMEDIUM;
         storage->tymed = TYMED_HGLOBAL;

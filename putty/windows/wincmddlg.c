@@ -538,7 +538,7 @@ static void create_controls(HWND hwnd, char* _path)
  * (Being a dialog procedure, in general it returns 0 if the default
  * dialog processing should be performed, and 1 if it should not.)
  */
-static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
+static INT_PTR CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 				       WPARAM wParam, LPARAM lParam)
 {
     HWND hw, cmdview;

@@ -245,7 +245,7 @@ static INT_PTR CALLBACK AboutProc(HWND hwnd, UINT msg,
 char InputBoxStr[4096] = "\0";
 char InputBoxCaption[64] = "\0";
 char InputBoxTips[128] = "\0";
-BOOL CALLBACK InputDialogProc(HWND hwndDlg,
+INT_PTR CALLBACK InputDialogProc(HWND hwndDlg,
 	UINT message,
 	WPARAM wParam,
 	LPARAM lParam)
