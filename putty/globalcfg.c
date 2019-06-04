@@ -250,27 +250,23 @@ void global_setup_config_box(struct controlbox *b)
 	ctrl_checkbox(s, "Maximize window on startup", '\0', HELPCTX(no_help), global_key_checkbox_handler0, P(WINDOW_MAXIMIZED));
 
 	ctrl_settitle(b, SHORTCUT_SETTING_NAME, "Global Shortcut Settings");
-	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "~general", "Function to Keys(No check for duplicated keys)");
+	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "general", NULL);
 
 	ctrl_columns(s, 3, 55, 25, 20);
 	ADD_SHORTCUT_KEY_LABEL("Select Tab", SHORTCUT_KEY_SELECT_TAB, "       Num");
 	ADD_SHORTCUT_KEY("Select Next Tab", SHORTCUT_KEY_SELECT_NEXT_TAB);
 	ADD_SHORTCUT_KEY("Select Previous Tab", SHORTCUT_KEY_SELECT_PRE_TAB);
-	ADD_SHORTCUT_KEY("Edit Tab Title", SHORTCUT_KEY_EDIT_TAB_TITLE);
-	ADD_SHORTCUT_KEY("Create NEW Session", SHORTCUT_KEY_NEW_TAB);
+	ADD_SHORTCUT_KEY("Create New Session", SHORTCUT_KEY_NEW_TAB);
 	ADD_SHORTCUT_KEY("Duplicate Session", SHORTCUT_KEY_DUP_TAB);
-	ADD_SHORTCUT_KEY("Rename Session In Config Dlg ", SHORTCUT_KEY_RENAME_SESSION);
 	ADD_SHORTCUT_KEY("Reload Session", SHORTCUT_KEY_RELOAD_TAB);
 	ADD_SHORTCUT_KEY("Close Session", SHORTCUT_KEY_CLOSE_TAB);
+	ADD_SHORTCUT_KEY("Edit Tab Title", SHORTCUT_KEY_EDIT_TAB_TITLE);
 	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR);
-	c = ctrl_text(s, "Note", HELPCTX(no_help));
-	c = ctrl_text(s, "1. If duplicated, only the first one in code logic will be valided.", HELPCTX(no_help));
-	c = ctrl_text(s, "2. The keys are implemented with US keyboard layout. With others, please try, God will bless you.", HELPCTX(no_help));
-	c = ctrl_text(s, "3. Some keys can't be caught, like Alt+Tab or Alt in Config Dialog. Please try another one, as God doesn't stand on your side.", HELPCTX(no_help));
+	ADD_SHORTCUT_KEY("Rename Session (Config Dialog)", SHORTCUT_KEY_RENAME_SESSION);
+	c = ctrl_text(s, "(When multiple functions set the same shortcut , only one will take effect. Some shortcut cannot take effect, like Alt+Tab or Alt in Config Dialog)", HELPCTX(no_help));
 
 
 	ctrl_settitle(b, BUGS_SETTING_NAME, "Walkarounds for global issue");
-	s = ctrl_getset(b, BUGS_SETTING_NAME, "~general", "Global Issues");
+	s = ctrl_getset(b, BUGS_SETTING_NAME, "general", NULL);
 	c = ctrl_checkbox(s, "Disable Windows Native Theme.", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(DISABLE_WINDOWS_NATIVE_THEME_KEY));
-	c = ctrl_text(s, "-- A walkaround for the tab layerout issue on some Win10 platform. It is not reproduced on my Win10. So there is no fix solution. Restart needed if changed.)", HELPCTX(no_help));
 }
