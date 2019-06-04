@@ -921,9 +921,6 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"HostName=127.0.0.1\n"
 			"BackspaceIsDelete=0\n"
 			"LFImpliesCR=1\n"
-			"TermWidth=237\n"
-			"TermHeight=63\n"
-			"FontHeight=14\n"
 			"LineCodePage=UTF-8\n"
 			"AutocmdEnable0=1\n"
 			"Autocmd0=EnterYourWindowsAccountHere\n"
@@ -944,8 +941,6 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"CloseOnExit=1\n"
 			"BackspaceIsDelete=0\n"
 			"LFImpliesCR=1\n"
-			"TermWidth=96\n"
-			"TermHeight=32\n"
 			"LineCodePage=UTF-8\n"
 			"AutocmdEnable0=1\n"
 			"AutocmdExpect0=$\n"
@@ -1086,7 +1081,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	/* This is two values for backward compatibility with 0.50/0.51 */
 	int pingmin, pingsec;
 	pingmin = gppi_raw(iStorage, sesskey, "PingInterval", 0);
-	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 3);
+	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 0);
 	conf_set_int(conf, CONF_ping_interval, pingmin * 60 + pingsec);
     }
     gppi(iStorage, sesskey, "TCPNoDelay", 1, conf, CONF_tcp_nodelay);
@@ -1328,7 +1323,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    gppi(iStorage, sesskey, "ScrollbackLines", 99999, conf, CONF_savelines);
+    gppi(iStorage, sesskey, "ScrollbackLines", 2000, conf, CONF_savelines);
     gppi(iStorage, sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
     gppi(iStorage, sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
     gppi(iStorage, sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
@@ -1409,7 +1404,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.
      */
-    gpps(iStorage, sesskey, "LineCodePage", "UTF-8", conf, CONF_line_codepage);
+    gpps(iStorage, sesskey, "LineCodePage", "", conf, CONF_line_codepage);
     gppi(iStorage, sesskey, "CJKAmbigWide", 0, conf, CONF_cjk_ambig_wide);
     gppi(iStorage, sesskey, "UTF8Override", 1, conf, CONF_utf8_override);
     gpps(iStorage, sesskey, "Printer", "", conf, CONF_printer);
@@ -1421,8 +1416,8 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "EraseToScrollback", 1, conf, CONF_erase_to_scrollback);
     gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
     gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
-    gppi(iStorage, sesskey, "X11Forward", 1, conf, CONF_x11_forward);
-    gpps(iStorage, sesskey, "X11Display", "localhost:0", conf, CONF_x11_display);
+    gppi(iStorage, sesskey, "X11Forward", 0, conf, CONF_x11_forward);
+    gpps(iStorage, sesskey, "X11Display", "", conf, CONF_x11_display);
     gppi(iStorage, sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
     gppfile(iStorage, sesskey, "X11AuthFile", conf, CONF_xauthfile);
 
@@ -1526,63 +1521,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gppi(iStorage, sesskey, "GroupCollapse", 1, conf, CONF_group_collapse);
 	gppi(iStorage, sesskey, "AutoReconnect", 0, conf, CONF_auto_reconnect);
 
-	if (!isInited){
-		DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
-		DEFAULT_INT_VALUE["ProxyMethod"] = 0;
-		DEFAULT_STR_VALUE["Cipher"] = "chacha20,aes,blowfish,3des,WARN,arcfour,des";
-		DEFAULT_STR_VALUE["GSSLibs"] = "gssapi32,sspi,custom";
-		DEFAULT_STR_VALUE["FontName"] = "Courier New";
-		DEFAULT_STR_VALUE["Font"] = "Courier New";
-		DEFAULT_INT_VALUE["FontHeight"] = 10;
-		DEFAULT_INT_VALUE["AutocmdCount"] = 2;
-		DEFAULT_INT_VALUE["Present"] = 1;
-		DEFAULT_STR_VALUE["SerialLine"] = "COM1";
-		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
-		DEFAULT_STR_VALUE["Environment"] = "";
-		DEFAULT_STR_VALUE["PortForwardings"] = "";
-		DEFAULT_STR_VALUE["SSHManualHostKeys"] = "";
-		DEFAULT_STR_VALUE["Autocmd2"] = "";
-		DEFAULT_STR_VALUE["Autocmd3"] = "";
-		DEFAULT_STR_VALUE["Autocmd4"] = "";
-		DEFAULT_STR_VALUE["Autocmd5"] = "";
-		DEFAULT_INT_VALUE["AutocmdEncrypted2"] = 0;
-		DEFAULT_INT_VALUE["AutocmdEncrypted3"] = 0;
-		DEFAULT_INT_VALUE["AutocmdEncrypted4"] = 0;
-		DEFAULT_INT_VALUE["AutocmdEncrypted5"] = 0;
-		DEFAULT_INT_VALUE["AutocmdHide2"] = 0;
-		DEFAULT_INT_VALUE["AutocmdHide3"] = 0;
-		DEFAULT_INT_VALUE["AutocmdHide4"] = 0;
-		DEFAULT_INT_VALUE["AutocmdHide5"] = 0;
-		DEFAULT_STR_VALUE["AutocmdExpect2"] = "";
-		DEFAULT_STR_VALUE["AutocmdExpect3"] = "";
-		DEFAULT_STR_VALUE["AutocmdExpect4"] = "";
-		DEFAULT_STR_VALUE["AutocmdExpect5"] = "";
-		DEFAULT_STR_VALUE["BellWaveFile"] = "";
-		DEFAULT_STR_VALUE["BoldFont"] = "";
-		DEFAULT_STR_VALUE["BoldFontName"] = "";
-		DEFAULT_INT_VALUE["BoldFontCharSet"] = 0;
-		DEFAULT_INT_VALUE["BoldFontHeight"] = 0;
-		DEFAULT_INT_VALUE["BoldFontIsBold"] = 0;
-		DEFAULT_STR_VALUE["Font"] = "Courier New";
-		DEFAULT_STR_VALUE["FontName"] = "Courier New";
-		DEFAULT_INT_VALUE["FontCharSet"] = 0;
-		DEFAULT_INT_VALUE["FontHeight"] = 14;
-		DEFAULT_INT_VALUE["FontIsBold"] = 0;
-		DEFAULT_STR_VALUE["GSSCustom"] = "";
-		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
-		DEFAULT_STR_VALUE["PublicKeyFile"] = "";
-		DEFAULT_STR_VALUE["X11AuthFile"] = "";
-		DEFAULT_STR_VALUE["WideBoldFont"] = "";
-		DEFAULT_STR_VALUE["WideBoldFontName"] = "";
-		DEFAULT_INT_VALUE["WideBoldFontCharSet"] = 0;
-		DEFAULT_INT_VALUE["WideBoldFontHeight"] = 0;
-		DEFAULT_INT_VALUE["WideBoldFontIsBold"] = 0;
-		DEFAULT_STR_VALUE["WideFont"] = "";
-		DEFAULT_STR_VALUE["WideFontName"] = "";
-		DEFAULT_INT_VALUE["WideFontCharSet"] = 0;
-		DEFAULT_INT_VALUE["WideFontHeight"] = 0;
-		DEFAULT_INT_VALUE["WideFontIsBold"] = 0;
-	}
 	isInited = true;
 }
 
