@@ -2198,15 +2198,15 @@ bool not_to_upload(const char* session_name)
 
 int get_default_shortcut_keytype(const char* func)
 {
-	return !strcmp(func, SHORTCUT_KEY_SELECT_TAB) ? ALT
+	return !strcmp(func, SHORTCUT_KEY_SELECT_TAB) ? CTRL
 		: !strcmp(func, SHORTCUT_KEY_SELECT_NEXT_TAB) ? CTRL
-		: !strcmp(func, SHORTCUT_KEY_SELECT_PRE_TAB) ? CTRL
+		: !strcmp(func, SHORTCUT_KEY_SELECT_PRE_TAB) ? CTRL_SHIFT
 		: !strcmp(func, SHORTCUT_KEY_DUP_TAB) ? CTRL_SHIFT
-		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? CTRL
 		: !strcmp(func, SHORTCUT_KEY_RELOAD_TAB) ? CTRL_SHIFT
 		: !strcmp(func, SHORTCUT_KEY_EDIT_TAB_TITLE) ? CTRL_SHIFT
 		: !strcmp(func, SHORTCUT_KEY_RENAME_SESSION) ? F2
-		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? F12
 		: !strcmp(func, SHORTCUT_KEY_CLOSE_TAB) ? CTRL_SHIFT
 		: 0;
 }
@@ -2214,15 +2214,15 @@ int get_default_shortcut_keytype(const char* func)
 int get_default_shortcut_keyval(const char* func)
 {
 	return !strcmp(func, SHORTCUT_KEY_SELECT_TAB) ? 0
-		: !strcmp(func, SHORTCUT_KEY_SELECT_NEXT_TAB) ? VK_OEM_3
+		: !strcmp(func, SHORTCUT_KEY_SELECT_NEXT_TAB) ? VK_TAB
 		: !strcmp(func, SHORTCUT_KEY_SELECT_PRE_TAB) ? VK_TAB
-		: !strcmp(func, SHORTCUT_KEY_DUP_TAB) ? 'T'
-		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? 'C'
+		: !strcmp(func, SHORTCUT_KEY_DUP_TAB) ? 'D'
+		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? 'T'
 		: !strcmp(func, SHORTCUT_KEY_RELOAD_TAB) ? 'R'
 		: !strcmp(func, SHORTCUT_KEY_EDIT_TAB_TITLE) ? 'E'
-		: !strcmp(func, SHORTCUT_KEY_RENAME_SESSION) ? VK_TAB
-		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? '6'
-		: !strcmp(func, SHORTCUT_KEY_CLOSE_TAB) ? 'K'
+		: !strcmp(func, SHORTCUT_KEY_RENAME_SESSION) ? 0
+		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? 0
+		: !strcmp(func, SHORTCUT_KEY_CLOSE_TAB) ? 'W'
 		: 0;
 }
 
