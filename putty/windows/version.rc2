@@ -38,11 +38,11 @@ BEGIN
 	/* "lang-charset" LLLLCCCC = (UK English, Unicode) */
 	BLOCK "080904B0"
 	BEGIN
-	    VALUE "CompanyName",	"Simon Tatham"  /* required :/ */
-	    VALUE "ProductName",	"PuTTY suite"
+	    VALUE "CompanyName",	"MaysWind"  /* required :/ */
+	    VALUE "ProductName",	"PuTTY-ng"
 	    VALUE "FileDescription",	APPDESC
 	    VALUE "InternalName",	APPNAME
-	    VALUE "OriginalFilename",	APPNAME
+	    VALUE "OriginalFilename",	"putty-ng.exe"
 	    VALUE "FileVersion",	TEXTVER
 	    VALUE "ProductVersion",	TEXTVER
 	    VALUE "LegalCopyright",	"Copyright \251 " SHORT_COPYRIGHT_DETAILS "."

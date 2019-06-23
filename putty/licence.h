@@ -6,6 +6,35 @@
  */
 
 #define LICENCE_TEXT(parsep) \
-    "PuTTY is copyright 1997-2017 Simon Tatham.  Portions copyright Robert de Bath, Joris van Rantwijk, Delian Delchev, Andreas Schultz, Jeroen Massar, Wez Furlong, Nicolas Barry, Justin Bradford, Ben Harris, Malcolm Smith, Ahmad Khalifa, Markus Kuhn, Colin Watson, Christopher Staite, and CORE SDI S.A. Portions copyright Lu Dong for the putty-nd's changes. Portions copyright MaysWind for the PuTTY-ng's changes.  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.  THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+    "PuTTY is copyright 1997-2017 Simon Tatham.\r\n\
+\r\n\
+Portions copyright Robert de Bath, Joris van Rantwijk, Delian \
+Delchev, Andreas Schultz, Jeroen Massar, Wez Furlong, Nicolas Barry, \
+Justin Bradford, Ben Harris, Malcolm Smith, Ahmad Khalifa, Markus \
+Kuhn, Colin Watson, Christopher Staite, Lorenz Diener, Christian \
+Brabandt, Jeff Smith, Pavel Kryukov, Maxim Kuznetsov, Svyatoslav \
+Kuzmich, and CORE SDI S.A.\r\n\
+Portions copyright Lu Dong for the putty-nd's changes.\r\n\
+Portions copyright MaysWind for the PuTTY-ng's changes.\r\n\
+\r\n\
+Permission is hereby granted, free of charge, to any person \
+obtaining a copy of this software and associated documentation files \
+(the \r\n\"Software\"), to deal in the Software without restriction, \
+including without limitation the rights to use, copy, modify, merge, \
+publish, distribute, sublicense, and/or sell copies of the Software, \
+and to permit persons to whom the Software is furnished to do so, \
+subject to the following conditions:\r\n\
+\r\n\
+The above copyright notice and this permission notice shall be \
+included in all copies or substantial portions of the Software.\r\n\
+\r\n\
+THE SOFTWARE IS PROVIDED \r\n\"AS IS\", WITHOUT WARRANTY OF ANY KIND, \
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF \
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND \
+NONINFRINGEMENT.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE \
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF \
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION \
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\
+"
 
-#define SHORT_COPYRIGHT_DETAILS "1997-2017 Simon Tatham, 2011-2019 Lu Dong, 2019 MaysWind"
+#define SHORT_COPYRIGHT_DETAILS "2019 MaysWind"
