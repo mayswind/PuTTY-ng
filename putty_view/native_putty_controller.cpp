@@ -2121,10 +2121,13 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 }
 
 DECL_WINDOWS_FUNCTION(static, BOOL, FlashWindowEx, (PFLASHWINFO));
+DECL_WINDOWS_FUNCTION(static, BOOL, ToUnicodeEx,
+                      (UINT, UINT, const BYTE *, LPWSTR, int, UINT, HKL));
 
 void init_flashwindow()
 {
     HMODULE user32_module = load_system32_dll("user32.dll");
+    GET_WINDOWS_FUNCTION(user32_module, ToUnicodeEx);
     GET_WINDOWS_FUNCTION(user32_module, FlashWindowEx);
 }
 
@@ -2249,13 +2252,16 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
     int r, i, code;
     unsigned char *p = output;
     static int alt_sum = 0;
+    int funky_type = conf_get_int(cfg, CONF_funky_type);
+    int no_applic_k = conf_get_int(cfg, CONF_no_applic_k);
+    int ctrlaltkeys = conf_get_int(cfg, CONF_ctrlaltkeys);
+    int nethack_keypad = conf_get_int(cfg, CONF_nethack_keypad);
 
     HKL kbd_layout = GetKeyboardLayout(0);
 
-    /* keys is for ToAsciiEx. There's some ick here, see below. */
-    static WORD keys[3];
+    static wchar_t keys_unicode[3];
     static int compose_char = 0;
-    static WPARAM compose_key = 0;
+    static WPARAM compose_keycode = 0;
 
     r = GetKeyboardState(keystate);
     if (!r)
@@ -2305,12 +2311,12 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		else if (ch)
 		    debug((", $%02x", ch));
 
-		if (keys[0])
-		    debug((", KB0=%02x", keys[0]));
-		if (keys[1])
-		    debug((", KB1=%02x", keys[1]));
-		if (keys[2])
-		    debug((", KB2=%02x", keys[2]));
+		if (keys_unicode[0])
+		    debug((", KB0=%04x", keys_unicode[0]));
+		if (keys_unicode[1])
+		    debug((", KB1=%04x", keys_unicode[1]));
+		if (keys_unicode[2])
+		    debug((", KB2=%04x", keys_unicode[2]));
 
 		if ((keystate[VK_SHIFT] & 0x80) != 0)
 		    debug((", S"));
@@ -2342,9 +2348,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
 
 	/* Nastyness with NUMLock - Shift-NUMLock is left alone though */
-	if ((conf_get_int(cfg, CONF_funky_type) == FUNKY_VT400 ||
-	     (conf_get_int(cfg, CONF_funky_type) <= FUNKY_LINUX && term->app_keypad_keys &&
-	      !conf_get_int(cfg, CONF_no_applic_k)))
+	if ((funky_type == FUNKY_VT400 ||
+	     (funky_type <= FUNKY_LINUX && term->app_keypad_keys &&
+	      !no_applic_k))
 	    && wParam == VK_NUMLOCK && !(keystate[VK_SHIFT] & 0x80)) {
 
 	    wParam = VK_EXECUTE;
@@ -2370,7 +2376,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
     /* Make sure Ctrl-ALT is not the same as AltGr for ToAscii unless told. */
     if (left_alt && (keystate[VK_CONTROL] & 0x80)) {
-	if (conf_get_int(cfg, CONF_ctrlaltkeys))
+	if (ctrlaltkeys)
 	    keystate[VK_MENU] = 0;
 	else {
 	    keystate[VK_RMENU] = 0x80;
@@ -2384,16 +2390,16 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
     /* Note if AltGr was pressed and if it was used as a compose key */
     if (!compose_state) {
-	compose_key = 0x100;
+	compose_keycode = 0x100;
 	if (conf_get_int(cfg, CONF_compose_key)) {
 	    if (wParam == VK_MENU && (HIWORD(lParam) & KF_EXTENDED))
-		compose_key = wParam;
+		compose_keycode = wParam;
 	}
 	if (wParam == VK_APPS)
-	    compose_key = wParam;
+	    compose_keycode = wParam;
     }
 
-    if (wParam == compose_key) {
+    if (wParam == compose_keycode) {
 	if (compose_state == 0
 	    && (HIWORD(lParam) & (KF_UP | KF_REPEAT)) == 0) compose_state =
 		1;
@@ -2408,9 +2414,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	compose_state = 0;
 
     /* Sanitize the number pad if not using a PC NumPad */
-    if (left_alt || (term->app_keypad_keys && !conf_get_int(cfg, CONF_no_applic_k)
-		     && conf_get_int(cfg, CONF_funky_type) != FUNKY_XTERM)
-	|| conf_get_int(cfg, CONF_funky_type) == FUNKY_VT400 || conf_get_int(cfg, CONF_nethack_keypad) || compose_state) {
+    if (left_alt || (term->app_keypad_keys && !no_applic_k
+		     && funky_type != FUNKY_XTERM)
+	|| funky_type == FUNKY_VT400 || nethack_keypad || compose_state) {
 	if ((HIWORD(lParam) & KF_EXTENDED) == 0) {
 	    int nParam = 0;
 	    switch (wParam) {
@@ -2526,11 +2532,13 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	if (left_alt && wParam == VK_F4 && conf_get_int(cfg, CONF_alt_f4)) {
 	    return -1;
 	}
-	if (left_alt && wParam == VK_SPACE && conf_get_int(cfg, CONF_alt_space)) {
+	if (left_alt && wParam == VK_SPACE && conf_get_int(cfg,
+							   CONF_alt_space)) {
 	    SendMessage(getNativePage(), WM_SYSCOMMAND, SC_KEYMENU, 0);
 	    return -1;
 	}
-	if (left_alt && wParam == VK_RETURN && conf_get_int(cfg, CONF_fullscreenonaltenter) &&
+	if (left_alt && wParam == VK_RETURN &&
+	    conf_get_int(cfg, CONF_fullscreenonaltenter) &&
 	    (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) != RESIZE_DISABLED)) {
  	    if ((HIWORD(lParam) & (KF_UP | KF_REPEAT)) != KF_REPEAT)
  		//not support full screen
@@ -2544,7 +2552,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	}
 
 	/* Nethack keypad */
-	if (conf_get_int(cfg, CONF_nethack_keypad) && !left_alt) {
+	if (nethack_keypad && !left_alt) {
 	    switch (wParam) {
 	      case VK_NUMPAD1:
 		*p++ = "bB\002\002"[shift_state & 3];
@@ -2580,9 +2588,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	if (!left_alt) {
 	    int xkey = 0;
 
-	    if (conf_get_int(cfg, CONF_funky_type) == FUNKY_VT400 ||
-		(conf_get_int(cfg, CONF_funky_type) <= FUNKY_LINUX &&
-		 term->app_keypad_keys && !conf_get_int(cfg, CONF_no_applic_k))) switch (wParam) {
+	    if (funky_type == FUNKY_VT400 ||
+		(funky_type <= FUNKY_LINUX &&
+		 term->app_keypad_keys && !no_applic_k)) switch (wParam) {
 		  case VK_EXECUTE:
 		    xkey = 'P';
 		    break;
@@ -2596,7 +2604,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    xkey = 'S';
 		    break;
 		}
-	    if (term->app_keypad_keys && !conf_get_int(cfg, CONF_no_applic_k))
+	    if (term->app_keypad_keys && !no_applic_k)
 		switch (wParam) {
 		  case VK_NUMPAD0:
 		    xkey = 'p';
@@ -2633,7 +2641,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    xkey = 'n';
 		    break;
 		  case VK_ADD:
-		    if (conf_get_int(cfg, CONF_funky_type) == FUNKY_XTERM) {
+		    if (funky_type == FUNKY_XTERM) {
 			if (shift_state)
 			    xkey = 'l';
 			else
@@ -2645,15 +2653,15 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    break;
 
 		  case VK_DIVIDE:
-		    if (conf_get_int(cfg, CONF_funky_type) == FUNKY_XTERM)
+		    if (funky_type == FUNKY_XTERM)
 			xkey = 'o';
 		    break;
 		  case VK_MULTIPLY:
-		    if (conf_get_int(cfg, CONF_funky_type) == FUNKY_XTERM)
+		    if (funky_type == FUNKY_XTERM)
 			xkey = 'j';
 		    break;
 		  case VK_SUBTRACT:
-		    if (conf_get_int(cfg, CONF_funky_type) == FUNKY_XTERM)
+		    if (funky_type == FUNKY_XTERM)
 			xkey = 'm';
 		    break;
 
@@ -2825,7 +2833,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    break;
 	}
 	/* Reorder edit keys to physical order */
-	if (conf_get_int(cfg, CONF_funky_type) == FUNKY_VT400 && code <= 6)
+	if (funky_type == FUNKY_VT400 && code <= 6)
 	    code = "\0\2\1\4\5\3\6"[code];
 
 	if (term->vt52_mode && code > 0 && code <= 6) {
@@ -2833,8 +2841,8 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return p - output;
 	}
 
-	if (conf_get_int(cfg, CONF_funky_type) == FUNKY_SCO &&     /* SCO function keys */
-	    code >= 11 && code <= 34) {
+	if (funky_type == FUNKY_SCO && code >= 11 && code <= 34) {
+	    /* SCO function keys */
 	    char codes[] = "MNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@[\\]^_`{";
 	    int index = 0;
 	    switch (wParam) {
@@ -2856,7 +2864,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    p += sprintf((char *) p, "\x1B[%c", codes[index]);
 	    return p - output;
 	}
-	if (conf_get_int(cfg, CONF_funky_type) == FUNKY_SCO &&     /* SCO small keypad */
+	if (funky_type == FUNKY_SCO &&     /* SCO small keypad */
 	    code >= 1 && code <= 6) {
 	    char codes[] = "HL.FIG";
 	    if (code == 3) {
@@ -2866,7 +2874,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    }
 	    return p - output;
 	}
-	if ((term->vt52_mode || conf_get_int(cfg, CONF_funky_type) == FUNKY_VT100P) && code >= 11 && code <= 24) {
+	if ((term->vt52_mode || funky_type == FUNKY_VT100P) && code >= 11 && code <= 24) {
 	    int offt = 0;
 	    if (code > 15)
 		offt++;
@@ -2879,18 +2887,19 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    sprintf((char *) p, "\x1BO%c", code + 'P' - 11 - offt);
 	    return p - output;
 	}
-	if (conf_get_int(cfg, CONF_funky_type) == FUNKY_LINUX && code >= 11 && code <= 15) {
+	if (funky_type == FUNKY_LINUX && code >= 11 && code <= 15) {
 	    p += sprintf((char *) p, "\x1B[[%c", code + 'A' - 11);
 	    return p - output;
 	}
-	if (conf_get_int(cfg, CONF_funky_type) == FUNKY_XTERM && code >= 11 && code <= 14) {
+	if (funky_type == FUNKY_XTERM && code >= 11 && code <= 14) {
 	    if (term->vt52_mode)
 		p += sprintf((char *) p, "\x1B%c", code + 'P' - 11);
 	    else
 		p += sprintf((char *) p, "\x1BO%c", code + 'P' - 11);
 	    return p - output;
 	}
-	if (conf_get_int(cfg, CONF_rxvt_homeend) && (code == 1 || code == 4)) {
+	if ((code == 1 || code == 4) &&
+	    conf_get_int(cfg, CONF_rxvt_homeend)) {
 	    p += sprintf((char *) p, code == 1 ? "\x1B[H" : "\x1BOw");
 	    return p - output;
 	}
@@ -2923,7 +2932,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		break;
 	    }
 	    if (xkey) {
-		p += format_arrow_key((char*)p, term, xkey, shift_state);
+		p += format_arrow_key((char *)p, term, xkey, shift_state);
 		return p - output;
 	    }
 	}
@@ -2950,7 +2959,8 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	BOOL capsOn=0;
 
 	/* helg: clear CAPS LOCK state if caps lock switches to cyrillic */
-	if(conf_get_int(cfg, CONF_xlat_capslockcyr) && keystate[VK_CAPITAL] != 0) {
+	if(keystate[VK_CAPITAL] != 0 &&
+	   conf_get_int(cfg, CONF_xlat_capslockcyr)) {
 	    capsOn= !left_alt;
 	    keystate[VK_CAPITAL] = 0;
 	}
@@ -2959,7 +2969,10 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	 * be is? There's indication on MS' website of an Inquire/InquireEx
 	 * functioning returning a KBINFO structure which tells us. */
 	OSVERSIONINFO& osVersion = get_os_version();
-	if (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT) {
+	if (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT && p_ToUnicodeEx) {
+	    r = p_ToUnicodeEx(wParam, scan, keystate, keys_unicode,
+                              lenof(keys_unicode), 0, kbd_layout);
+	} else {
 	    /* XXX 'keys' parameter is declared in MSDN documentation as
 	     * 'LPWORD lpChar'.
 	     * The experience of a French user indicates that on
@@ -2970,12 +2983,17 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	     * Win9x/NT split, but I suspect it's worse than that.
 	     * See wishlist item `win-dead-keys' for more horrible detail
 	     * and speculations. */
-	    BYTE keybs[3];
 	    int i;
-	    r = ToAsciiEx(wParam, scan, keystate, (LPWORD)keybs, 0, kbd_layout);
-	    for (i=0; i<3; i++) keys[i] = keybs[i];
-	} else {
+	    static WORD keys[3];
+	    static BYTE keysb[3];
 	    r = ToAsciiEx(wParam, scan, keystate, keys, 0, kbd_layout);
+	    if (r > 0) {
+	        for (i = 0; i < r; i++) {
+	            keysb[i] = (BYTE)keys[i];
+	        }
+	        MultiByteToWideChar(CP_ACP, 0, (LPCSTR)keysb, r,
+                                    keys_unicode, lenof(keys_unicode));
+	    }
 	}
 #ifdef SHOW_TOASCII_RESULT
 	if (r == 1 && !key_down) {
@@ -2985,13 +3003,13 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		else
 		    debug((", LCH(%d)", alt_sum));
 	    } else {
-		debug((", ACH(%d)", keys[0]));
+		debug((", ACH(%d)", keys_unicode[0]));
 	    }
 	} else if (r > 0) {
 	    int r1;
 	    debug((", ASC("));
 	    for (r1 = 0; r1 < r; r1++) {
-		debug(("%s%d", r1 ? "," : "", keys[r1]));
+		debug(("%s%d", r1 ? "," : "", keys_unicode[r1]));
 	    }
 	    debug((")"));
 	}
@@ -2999,34 +3017,27 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	if (r > 0) {
 	    WCHAR keybuf;
 
-	    /*
-	     * Interrupt an ongoing paste. I'm not sure this is
-	     * sensible, but for the moment it's preferable to
-	     * having to faff about buffering things.
-	     */
-	    term_nopaste(term);
-
 	    p = output;
 	    for (i = 0; i < r; i++) {
-		unsigned char ch = (unsigned char) keys[i];
+		wchar_t wch = keys_unicode[i];
 
-		if (compose_state == 2 && (ch & 0x80) == 0 && ch > ' ') {
-		    compose_char = ch;
+		if (compose_state == 2 && wch >= ' ' && wch < 0x80) {
+		    compose_char = wch;
 		    compose_state++;
 		    continue;
 		}
-		if (compose_state == 3 && (ch & 0x80) == 0 && ch > ' ') {
+		if (compose_state == 3 && wch >= ' ' && wch < 0x80) {
 		    int nc;
 		    compose_state = 0;
 
-		    if ((nc = check_compose(compose_char, ch)) == -1) {
+		    if ((nc = check_compose(compose_char, wch)) == -1) {
 			MessageBeep(MB_ICONHAND);
 			return 0;
 		    }
 		    keybuf = nc;
 		    term_seen_key_event(term);
 		    if (ldisc)
-					luni_send(ldisc, &keybuf, 1, 1);
+			luni_send(ldisc, &keybuf, 1, 1);
 		    continue;
 		}
 
@@ -3038,9 +3049,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 			    keybuf = alt_sum;
 			    term_seen_key_event(term);
 			    if (ldisc)
-						luni_send(ldisc, &keybuf, 1, 1);
+				luni_send(ldisc, &keybuf, 1, 1);
 			} else {
-			    ch = (char) alt_sum;
+			    char ch = (char) alt_sum;
 			    /*
 			     * We need not bother about stdin
 			     * backlogs here, because in GUI PuTTY
@@ -3051,52 +3062,46 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 			     * everything we're sent.
 			     */
 			    term_seen_key_event(term);
-			    if (ldisc){
-					if (WindowInterface::GetInstance()->ifNeedCmdScat()){
-						WindowInterface::GetInstance()->cmdScat(LDISC_SEND, (char*)&ch, 1, 1);
-					}else{
-						ldisc_send(ldisc, (char*)&ch, 1, 1);
-					}
-			    }
+			    if (ldisc)
+				ldisc_send(ldisc, &ch, 1, 1);
 			}
 			alt_sum = 0;
 		    } else {
 			term_seen_key_event(term);
 			if (ldisc)
-					lpage_send(ldisc, kbd_codepage, (char*)&ch, 1, 1);
-				}
+			    luni_send(ldisc, &wch, 1, 1);
+		    }
 		} else {
-		    if(capsOn && ch < 0x80) {
+		    if(capsOn && wch < 0x80) {
 			WCHAR cbuf[2];
 			cbuf[0] = 27;
-			cbuf[1] = xlat_uskbd2cyrllic(ch);
+			cbuf[1] = xlat_uskbd2cyrllic(wch);
 			term_seen_key_event(term);
 			if (ldisc)
-					luni_send(ldisc, cbuf+!left_alt, 1+!!left_alt, 1);
+			    luni_send(ldisc, cbuf+!left_alt, 1+!!left_alt, 1);
 		    } else {
-			char cbuf[2];
+			WCHAR cbuf[2];
 			cbuf[0] = '\033';
-			cbuf[1] = ch;
+			cbuf[1] = wch;
 			term_seen_key_event(term);
 			if (ldisc)
-			    	lpage_send(ldisc, kbd_codepage,
-				       cbuf+!left_alt, 1+!!left_alt, 1);
-				}
+			    luni_send(ldisc, cbuf +!left_alt, 1+!!left_alt, 1);
 		    }
-		show_mouseptr( 0);
+		}
+		show_mouseptr(0);
 	    }
 
 	    /* This is so the ALT-Numpad and dead keys work correctly. */
-	    keys[0] = 0;
+	    keys_unicode[0] = 0;
 
 	    return p - output;
 	}
 	/* If we're definitely not building up an ALT-54321 then clear it */
 	if (!left_alt)
-	    keys[0] = 0;
+	    keys_unicode[0] = 0;
 	/* If we will be using alt_sum fix the 256s */
-	else if (keys[0] && (in_utf(term) || ucsdata.dbcs_screenfont))
-	    keys[0] = 10;
+	else if (keys_unicode[0] && (in_utf(term) || ucsdata.dbcs_screenfont))
+	    keys_unicode[0] = 10;
     }
 
     /*
