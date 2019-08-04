@@ -872,7 +872,6 @@ void cleanup_exit(int);
     X(INT, NONE, telnet_newline) \
     X(INT, NONE, alt_f4) /* is it special? */ \
     X(INT, NONE, alt_space) /* is it special? */ \
-    X(INT, NONE, alt_only) /* is it special? */ \
     X(INT, NONE, localecho) \
     X(INT, NONE, localedit) \
     X(INT, NONE, fullscreenonaltenter) \

@@ -391,9 +391,6 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
     ctrl_checkbox(s, "System menu appears on ALT-Space", 'y',
 		  HELPCTX(behaviour_altspace),
 		  conf_checkbox_handler, I(CONF_alt_space));
-    ctrl_checkbox(s, "System menu appears on ALT alone", 'l',
-		  HELPCTX(behaviour_altonly),
-		  conf_checkbox_handler, I(CONF_alt_only));
 // PuTTY-ng does not support full screen mode
 //    ctrl_checkbox(s, "Full screen on Alt-Enter", 'f',
 //		  HELPCTX(behaviour_altenter),

@@ -3113,16 +3113,6 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    keys_unicode[0] = 10;
     }
 
-    /*
-     * ALT alone may or may not want to bring up the System menu.
-     * If it's not meant to, we return 0 on presses or releases of
-     * ALT, to show that we've swallowed the keystroke. Otherwise
-     * we return -1, which means Windows will give the keystroke
-     * its default handling (i.e. bring up the System menu).
-     */
-    if (wParam == VK_MENU && !conf_get_int(cfg, CONF_alt_only))
-	return 0;
-
     return -1;
 }
 

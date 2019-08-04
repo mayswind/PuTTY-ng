@@ -715,7 +715,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "NetHackKeypad", conf_get_int(conf, CONF_nethack_keypad));
     iStorage->write_setting_i(sesskey, "AltF4", conf_get_int(conf, CONF_alt_f4));
     iStorage->write_setting_i(sesskey, "AltSpace", conf_get_int(conf, CONF_alt_space));
-    iStorage->write_setting_i(sesskey, "AltOnly", conf_get_int(conf, CONF_alt_only));
     iStorage->write_setting_i(sesskey, "ComposeKey", conf_get_int(conf, CONF_compose_key));
     iStorage->write_setting_i(sesskey, "CtrlAltKeys", conf_get_int(conf, CONF_ctrlaltkeys));
 #ifdef OSX_META_KEY_CONFIG
@@ -1279,7 +1278,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "NetHackKeypad", 0, conf, CONF_nethack_keypad);
     gppi(iStorage, sesskey, "AltF4", 1, conf, CONF_alt_f4);
     gppi(iStorage, sesskey, "AltSpace", 0, conf, CONF_alt_space);
-    gppi(iStorage, sesskey, "AltOnly", 0, conf, CONF_alt_only);
     gppi(iStorage, sesskey, "ComposeKey", 0, conf, CONF_compose_key);
     gppi(iStorage, sesskey, "CtrlAltKeys", 1, conf, CONF_ctrlaltkeys);
 #ifdef OSX_META_KEY_CONFIG
