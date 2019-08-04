@@ -121,6 +121,8 @@ public:
 
 	int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
+	int on_sys_command(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
 	int on_reconfig();
 	void process_log_status();
 	bool checkZSession(const char* const recv, const int len);

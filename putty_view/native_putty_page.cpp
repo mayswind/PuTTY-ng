@@ -168,6 +168,11 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
             puttyController->on_menu(hwnd, message, wParam, lParam);
             break;
         
+        case WM_SYSCOMMAND:
+            if (puttyController->on_sys_command(hwnd, message, wParam, lParam))
+                break;
+            return 0;
+
         case WM_VSCROLL:
 	        puttyController->on_scroll(hwnd, message, wParam, lParam);
         	break;

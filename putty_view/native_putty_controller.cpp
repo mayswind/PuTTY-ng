@@ -1274,29 +1274,6 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //       case IDM_HELP:
  //           launch_help(hwnd, NULL);
  //           break;
- //       case SC_MOUSEMENU:
- //           /*
- //            * We get this if the System menu has been activated
- //            * using the mouse.
- //            */
- //           show_mouseptr(wintab_get_active_item(&tab), 1);
- //           break;
- //       case SC_KEYMENU:
- //           /*
- //            * We get this if the System menu has been activated
- //            * using the keyboard. This might happen from within
- //            * TranslateKey, in which case it really wants to be
- //            * followed by a `space' character to actually _bring
- //            * the menu up_ rather than just sitting there in
- //            * `ready to appear' state.
- //            */
- //           show_mouseptr(wintab_get_active_item(&tab), 1);	       /* make sure pointer is visible */
- //           if( lParam == 0 )
- //               PostMessage(getNativePage(), WM_CHAR, ' ', 0);
- //           break;
- //       case IDM_FULLSCREEN:
- //           flip_full_screen();
- //           break;
         default:
  //           if (wParam >= IDM_SAVED_MIN && wParam < IDM_SAVED_MAX) {
  //               SendMessage(hwnd, WM_SYSCOMMAND, IDM_SAVEDSESS, wParam);
@@ -1317,6 +1294,38 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			break;
 	}
     return 0;
+}
+
+int NativePuttyController::on_sys_command(HWND hwnd, UINT message,
+	WPARAM wParam, LPARAM lParam)
+{
+	switch (wParam & ~0xF) {       // low 4 bits reserved to Windows 
+	  case SC_MOUSEMENU:
+	    /*
+	     * We get this if the System menu has been activated
+	     * using the mouse.
+	     */
+	    show_mouseptr(1);
+	    break;
+          case SC_KEYMENU:
+	    /*
+	     * We get this if the System menu has been activated
+	     * using the keyboard. This might happen from within
+	     * TranslateKey, in which case it really wants to be
+	     * followed by a `space' character to actually _bring
+	     * the menu up_ rather than just sitting there in
+	     * `ready to appear' state.
+	     */
+	    show_mouseptr(1);	       /* make sure pointer is visible */
+	    if( lParam == 0 )
+		PostMessage(hwnd, WM_CHAR, ' ', 0);
+	    else if ((lParam >> 16) <= 0) // Disable system actions of alt+other key
+		return 0;
+	    
+	    break;
+	}
+
+	return 1;
 }
 
 void NativePuttyController::process_log_status()
@@ -3150,7 +3159,7 @@ int NativePuttyController::on_key(HWND hwnd, UINT message,
 	    } else {
 		len = TranslateKey(message, wParam, lParam, buf);
 		if (len == -1)
-		    return DefWindowProc(hwnd, message, wParam, lParam);
+			return 1; // Do "return DefWindowProc(hwnd, message, wParam, lParam);" by caller
 
 		if (len != 0) {
 		    /*
