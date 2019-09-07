@@ -748,7 +748,7 @@ void ZmodemSession::handleZfile()
 		fin.close();
 
 		char buf[MAX_PATH];
-		unsigned dot_pos = filename.find_last_of(".");
+		std::size_t dot_pos = filename.find_last_of(".");
 
 		if (dot_pos != std::string::npos) {
 			std::string file_purename = filename.substr(0, dot_pos);
