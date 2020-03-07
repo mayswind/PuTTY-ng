@@ -839,7 +839,7 @@ void ZmodemSession::sendFileInfo()
 	memcpy(filedata + filedata_len, basename.c_str(), basename.length() +1);
 	filedata_len += basename.length() +1;
 	snprintf(filedata + filedata_len, sizeof(filedata_len) - filedata_len, "%lu %lo 100644 0 1 %lu", 
-		(long)info.size, (long)(info.last_modified.ToInternalValue()/1000000), (long)info.size);
+		(long)info.size, (long)(info.last_modified.ToTimeT()), (long)info.size);
 	filedata_len += strlen(filedata + filedata_len);
 	filedata[filedata_len++] = 0;
 
