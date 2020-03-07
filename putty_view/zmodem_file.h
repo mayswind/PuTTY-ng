@@ -24,7 +24,7 @@ public:
 	const std::string& getPrompt(){return prompt_;}
 	std::string getProgressLine();
 
-	ZmodemFile(NativePuttyController* frontend, const std::string& filepath, const std::string& basename, unsigned long filesize);
+	ZmodemFile(NativePuttyController* frontend, const std::string& actualFilePath, const std::string& displayFilePath, const std::string& basename, unsigned long filesize);
 	unsigned read(char*buf, unsigned size);
 	void setPos(unsigned pos);
 

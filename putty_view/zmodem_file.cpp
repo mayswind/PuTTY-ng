@@ -114,16 +114,16 @@ bool ZmodemFile::parseInfo(const std::string& fileinfo)
 	return 1;
 }
 
-ZmodemFile::ZmodemFile(NativePuttyController* frontend, const std::string& filepath, const std::string& basename, unsigned long filesize)
+ZmodemFile::ZmodemFile(NativePuttyController* frontend, const std::string& actualFilePath, const std::string& displayFilePath, const std::string& basename, unsigned long filesize)
 	: frontend_(frontend),
-	filename_(filepath),
+	filename_(actualFilePath),
 	file_size_(filesize),
 	file_time_(0),
 	pos_(0),
-	file_(filepath.c_str(), std::fstream::in|std::fstream::binary),
+	file_(actualFilePath.c_str(), std::fstream::in | std::fstream::binary),
 	prompt_("<- ")
 {
-	prompt_ += filepath + " :";
+	prompt_ += displayFilePath + " :";
 }
 
 unsigned ZmodemFile::read(char*buf, unsigned size)

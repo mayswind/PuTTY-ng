@@ -818,16 +818,17 @@ void ZmodemSession::sendFileInfo()
 		basename = W2A(filePath.BaseName().value().c_str());
 	}
 
-	std::string uploadFilePath = "";
+	std::string actualUploadFilePath = W2A(filePath.value().c_str());
+	std::string displayUploadFilePath = "";
 	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		uploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
+		displayUploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
 	}
 	else {
-		uploadFilePath = W2A(filePath.value().c_str());
+		displayUploadFilePath = W2A(filePath.value().c_str());
 	}
 
 	if (res == false){
-		std::string out(std::string("\r\nCannot read file: ") + uploadFilePath + "\r\n");
+		std::string out(std::string("\r\nCannot read file: ") + displayUploadFilePath + "\r\n");
 		output(out.c_str());
 		bufferParsed_ = false;
 		handleEvent(RESET_EVT);
@@ -856,7 +857,7 @@ void ZmodemSession::sendFileInfo()
 		zmodemFile_ = NULL;
 	}
 
-	zmodemFile_ = new ZmodemFile(frontend_, uploadFilePath, basename, info.size);
+	zmodemFile_ = new ZmodemFile(frontend_, actualUploadFilePath, displayUploadFilePath, basename, info.size);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 }
