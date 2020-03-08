@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "putty.h"
 #include "terminal.h"
+#include "extend/encoding_util.h"
 
 void term_free_hits(Terminal *term);
 
@@ -6755,7 +6756,7 @@ void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int le
 	getclipbuf(term, top, bottom, 0, buf);
 	std::wstring wStrLastLine(buf.textbuf, buf.bufpos);	
 	freeclibuf(buf);
-	std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+	std::string strLastLine = wstring_to_string(wStrLastLine, term->ucsdata->line_codepage);
 
 	std::string data_to_show;
 	data_to_show.reserve(128);

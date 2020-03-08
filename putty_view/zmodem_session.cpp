@@ -9,6 +9,7 @@
 #include "base/file_util.h"
 #include "terminal.h"
 
+#include "atlconv.h" 
 #include "zmodem.h"
 #include "encoding_util.h"
 base::Lock ZmodemSession::fsmLock_;
@@ -239,7 +240,8 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	tick_ = 0;
 
 	char* lastRecvFilePath = load_global_ssetting("LastZModemRecvPath", "");
-	copy_to_tchar_array(lastRecvFilePath, lastRecvFilePath_);
+	USES_CONVERSION;
+	_tcscpy(lastRecvFilePath_, A2T(lastRecvFilePath));
 	sfree(lastRecvFilePath);
 
 	int i;

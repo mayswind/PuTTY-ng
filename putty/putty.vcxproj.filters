@@ -327,6 +327,9 @@
     <ClCompile Include="miscucs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="extend\encoding_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">
@@ -420,6 +423,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extend\encoding_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

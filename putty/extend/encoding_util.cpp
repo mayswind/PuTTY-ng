@@ -1,11 +1,5 @@
 ﻿#include "encoding_util.h"
 
-void copy_to_tchar_array(char* source_str, TCHAR* dest_str)
-{
-	USES_CONVERSION;
-	_tcscpy(dest_str, A2T(source_str));
-}
-
 string wstring_to_string(wstring source_str)
 {
 	return wstring_to_string(source_str, _AtlGetConversionACP());

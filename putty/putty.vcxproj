@@ -160,6 +160,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="extend\encoding_util.cpp" />
     <ClCompile Include="adb.c" />
     <ClCompile Include="adbcfg.c" />
     <ClCompile Include="aqsync.c" />
@@ -280,6 +281,7 @@
     <ClCompile Include="x11fwd.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="extend\encoding_util.h" />
     <ClInclude Include="charset\charset.h" />
     <ClInclude Include="charset\internal.h" />
     <ClInclude Include="des.h" />

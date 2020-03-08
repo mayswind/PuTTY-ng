@@ -6,7 +6,6 @@
 
 using namespace std;
 
-void copy_to_tchar_array(char* source_str, TCHAR* dest_str);
 string wstring_to_string(wstring source_str);
 string wstring_to_string(wstring source_str, int codepage);
 wstring string_to_wstring(string source_str);

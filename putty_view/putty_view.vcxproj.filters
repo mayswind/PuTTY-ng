@@ -57,9 +57,6 @@
     <ClInclude Include="PuttyMultiFileDialog.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="encoding_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
@@ -93,9 +90,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PuttyMultiFileDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="encoding_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
