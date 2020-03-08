@@ -1,4 +1,5 @@
 #include <string>
+#include <atlcoll.h>
 #include <atlconv.h>
 #include <atlstr.h>
 #include <putty.h>

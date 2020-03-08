@@ -1,4 +1,4 @@
-#include "encoding_util.h"
+﻿#include "encoding_util.h"
 
 void copy_to_tchar_array(char* source_str, TCHAR* dest_str)
 {
@@ -8,58 +8,68 @@ void copy_to_tchar_array(char* source_str, TCHAR* dest_str)
 
 string wstring_to_string(wstring source_str)
 {
-	USES_CONVERSION;
-	return W2A(source_str.c_str());
+	return wstring_to_string(source_str, _AtlGetConversionACP());
 }
 
 string wstring_to_string(wstring source_str, int codepage)
 {
-	USES_CONVERSION;
-	if (codepage < 65536) {
-		return W2A_CP(source_str.c_str(), codepage);
+	int length = WideCharToMultiByte(codepage, 0, source_str.c_str(), -1, NULL, 0, NULL, NULL);
+	LPSTR ret = new char[length + 1];
+	ZeroMemory(ret, sizeof(char)*(length + 1));
+
+	if (0 == ::WideCharToMultiByte(codepage, 0, source_str.c_str(), -1, ret, length, NULL, NULL))
+	{
+		assert(FALSE);
+		delete[] ret;
+		ret = NULL;
+		return NULL;
 	}
-	else {
-		return W2A(source_str.c_str());
-	}
+
+	CAutoPtr<char> c_auto_ptr;
+	c_auto_ptr.Attach(ret);
+
+	CAutoPtrArray<char> c_auto_ptr_array;
+	c_auto_ptr_array.Add(c_auto_ptr);
+
+	return ret;
 }
 
 wstring string_to_wstring(string source_str)
 {
-	USES_CONVERSION;
-	return A2W(source_str.c_str());
+	return string_to_wstring(source_str, _AtlGetConversionACP());
 }
 
 wstring string_to_wstring(string source_str, int codepage)
 {
-	USES_CONVERSION;
-	if (codepage < 65536) {
-		return A2W_CP(source_str.c_str(), codepage);
+	int length = MultiByteToWideChar(codepage, 0, source_str.c_str(), -1, NULL, 0);
+	LPWSTR ret = new wchar_t[length + 1];
+	ZeroMemory(ret, sizeof(wchar_t)*(length + 1));
+
+	if (0 == MultiByteToWideChar(codepage, 0, source_str.c_str(), -1, ret, length))
+	{
+		assert(FALSE);
+		delete[] ret;
+		ret = NULL;
+		return NULL;
 	}
-	else {
-		return A2W(source_str.c_str());
-	}
+
+	CAutoPtr<wchar_t> c_auto_ptr;
+	c_auto_ptr.Attach(ret);
+
+	CAutoPtrArray<wchar_t> c_auto_ptr_array;
+	c_auto_ptr_array.Add(c_auto_ptr);
+
+	return ret;
 }
 
 string from_codepage(string source_str, int codepage)
 {
-	if (codepage >= 65536)
-	{
-		return source_str;
-	}
-
-	USES_CONVERSION;
-	std::wstring temp_str = A2W_CP(source_str.c_str(), codepage);
-	return W2A(temp_str.c_str());
+	std::wstring temp_str = string_to_wstring(source_str.c_str(), codepage);
+	return wstring_to_string(temp_str.c_str());
 }
 
 string to_codepage(string source_str, int codepage)
 {
-	if (codepage >= 65536)
-	{
-		return source_str;
-	}
-
-	USES_CONVERSION;
-	std::wstring temp_str = A2W(source_str.c_str());
-	return W2A_CP(temp_str.c_str(), codepage);
+	std::wstring temp_str = string_to_wstring(source_str.c_str());
+	return wstring_to_string(temp_str.c_str(), codepage);
 }
