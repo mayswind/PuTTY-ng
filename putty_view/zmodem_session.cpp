@@ -1,5 +1,4 @@
 #include <Shlobj.h>
-#include "atlstr.h"
 
 #include "zmodem_session.h"
 #include "putty.h"
@@ -10,8 +9,8 @@
 #include "base/file_util.h"
 #include "terminal.h"
 
-#include "atlconv.h" 
 #include "zmodem.h"
+#include "encoding_util.h"
 base::Lock ZmodemSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
 
@@ -240,8 +239,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	tick_ = 0;
 
 	char* lastRecvFilePath = load_global_ssetting("LastZModemRecvPath", "");
-	USES_CONVERSION;
-	_tcscpy(lastRecvFilePath_, A2T(lastRecvFilePath));
+	copy_to_tchar_array(lastRecvFilePath, lastRecvFilePath_);
 	sfree(lastRecvFilePath);
 
 	int i;
@@ -468,8 +466,7 @@ void ZmodemSession::handleFrame()
 			TCHAR path[MAX_PATH];
 			SHGetPathFromIDList(pidl, path);
 
-			USES_CONVERSION;
-			recvFilePath_ = W2A(path);
+			recvFilePath_ = wstring_to_string(path);
 
 			if (lstrcmp(path, lastRecvFilePath_) != 0) {
 				lstrcpyn(lastRecvFilePath_, path, MAX_PATH);
@@ -733,12 +730,7 @@ void ZmodemSession::handleZfile()
 	if (zmodemFile_)
 		delete zmodemFile_;
 
-	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		USES_CONVERSION;
-		std::wstring w_filename = A2W_CP(filename.c_str(), frontend_->term->ucsdata->line_codepage);
-		filename = W2A(w_filename.c_str());
-	}
-
+	filename = from_codepage(filename, frontend_->term->ucsdata->line_codepage);
 	std::string final_filename = filename;
 	std::string final_filepath = recvFilePath_ + "/" + final_filename;
 	std::ifstream fin(final_filepath.c_str());
@@ -807,25 +799,12 @@ void ZmodemSession::sendFileInfo()
 	FilePath filePath = uploadFilePaths_.at(0);
 	uploadFilePaths_.erase(uploadFilePaths_.begin());
 
-	USES_CONVERSION;
 	base::PlatformFileInfo info;
 	bool res = GetFileInfo(filePath, &info);
 
-	std::string basename = "";
-	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		basename = W2A_CP(filePath.BaseName().value().c_str(), frontend_->term->ucsdata->line_codepage);
-	} else {
-		basename = W2A(filePath.BaseName().value().c_str());
-	}
-
-	std::string actualUploadFilePath = W2A(filePath.value().c_str());
-	std::string displayUploadFilePath = "";
-	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		displayUploadFilePath = W2A_CP(filePath.value().c_str(), frontend_->term->ucsdata->line_codepage);
-	}
-	else {
-		displayUploadFilePath = W2A(filePath.value().c_str());
-	}
+	std::string basename = wstring_to_string(filePath.BaseName().value(), frontend_->term->ucsdata->line_codepage);
+	std::string actualUploadFilePath = wstring_to_string(filePath.value().c_str());
+	std::string displayUploadFilePath = wstring_to_string(filePath.value(), frontend_->term->ucsdata->line_codepage);
 
 	if (res == false){
 		std::string out(std::string("\r\nCannot read file: ") + displayUploadFilePath + "\r\n");

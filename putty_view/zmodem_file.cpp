@@ -1,14 +1,13 @@
 #include "zmodem_file.h"
 #include "native_putty_controller.h"
 #include <stdio.h>
-#include <atlconv.h>
 #include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
 #include <terminal.h>
-
+#include <encoding_util.h>
 
 int mkdir(const char* dir, int attr);
 
@@ -71,12 +70,7 @@ ZmodemFile::ZmodemFile(
 
 	full_path = full_path + filename;
 	prompt_ += full_path + " :";
-
-	if (frontend_->term->ucsdata->line_codepage < 65536) {
-		USES_CONVERSION;
-		std::wstring w_prompt = A2W(prompt_.c_str());
-		prompt_ = W2A_CP(w_prompt.c_str(), frontend->term->ucsdata->line_codepage);
-	}
+	prompt_ = to_codepage(prompt_.c_str(), frontend->term->ucsdata->line_codepage);
 
 	unsigned found = full_path.find_last_of("/\\");
 	createDir(full_path.substr(0,found));

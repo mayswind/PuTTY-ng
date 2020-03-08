@@ -158,6 +158,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="encoding_util.h" />
     <ClInclude Include="zmodem.h" />
     <ClInclude Include="zmodem_session.h" />
     <ClInclude Include="CmdLineHandler.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="zmodem_file.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="encoding_util.cpp" />
     <ClCompile Include="zmodem_session.cpp" />
     <ClCompile Include="CmdLineHandler.cpp" />
     <ClCompile Include="native_putty_common.cpp" />
