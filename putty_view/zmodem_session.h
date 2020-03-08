@@ -150,6 +150,7 @@ private:
 	bool isToDelete(){return isDestroyed_;}
 	void setDelete(){isDestroyed_ = true;}
 	void flow_control_fresh_lastline(Terminal *term, int headerlen, const char *data, int len);
+	std::string decodeZDLE(const char *data, const int length);
 	
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;

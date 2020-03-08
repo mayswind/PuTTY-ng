@@ -709,7 +709,8 @@ void ZmodemSession::handleZfile()
 	}
 	buffer_[decodeIndex_] = buffer_[decodeIndex_+1];
 	decodeIndex_++;
-	unsigned long crc = calcBufferCrc32(buffer_.c_str() + oldIndex, decodeIndex_ - oldIndex);
+	std::string decodedbuffer = decodeZDLE(buffer_.c_str() + oldIndex, decodeIndex_ - oldIndex);
+	unsigned long crc = calcBufferCrc32(decodedbuffer.c_str(), decodedbuffer.length());
 
 	decodeIndex_++;
 	decodeIndex_ += crc_len;
@@ -730,7 +731,7 @@ void ZmodemSession::handleZfile()
 	if (zmodemFile_)
 		delete zmodemFile_;
 
-	filename = from_codepage(filename, frontend_->term->ucsdata->line_codepage);
+	filename = from_codepage(decodeZDLE(filename.c_str(), filename.length()), frontend_->term->ucsdata->line_codepage);
 	std::string final_filename = filename;
 	std::string final_filepath = recvFilePath_ + "/" + final_filename;
 	std::ifstream fin(final_filepath.c_str());
@@ -1078,6 +1079,24 @@ void ZmodemSession::flow_control_fresh_lastline(Terminal *term, int headerlen, c
 	{
 		tick_ = tick_;
 	}
+}
+
+std::string ZmodemSession::decodeZDLE(const char *data, const int length)
+{
+	std::string result;
+	result.reserve(length);
+	for (int i = 0; i < length; i++)
+	{
+		char ch = data[i];
+		if (ch == ZDLE)
+		{
+			i++;
+			ch = data[i] ^ 0x40;
+		}
+
+		result += ch;
+	}
+	return result;
 }
 
 //-----------------------------------------------------------------------------
