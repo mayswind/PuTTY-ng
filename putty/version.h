@@ -9,11 +9,11 @@
  */
 
 #define VERSION_MAJOR "0"
-#define VERSION_MINOR "70"
+#define VERSION_MINOR "71"
 #define PUTTY_ND_VERSION_MAJOR "6"
 #define PUTTY_ND_VERSION_MINOR "6"
-#define PUTTY_NG_BUILD "27"
-#define BINARY_VERSION 0,70,66,27
+#define PUTTY_NG_BUILD "28"
+#define BINARY_VERSION 0,71,66,28
 
 #ifndef SOURCE_COMMIT
 /*

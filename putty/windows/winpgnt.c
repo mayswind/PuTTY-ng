@@ -57,6 +57,7 @@ static HMENU systray_menu, session_menu;
 static int already_running;
 
 static char *putty_path;
+static int restrict_putty_acl = FALSE;
 
 /* CWD for "add key" file requester. */
 static filereq *keypath = NULL;
@@ -849,11 +850,18 @@ static void update_sessions(void)
 //      case WM_SYSCOMMAND:
 //	switch (wParam & ~0xF) {       /* low 4 bits reserved to Windows */
 //	  case IDM_PUTTY:
-//	    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, _T(""), _T(""),
-//				 SW_SHOW) <= 32) {
-//		MessageBox(NULL, "Unable to execute PuTTY!",
-//			   "Error", MB_OK | MB_ICONERROR);
-//	    }
+//          {
+//              TCHAR cmdline[10];
+//              cmdline[0] = '\0';
+//              if (restrict_putty_acl)
+//                  strcat(cmdline, "&R");
+//
+//              if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, cmdline,
+//                                       _T(""), SW_SHOW) <= 32) {
+//                  MessageBox(NULL, "Unable to execute PuTTY!",
+//                             "Error", MB_OK | MB_ICONERROR);
+//              }
+//          }
 //	    break;
 //	  case IDM_CLOSE:
 //	    if (passphrase_box)
@@ -914,7 +922,10 @@ static void update_sessions(void)
 //		    mii.cch = MAX_PATH;
 //		    mii.dwTypeData = buf;
 //		    GetMenuItemInfo(session_menu, wParam, FALSE, &mii);
-//		    strcpy(param, "@");
+//                  param[0] = '\0';
+//                  if (restrict_putty_acl)
+//                      strcat(param, "&R");
+//		    strcat(param, "@");
 //		    strcat(param, mii.dwTypeData);
 //		    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, param,
 //					 _T(""), SW_SHOW) <= 32) {

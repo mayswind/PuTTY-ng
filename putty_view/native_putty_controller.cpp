@@ -306,6 +306,21 @@ void NativePuttyController::systopalette()
 
 //-----------------------------------------------------------------------
 
+void NativePuttyController::internal_set_colour(int i, int r, int g, int b)
+{
+    assert(i >= 0);
+    assert(i < NALLCOLOURS);
+    if (pal)
+        colours[i] = PALETTERGB(r, g, b);
+    else
+        colours[i] = RGB(r, g, b);
+    colours_rgb[i].r = r;
+    colours_rgb[i].g = g;
+    colours_rgb[i].b = b;
+}
+
+//-----------------------------------------------------------------------
+
 void NativePuttyController::init_fonts(const int pick_width, const int pick_height)
 {
 	USES_CONVERSION;
@@ -648,16 +663,9 @@ void NativePuttyController::init_palette()
 	}
 	ReleaseDC(page_->getWinHandler(), hdc);
     }
-    if (pal){
-    	for (i = 0; i < NALLCOLOURS; i++)
-    	    colours[i] = PALETTERGB(defpal[i].rgbtRed,
-    				    defpal[i].rgbtGreen,
-    				    defpal[i].rgbtBlue);
-    } else {
-    	for (i = 0; i < NALLCOLOURS; i++)
-    	    colours[i] = RGB(defpal[i].rgbtRed,
-    			     defpal[i].rgbtGreen, defpal[i].rgbtBlue);
-    }
+    for (i = 0; i < NALLCOLOURS; i++)
+        internal_set_colour(i, defpal[i].rgbtRed,
+                            defpal[i].rgbtGreen, defpal[i].rgbtBlue);
 }
 
 //-----------------------------------------------------------------------
@@ -1425,7 +1433,7 @@ void NativePuttyController::update_mouse_pointer()
  * We are allowed to fiddle with the contents of `text'.
  */
 void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int len,
-		      unsigned long attr, int lattr)
+		      unsigned long attr, int lattr, truecolour truecolour)
 {
 	USES_CONVERSION;
     COLORREF fg, bg, t;
@@ -1459,7 +1467,8 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
     y += offset_height;
 
     if ((attr & TATTR_ACTCURS) && (conf_get_int(cfg, CONF_cursor_type) == 0 || term->big_cursor)) {
-	attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS);
+        truecolour.fg = truecolour.bg = optionalrgb_none;
+	attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS|ATTR_DIM);
 	if (bold_font_mode == BOLD_NONE)
 	    attr &= ~ATTR_BOLD;
 
@@ -1539,9 +1548,15 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
     if (!fonts[nfont])
 	nfont = FONT_NORMAL;
     if (attr & ATTR_REVERSE) {
+        struct optionalrgb trgb;
+
 	t = nfg;
 	nfg = nbg;
 	nbg = t;
+
+        trgb = truecolour.fg;
+        truecolour.fg = truecolour.bg;
+        truecolour.bg = trgb;
     }
     if (bold_font_mode == BOLD_NONE && (attr & ATTR_BOLD)) {
 	if (nfg < 16) nfg |= 8;
@@ -1551,8 +1566,22 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
 	if (nbg < 16) nbg |= 8;
 	else if (nbg >= 256) nbg |= 1;
     }
-    fg = colours[nfg];
-    bg = colours[nbg];
+    if (!pal && truecolour.fg.enabled)
+	fg = RGB(truecolour.fg.r, truecolour.fg.g, truecolour.fg.b);
+    else
+	fg = colours[nfg];
+
+    if (!pal && truecolour.bg.enabled)
+	bg = RGB(truecolour.bg.r, truecolour.bg.g, truecolour.bg.b);
+    else
+	bg = colours[nbg];
+
+    if (!pal && (attr & ATTR_DIM)) {
+        fg = RGB(GetRValue(fg) * 2 / 3,
+                 GetGValue(fg) * 2 / 3,
+                 GetBValue(fg) * 2 / 3);
+    }
+
     SelectObject(hdc, fonts[nfont]);
     SetTextColor(hdc, fg);
     SetBkColor(hdc, bg);
@@ -1751,18 +1780,18 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
  * Wrapper that handles combining characters.
  */
 void NativePuttyController::do_text(int x, int y, wchar_t *text, int len,
-	     unsigned long attr, int lattr)
+	     unsigned long attr, int lattr, truecolour truecolour)
 {
     if (attr & TATTR_COMBINING) {
 	unsigned long a = 0;
 	attr &= ~TATTR_COMBINING;
 	while (len--) {
-	    do_text_internal(x, y, text, 1, attr | a, lattr);
+	    do_text_internal(x, y, text, 1, attr | a, lattr, truecolour);
 	    text++;
 	    a = TATTR_COMBINING;
 	}
     } else
-	do_text_internal(x, y, text, len, attr, lattr);
+	do_text_internal(x, y, text, len, attr, lattr, truecolour);
 }
 
 void NativePuttyController::another_font(int fontno)
@@ -1917,15 +1946,14 @@ void NativePuttyController::exact_textout(HDC hdc, int x, int y, CONST RECT *lpr
 
 void NativePuttyController::real_palette_set(int n, int r, int g, int b)
 {
+    internal_set_colour(n, r, g, b);
     if (pal) {
     	logpal->palPalEntry[n].peRed = r;
     	logpal->palPalEntry[n].peGreen = g;
     	logpal->palPalEntry[n].peBlue = b;
     	logpal->palPalEntry[n].peFlags = PC_NOCOLLAPSE;
-    	colours[n] = PALETTERGB(r, g, b);
     	SetPaletteEntries(pal, 0, NALLCOLOURS, logpal->palPalEntry);
-    } else
-    	colours[n] = RGB(r, g, b);
+    }
 }
 
 

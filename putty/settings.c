@@ -763,6 +763,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "TryPalette", conf_get_int(conf, CONF_try_palette));
     iStorage->write_setting_i(sesskey, "ANSIColour", conf_get_int(conf, CONF_ansi_colour));
     iStorage->write_setting_i(sesskey, "Xterm256Colour", conf_get_int(conf, CONF_xterm_256_colour));
+    iStorage->write_setting_i(sesskey, "TrueColour", conf_get_int(conf, CONF_true_colour));
     iStorage->write_setting_i(sesskey, "BoldAsColour", conf_get_int(conf, CONF_bold_style)-1);
 
     for (i = 0; i < 22; i++) {
@@ -1337,6 +1338,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "TryPalette", 0, conf, CONF_try_palette);
     gppi(iStorage, sesskey, "ANSIColour", 1, conf, CONF_ansi_colour);
     gppi(iStorage, sesskey, "Xterm256Colour", 1, conf, CONF_xterm_256_colour);
+    gppi(iStorage, sesskey, "TrueColour", 1, conf, CONF_true_colour);
     i = gppi_raw(iStorage, sesskey, "BoldAsColour", 1); conf_set_int(conf, CONF_bold_style, i+1);
 
     for (i = 0; i < 22; i++) {

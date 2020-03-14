@@ -5,6 +5,7 @@
 #include "terminal.h"
 #include "Mmsystem.h"
 #include "storage.h"
+#include "tree234.h"
 #include "atlconv.h" 
 #include <fstream>
 #include <map>
@@ -211,7 +212,7 @@ void sys_cursor(void *frontend, int x, int y)
 }
 
 void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
-	       unsigned long attr, int lattr)
+	       unsigned long attr, int lattr, truecolour truecolour)
 {
     assert(ctx != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)ctx;
@@ -226,7 +227,7 @@ void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
 
     if ((attr & TATTR_ACTCURS) && (ctype == 0 || puttyController->term->big_cursor)) {
 	if (*text != UCSWIDE) {
-	    do_text(ctx, x, y, text, len, attr, lattr);
+	    do_text(ctx, x, y, text, len, attr, lattr, truecolour);
 	    return;
 	}
 	ctype = 2;
@@ -342,7 +343,7 @@ void fatalbox(const char *fmt, ...)
  * Wrapper that handles combining characters.
  */
 void do_text(Context ctx, int x, int y, wchar_t *text, int len,
-	     unsigned long attr, int lattr)
+	     unsigned long attr, int lattr, truecolour truecolour)
 {
     assert(ctx != NULL);
 
@@ -351,12 +352,12 @@ void do_text(Context ctx, int x, int y, wchar_t *text, int len,
 	unsigned long a = 0;
 	attr &= ~TATTR_COMBINING;
 	while (len--) {
-	    puttyController->do_text_internal(x, y, text, 1, attr | a, lattr);
+	    puttyController->do_text_internal(x, y, text, 1, attr | a, lattr, truecolour);
 	    text++;
 	    a = TATTR_COMBINING;
 	}
     } else
-	puttyController->do_text_internal(x, y, text, len, attr, lattr);
+	puttyController->do_text_internal(x, y, text, len, attr, lattr, truecolour);
 }
 
 /* This function gets the actual width of a character in the normal font.
@@ -424,10 +425,23 @@ int char_width(Context ctx, int uc) {
     return ibuf;
 }
 
+typedef struct _rgbindex {
+    int index;
+    COLORREF ref;
+} rgbindex;
+
+int cmpCOLORREF(void *va, void *vb)
+{
+    COLORREF a = ((rgbindex *)va)->ref;
+    COLORREF b = ((rgbindex *)vb)->ref;
+    return (a < b) ? -1 : (a > b) ? +1 : 0;
+}
+
 /*
  * Note: unlike write_aclip() this will not append a nul.
  */
-void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_deselect)
+void write_clip(void *frontend, wchar_t *data, int *attr, truecolour *truecolour,
+                int len, int must_deselect)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -465,12 +479,15 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 	int rtfsize = 0;
 	int multilen, blen, alen, totallen, i;
 	char before[16], after[4];
-	int fgcolour,  lastfgcolour  = 0;
-	int bgcolour,  lastbgcolour  = 0;
+	int fgcolour,  lastfgcolour  = -1;
+	int bgcolour,  lastbgcolour  = -1;
+	COLORREF fg,   lastfg = -1;
+	COLORREF bg,   lastbg = -1;
 	int attrBold,  lastAttrBold  = 0;
 	int attrUnder, lastAttrUnder = 0;
 	int palette[NALLCOLOURS];
 	int numcolours;
+	tree234 *rgbtree = NULL;
 
 	get_unitab(CP_ACP, unitab, 0);
 
@@ -508,7 +525,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 			fgcolour ++;
 		}
 
-		if (attr[i] & ATTR_BLINK) {
+		if ((attr[i] & ATTR_BLINK)) {
 		    if (bgcolour  <   8)	/* ANSI colours */
 			bgcolour +=   8;
     		    else if (bgcolour >= 256)	/* Default colours */
@@ -519,6 +536,28 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		palette[bgcolour]++;
 	    }
 
+	    if (truecolour) {
+		rgbtree = newtree234(cmpCOLORREF);
+		for (i = 0; i < (len-1); i++) {
+		    if (truecolour[i].fg.enabled) {
+			rgbindex *rgbp = snew(rgbindex);
+			rgbp->ref = RGB(truecolour[i].fg.r,
+			                truecolour[i].fg.g,
+			                truecolour[i].fg.b);
+			if (add234(rgbtree, rgbp) != rgbp)
+			    sfree(rgbp);
+		    }
+		    if (truecolour[i].bg.enabled) {
+			rgbindex *rgbp = snew(rgbindex);
+			rgbp->ref = RGB(truecolour[i].bg.r,
+			                truecolour[i].bg.g,
+			                truecolour[i].bg.b);
+			if (add234(rgbtree, rgbp) != rgbp)
+			    sfree(rgbp);
+		    }
+		}
+	    }
+
 	    /*
 	     * Next - Create a reduced palette
 	     */
@@ -526,6 +565,12 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 	    for (i = 0; i < NALLCOLOURS; i++) {
 		if (palette[i] != 0)
 		    palette[i]  = ++numcolours;
+	    }
+
+	    if (rgbtree) {
+		rgbindex *rgbp;
+		for (i = 0; (rgbp = (rgbindex *)index234(rgbtree, i)) != NULL; i++)
+		    rgbp->index = ++numcolours;
 	    }
 
 	    /*
@@ -539,6 +584,12 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		if (palette[i] != 0) {
 		    rtflen += sprintf(&rtf[rtflen], "\\red%d\\green%d\\blue%d;", puttyController->defpal[i].rgbtRed, puttyController->defpal[i].rgbtGreen, puttyController->defpal[i].rgbtBlue);
 		}
+	    }
+	    if (rgbtree) {
+		rgbindex *rgbp;
+		for (i = 0; (rgbp = (rgbindex *)index234(rgbtree, i)) != NULL; i++)
+		    rtflen += sprintf(&rtf[rtflen], "\\red%d\\green%d\\blue%d;",
+				      GetRValue(rgbp->ref), GetGValue(rgbp->ref), GetBValue(rgbp->ref));
 	    }
 	    strcpy(&rtf[rtflen], "}");
 	    rtflen ++;
@@ -583,23 +634,44 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
                 /*
                  * Determine foreground and background colours
                  */
-                fgcolour = ((attr[tindex] & ATTR_FGMASK) >> ATTR_FGSHIFT);
-                bgcolour = ((attr[tindex] & ATTR_BGMASK) >> ATTR_BGSHIFT);
+		if (truecolour && truecolour[tindex].fg.enabled) {
+		    fgcolour = -1;
+		    fg = RGB(truecolour[tindex].fg.r,
+		             truecolour[tindex].fg.g,
+		             truecolour[tindex].fg.b);
+		} else {
+		    fgcolour = ((attr[tindex] & ATTR_FGMASK) >> ATTR_FGSHIFT);
+		    fg = -1;
+		}
+
+		if (truecolour && truecolour[tindex].bg.enabled) {
+		    bgcolour = -1;
+		    bg = RGB(truecolour[tindex].bg.r,
+		             truecolour[tindex].bg.g,
+		             truecolour[tindex].bg.b);
+		} else {
+		    bgcolour = ((attr[tindex] & ATTR_BGMASK) >> ATTR_BGSHIFT);
+		    bg = -1;
+		}
 
 		if (attr[tindex] & ATTR_REVERSE) {
 		    int tmpcolour = fgcolour;	    /* Swap foreground and background */
 		    fgcolour = bgcolour;
 		    bgcolour = tmpcolour;
+
+		    COLORREF tmpref = fg;
+		    fg = bg;
+		    bg = tmpref;
 		}
 
-		if (puttyController->bold_font_mode == BOLD_NONE && (attr[tindex] & ATTR_BOLD)) {
+		if (puttyController->bold_font_mode == BOLD_NONE && (attr[tindex] & ATTR_BOLD) && (fgcolour >= 0)) {
 		    if (fgcolour  <   8)	    /* ANSI colours */
 			fgcolour +=   8;
 		    else if (fgcolour >= 256)	    /* Default colours */
 			fgcolour ++;
                 }
 
-		if (attr[tindex] & ATTR_BLINK) {
+		if ((attr[tindex] & ATTR_BLINK) && (bgcolour >= 0)) {
 		    if (bgcolour  <   8)	    /* ANSI colours */
 			bgcolour +=   8;
 		    else if (bgcolour >= 256)	    /* Default colours */
@@ -638,15 +710,33 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
                 /*
                  * Write RTF text attributes
                  */
-		if (lastfgcolour != fgcolour) {
-                    lastfgcolour  = fgcolour;
-		    rtflen       += sprintf(&rtf[rtflen], "\\cf%d ", (fgcolour >= 0) ? palette[fgcolour] : 0);
-                }
+		if ((lastfgcolour != fgcolour) || (lastfg != fg)) {
+		    lastfgcolour  = fgcolour;
+		    lastfg        = fg;
+		    if (fg == -1)
+			rtflen += sprintf(&rtf[rtflen], "\\cf%d ",
+					  (fgcolour >= 0) ? palette[fgcolour] : 0);
+		    else {
+			rgbindex rgb, *rgbp;
+			rgb.ref = fg;
+			if ((rgbp = (rgbindex *)find234(rgbtree, &rgb, NULL)) != NULL)
+			    rtflen += sprintf(&rtf[rtflen], "\\cf%d ", rgbp->index);
+		    }
+		}
 
-                if (lastbgcolour != bgcolour) {
-                    lastbgcolour  = bgcolour;
-                    rtflen       += sprintf(&rtf[rtflen], "\\highlight%d ", (bgcolour >= 0) ? palette[bgcolour] : 0);
-                }
+		if ((lastbgcolour != bgcolour) || (lastbg != bg)) {
+		    lastbgcolour  = bgcolour;
+		    lastbg        = bg;
+		    if (bg == -1)
+			rtflen += sprintf(&rtf[rtflen], "\\highlight%d ",
+					  (bgcolour >= 0) ? palette[bgcolour] : 0);
+		    else {
+			rgbindex rgb, *rgbp;
+			rgb.ref = bg;
+			if ((rgbp = (rgbindex *)find234(rgbtree, &rgb, NULL)) != NULL)
+			    rtflen += sprintf(&rtf[rtflen], "\\highlight%d ", rgbp->index);
+		    }
+		}
 
 		if (lastAttrBold != attrBold) {
 		    lastAttrBold  = attrBold;
@@ -727,6 +817,13 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 	    GlobalUnlock(clipdata3);
 	}
 	sfree(rtf);
+
+	if (rgbtree) {
+	    rgbindex *rgbp;
+	    while ((rgbp = (rgbindex *)delpos234(rgbtree, 0)) != NULL)
+		sfree(rgbp);
+	    freetree234(rgbtree);
+	}
     } else
 	clipdata3 = NULL;
 
@@ -844,6 +941,19 @@ int process_clipdata(HGLOBAL clipdata, int unicode)
     return FALSE;
 }
 
+int palette_get(void *frontend, int n, int *r, int *g, int *b)
+{
+    assert (frontend != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+    
+    if (n < 0 || n >= NALLCOLOURS)
+	return FALSE;
+    *r = puttyController->colours_rgb[n].r;
+    *g = puttyController->colours_rgb[n].g;
+    *b = puttyController->colours_rgb[n].b;
+    return TRUE;
+}
+
 void palette_set(void *frontend, int n, int r, int g, int b)
 {
     assert (frontend != NULL);
@@ -878,17 +988,14 @@ void palette_reset(void *frontend)
 
     /* And this */
     for (i = 0; i < NALLCOLOURS; i++) {
+        puttyController->internal_set_colour(i, puttyController->defpal[i].rgbtRed,
+                            puttyController->defpal[i].rgbtGreen, puttyController->defpal[i].rgbtBlue);
 	if (puttyController->pal) {
 	    puttyController->logpal->palPalEntry[i].peRed = puttyController->defpal[i].rgbtRed;
 	    puttyController->logpal->palPalEntry[i].peGreen = puttyController->defpal[i].rgbtGreen;
 	    puttyController->logpal->palPalEntry[i].peBlue = puttyController->defpal[i].rgbtBlue;
 	    puttyController->logpal->palPalEntry[i].peFlags = 0;
-	    puttyController->colours[i] = PALETTERGB(puttyController->defpal[i].rgbtRed,
-				    puttyController->defpal[i].rgbtGreen,
-				    puttyController->defpal[i].rgbtBlue);
-	} else
-	    puttyController->colours[i] = RGB(puttyController->defpal[i].rgbtRed,
-			     puttyController->defpal[i].rgbtGreen, puttyController->defpal[i].rgbtBlue);
+	}
     }
 
     if (puttyController->pal) {

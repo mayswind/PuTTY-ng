@@ -16,6 +16,10 @@ struct ParamPair{
 	LPARAM lParam;
 };
 
+struct rgb {
+    int r, g, b;
+};
+
 class NativePuttyController{
 public:
 	NativePuttyController(Conf *cfg, view::View* theView);
@@ -25,6 +29,7 @@ public:
 	void fini();
 	void cfgtopalette();
 	void systopalette();
+	void internal_set_colour(int i, int r, int g, int b);
 	void init_fonts(const int pick_width, const int pick_height);
 	void deinit_fonts();
 	int get_font_width(HDC hdc, const TEXTMETRIC *tm);
@@ -58,9 +63,9 @@ public:
 	HWND getNativePage();
 	void sys_cursor_update();
 	void do_text_internal(int x, int y, wchar_t *text, int len,
-		      unsigned long attr, int lattr);
+		      unsigned long attr, int lattr, truecolour truecolour);
 	void do_text(int x, int y, wchar_t *text, int len,
-	     unsigned long attr, int lattr);
+	     unsigned long attr, int lattr, truecolour truecolour);
 	void another_font(int fontno);
 	void general_textout(int x, int y, CONST RECT *lprc,
 			    unsigned short *lpString, UINT cbCount,
@@ -181,6 +186,7 @@ public:
 	int must_close_tab_; 
 
     COLORREF colours[NALLCOLOURS];
+    rgb colours_rgb[NALLCOLOURS];
     LPLOGPALETTE logpal;
 
     int send_raw_mouse;

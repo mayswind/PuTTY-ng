@@ -40,6 +40,7 @@ struct termchar {
      */
     unsigned long chr;
     unsigned long attr;
+    truecolour truecolour;
 
     /*
      * The cc_next field is used to link multiple termchars
@@ -136,6 +137,7 @@ struct terminal_tag {
 #endif /* OPTIMISE_SCROLL */
 
     int default_attr, curr_attr, save_attr;
+    truecolour curr_truecolour, save_truecolour;
     termchar basic_erase_char, erase_char;
 
     bufchain inbuf;		       /* terminal input buffer */
@@ -172,6 +174,7 @@ struct terminal_tag {
     /* ESC 7 saved state for the alternate screen */
     pos alt_savecurs;
     int alt_save_attr;
+    truecolour alt_save_truecolour;
     int alt_save_cset, alt_save_csattr;
     int alt_save_utf, alt_save_wnext;
     int alt_save_sco_acs;
@@ -206,7 +209,7 @@ struct terminal_tag {
 #define ARGS_MAX 32		       /* max # of esc sequence arguments */
 #define ARG_DEFAULT 0		       /* if an arg isn't specified */
 #define def(a,d) ( (a) == ARG_DEFAULT ? (d) : (a) )
-    int esc_args[ARGS_MAX];
+    unsigned esc_args[ARGS_MAX];
     int esc_nargs;
     int esc_query;
 #define ANSI(x,y)	((x)+((y)<<8))
@@ -337,6 +340,7 @@ struct terminal_tag {
     int scroll_on_disp;
     int scroll_on_key;
     int xterm_256_colour;
+    int true_colour;
 
     hit_pos *hits_head, *hits_tail, *last_hit;
     wchar_t search_str[128];
