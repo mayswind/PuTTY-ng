@@ -121,12 +121,12 @@ namespace view{
 
 	void PuttyView::do_copy()
 	{
-		return term_copy(puttyController_->term);
+		term_request_copy(puttyController_->term, clips_system, lenof(clips_system));
 	}
 
 	void PuttyView::do_paste()
 	{
-		puttyController_->request_paste();
+		term_request_paste(puttyController_->term, CLIP_SYSTEM);
 	}
 
 	void PuttyView::do_restart()
@@ -141,7 +141,7 @@ namespace view{
 
 	void PuttyView::do_copyAll()
 	{
-		return term_copyall(puttyController_->term);
+		term_copyall(puttyController_->term, clips_system, lenof(clips_system));
 	}
 
 	void PuttyView::do_clearScrollbar()

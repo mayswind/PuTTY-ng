@@ -342,6 +342,14 @@ struct terminal_tag {
     int xterm_256_colour;
     int true_colour;
 
+    wchar_t *last_selected_text;
+    int *last_selected_attr;
+    truecolour *last_selected_tc;
+    size_t last_selected_len;
+    int mouse_select_clipboards[N_CLIPBOARDS];
+    int n_mouse_select_clipboards;
+    int mouse_paste_clipboard;
+
     hit_pos *hits_head, *hits_tail, *last_hit;
     wchar_t search_str[128];
 

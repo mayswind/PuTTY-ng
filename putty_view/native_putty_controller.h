@@ -20,6 +20,8 @@ struct rgb {
     int r, g, b;
 };
 
+static const int clips_system[] = { CLIP_SYSTEM };
+
 class NativePuttyController{
 public:
 	NativePuttyController(Conf *cfg, view::View* theView);
@@ -85,8 +87,6 @@ public:
 	void set_input_locale(HKL kl);
 	
 	void show_mouseptr(int show);
-	void request_paste();
-	static DWORD WINAPI clipboard_read_threadfunc(void *param);
 	int on_button(HWND hWnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 	int on_mouse_move(HWND hwnd, UINT message,
@@ -111,6 +111,8 @@ public:
 	Mouse_Button translate_button(Mouse_Button button);
 
 	void flash_window(int mode);
+
+	void setup_clipboards(Terminal *, Conf *);
 
 	void resize_term();
 	void reset_window(int reinit);

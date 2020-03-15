@@ -56,6 +56,10 @@ struct FontSpec *fontspec_new(const char *name,
 #define PLATFORM_IS_UTF16 /* enable UTF-16 processing when exchanging
 			   * wchar_t strings with environment */
 
+#define PLATFORM_CLIPBOARDS(X)                      \
+    X(CLIP_SYSTEM, "system clipboard")              \
+    /* end of list */
+
 /*
  * Where we can, we use GetWindowLongPtr and friends because they're
  * more useful on 64-bit platforms, but they're a relatively recent
@@ -246,6 +250,13 @@ void quit_help(HWND hwnd);
  */
 //GLOBAL Terminal *term;
 //GLOBAL void *logctx;
+
+/*
+ * Windows-specific clipboard helper function shared with windlg.c,
+ * which takes the data string in the system code page instead of
+ * Unicode.
+ */
+void write_aclip(void *frontend, int clipboard, char *, int, int);
 
 #define WM_NETEVENT  (WM_APP + 5)
 

@@ -5,7 +5,7 @@
 #include "terminal.h"
 #include "storage.h"
 
-int process_clipdata(HGLOBAL clipdata, int unicode);
+void process_clipdata(Terminal *term, HGLOBAL clipdata, int unicode);
 //-----------------------------------------------------------------------
 //page related
 //-----------------------------------------------------------------------
@@ -201,15 +201,14 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 
         //paste       
         case WM_GOT_CLIPDATA:
-        	if (process_clipdata((HGLOBAL)lParam, wParam))
-    	        term_do_paste(puttyController->term);
+        	process_clipdata(puttyController->term, (HGLOBAL)lParam, wParam);
         	return 0;
         case WM_IGNORE_CLIP:
         	puttyController->ignore_clip = wParam;	       /* don't panic on DESTROYCLIPBOARD */
         	break;
         case WM_DESTROYCLIPBOARD:
         	if (!puttyController->ignore_clip)
-        	    term_deselect(puttyController->term);
+        	    term_lost_clipboard_ownership(puttyController->term, CLIP_SYSTEM);
         	puttyController->ignore_clip = FALSE;
         	return 0;
 

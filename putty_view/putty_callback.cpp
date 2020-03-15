@@ -21,8 +21,6 @@
 
 DECL_WINDOWS_FUNCTION(static, BOOL, PlaySound, (LPCTSTR, HMODULE, DWORD));
 
-static wchar_t *clipboard_contents;
-static size_t clipboard_length;
 Conf* cfg = NULL;
 SavedCmd g_saved_cmd;
 void init_flashwindow();
@@ -426,14 +424,18 @@ int cmpCOLORREF(void *va, void *vb)
 /*
  * Note: unlike write_aclip() this will not append a nul.
  */
-void write_clip(void *frontend, wchar_t *data, int *attr, truecolour *truecolour,
-                int len, int must_deselect)
+void write_clip(void *frontend, int clipboard,
+                wchar_t *data, int *attr, truecolour *truecolour, int len,
+                int must_deselect)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     HGLOBAL clipdata, clipdata2, clipdata3;
     int len2;
     void *lock, *lock2, *lock3;
+
+    if (clipboard != CLIP_SYSTEM)
+        return;
 
     len2 = WideCharToMultiByte(CP_ACP, 0, data, len, 0, 0, NULL, NULL);
 
@@ -835,14 +837,6 @@ void write_clip(void *frontend, wchar_t *data, int *attr, truecolour *truecolour
 	SendMessage(puttyController->getNativePage(), WM_IGNORE_CLIP, FALSE, 0);
 }
 
-void get_clip(void *frontend, wchar_t **p, int *len)
-{
-    if (p) {
-	*p = clipboard_contents;
-	*len = clipboard_length;
-    }
-}
-
 static DWORD WINAPI clipboard_read_threadfunc(void *param)
 {
     HWND hwnd = (HWND)param;
@@ -860,9 +854,11 @@ static DWORD WINAPI clipboard_read_threadfunc(void *param)
     return 0;
 }
 
-void request_paste(void *frontend)
+void frontend_request_paste(void *frontend, int clipboard)
 {
     assert (frontend != NULL);
+
+    assert(clipboard == CLIP_SYSTEM);
 
     if (conf_get_int(cfg, CONF_mousepaste) == 0) {
         return;
@@ -890,11 +886,10 @@ void request_paste(void *frontend)
 		 puttyController->getNativePage(), 0, &in_threadid);
 }
 
-int process_clipdata(HGLOBAL clipdata, int unicode)
+void process_clipdata(Terminal *term, HGLOBAL clipdata, int unicode)
 {
-    sfree(clipboard_contents);
-    clipboard_contents = NULL;
-    clipboard_length = 0;
+    wchar_t *clipboard_contents = NULL;
+    size_t clipboard_length = 0;
 
     if (unicode) {
 	wchar_t *p = (wchar_t*)GlobalLock(clipdata);
@@ -907,7 +902,7 @@ int process_clipdata(HGLOBAL clipdata, int unicode)
 	    clipboard_contents = snewn(clipboard_length + 1, wchar_t);
 	    memcpy(clipboard_contents, p, clipboard_length * sizeof(wchar_t));
 	    clipboard_contents[clipboard_length] = L'\0';
-	    return TRUE;
+	    term_do_paste(term, clipboard_contents, clipboard_length);
 	}
     } else {
 	char *s = (char*)GlobalLock(clipdata);
@@ -920,11 +915,11 @@ int process_clipdata(HGLOBAL clipdata, int unicode)
 				clipboard_contents, i);
 	    clipboard_length = i - 1;
 	    clipboard_contents[clipboard_length] = L'\0';
-	    return TRUE;
+	    term_do_paste(term, clipboard_contents, clipboard_length);
 	}
     }
 
-    return FALSE;
+    sfree(clipboard_contents);
 }
 
 int palette_get(void *frontend, int n, int *r, int *g, int *b)
@@ -1399,12 +1394,16 @@ RECT getMaxWorkArea()
 	return /*fullscr_on_max ? mi.rcMonitor:*/ mi.rcWork;
 }
 
-void write_aclip(void *frontend, char *data, int len, int must_deselect)
+void write_aclip(void *frontend, int clipboard,
+                 char *data, int len, int must_deselect)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     HGLOBAL clipdata;
     void *lock;
+
+    if (clipboard != CLIP_SYSTEM)
+        return;
 
     clipdata = GlobalAlloc(GMEM_DDESHARE | GMEM_MOVEABLE, len + 1);
     if (!clipdata)
@@ -1815,7 +1814,7 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 			    memcpy(p, sel_nl, sizeof(sel_nl));
 			    p += sizeof(sel_nl);
 			}
-			write_aclip(puttyController, clipdata, size, TRUE);
+			write_aclip(puttyController, CLIP_SYSTEM, clipdata, size, TRUE);
 			sfree(clipdata);
 		    }
 		    sfree(selitems);

@@ -134,6 +134,7 @@ int NativePuttyController::init(HWND hwndParent)
 
     memset(&ucsdata, 0, sizeof(ucsdata));
     term = term_init(cfg, &ucsdata, this);
+    setup_clipboards(term, cfg);
     logctx = log_init(this, cfg);
     term_provide_logctx(term, logctx);
     term_size(term, global_conf_get_int(WINDOW_HEIGHT_KEY),
@@ -179,6 +180,29 @@ int NativePuttyController::init(HWND hwndParent)
     return 0;
 }
 
+void NativePuttyController::setup_clipboards(Terminal *term, Conf *conf)
+{
+    assert(term->mouse_select_clipboards[0] == CLIP_LOCAL);
+
+    term->n_mouse_select_clipboards = 1;
+
+    if (conf_get_int(conf, CONF_mouseautocopy)) {
+        term->mouse_select_clipboards[
+            term->n_mouse_select_clipboards++] = CLIP_SYSTEM;
+    }
+
+    switch (conf_get_int(conf, CONF_mousepaste)) {
+      case CLIPUI_IMPLICIT:
+        term->mouse_paste_clipboard = CLIP_LOCAL;
+        break;
+      case CLIPUI_EXPLICIT:
+        term->mouse_paste_clipboard = CLIP_SYSTEM;
+        break;
+      default:
+        term->mouse_paste_clipboard = CLIP_NULL;
+        break;
+    }
+}
 
 void NativePuttyController::checkTimerCallback()
 {
@@ -1104,6 +1128,7 @@ int NativePuttyController::on_reconfig()
 
 	/* Pass new config data to the terminal */
 	term_reconfig(this->term, this->cfg);
+                setup_clipboards(this->term, this->cfg);
 
 	/* Pass new config data to the back end */
 	if (this->back)
@@ -1258,14 +1283,14 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			rename(NULL);
             break;
         }
-        case IDM_COPY:
-            term_copy(term);
-            break;
         case IDM_COPYALL:
-            term_copyall(term);
+            term_copyall(term, clips_system, lenof(clips_system));
+            break;
+        case IDM_COPY:
+            term_request_copy(term, clips_system, lenof(clips_system));
             break;
         case IDM_PASTE:
-            request_paste();
+            term_request_paste(term, CLIP_SYSTEM);
             break;
         case IDM_CLRSB:
             term_clrsb(term);
@@ -2536,43 +2561,53 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return 0;
 	}
 	if (wParam == VK_INSERT && shift_state == 2) {
-	    switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
-	      case CLIPUI_EXPLICIT:
-	    term_copy(term);
-	    break;
-	      default:
-	    break;
-	    }
+            switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
+              case CLIPUI_IMPLICIT:
+                break;          /* no need to re-copy to CLIP_LOCAL */
+              case CLIPUI_EXPLICIT:
+                term_request_copy(term, clips_system, lenof(clips_system));
+                break;
+              default:
+                break;
+            }
 	    return 0;
 	}
 	if (wParam == VK_INSERT && shift_state == 1) {
-	    switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
-	      case CLIPUI_EXPLICIT:
-	    request_paste();
-	    break;
-	      default:
-	    break;
-	    }
+            switch (conf_get_int(cfg, CONF_ctrlshiftins)) {
+              case CLIPUI_IMPLICIT:
+                term_request_paste(term, CLIP_LOCAL);
+                break;
+              case CLIPUI_EXPLICIT:
+                term_request_paste(term, CLIP_SYSTEM);
+                break;
+              default:
+                break;
+            }
 	    return 0;
 	}
 	if (wParam == 'C' && shift_state == 3) {
-	    switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
-	      case CLIPUI_EXPLICIT:
-	    term_copy(term);
-	    break;
-	      default:
-	    break;
-	    }
+           switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
+              case CLIPUI_IMPLICIT:
+                break;          /* no need to re-copy to CLIP_LOCAL */
+              case CLIPUI_EXPLICIT:
+                term_request_copy(term, clips_system, lenof(clips_system));
+                break;
+              default:
+                break;
+            }
 	    return 0;
 	}
 	if (wParam == 'V' && shift_state == 3) {
-	    switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
-	      case CLIPUI_EXPLICIT:
-	    request_paste();
-	    break;
-	      default:
-	    break;
-	    }
+            switch (conf_get_int(cfg, CONF_ctrlshiftcv)) {
+              case CLIPUI_IMPLICIT:
+                term_request_paste(term, CLIP_LOCAL);
+                break;
+              case CLIPUI_EXPLICIT:
+                term_request_paste(term, CLIP_SYSTEM);
+                break;
+              default:
+                break;
+            }
 	    return 0;
 	}
 	if (left_alt && wParam == VK_F4 && conf_get_int(cfg, CONF_alt_f4)) {
@@ -3250,48 +3285,6 @@ void NativePuttyController::set_input_locale(HKL kl)
 		  lbuf, sizeof(lbuf));
 
     kbd_codepage = atoi(lbuf);
-}
-
-
-void NativePuttyController::request_paste()
-{
-    /*
-     * I always thought pasting was synchronous in Windows; the
-     * clipboard access functions certainly _look_ synchronous,
-     * unlike the X ones. But in fact it seems that in some
-     * situations the contents of the clipboard might not be
-     * immediately available, and the clipboard-reading functions
-     * may block. This leads to trouble if the application
-     * delivering the clipboard data has to get hold of it by -
-     * for example - talking over a network connection which is
-     * forwarded through this very PuTTY.
-     *
-     * Hence, we spawn a subthread to read the clipboard, and do
-     * our paste when it's finished. The thread will send a
-     * message back to our main window when it terminates, and
-     * that tells us it's OK to paste.
-     */
-    DWORD in_threadid; /* required for Win9x */
-    CreateThread(NULL, 0, NativePuttyController::clipboard_read_threadfunc,
-		 getNativePage(), 0, &in_threadid);
-}
-
-
-DWORD WINAPI NativePuttyController::clipboard_read_threadfunc(void *param)
-{
-    HWND hwnd = (HWND)param;
-    HGLOBAL clipdata;
-
-    if (OpenClipboard(NULL)) {
-	if ((clipdata = GetClipboardData(CF_UNICODETEXT))) {
-	    SendMessage(hwnd, WM_GOT_CLIPDATA, (WPARAM)1, (LPARAM)clipdata);
-	} else if ((clipdata = GetClipboardData(CF_TEXT))) {
-	    SendMessage(hwnd, WM_GOT_CLIPDATA, (WPARAM)0, (LPARAM)clipdata);
-	}
-	CloseClipboard();
-    }
-
-    return 0;
 }
 
 #define X_POS(l) ((int)(short)LOWORD(l))

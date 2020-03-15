@@ -16,6 +16,12 @@ struct printer_job_tag;
 typedef struct printer_job_tag printer_job;
 struct bidi_char;
 #include "../putty/misc.h"
+
+// from winstuff.h
+#define PLATFORM_CLIPBOARDS(X)                      \
+    X(CLIP_SYSTEM, "system clipboard")              \
+    /* end of list */
+
 #define OUTSIDE_PUTTY
 #include "../putty/putty.h"
 #include "../putty/terminal.h"
