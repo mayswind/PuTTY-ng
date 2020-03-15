@@ -14,7 +14,7 @@
 #include "WinMutex.h"
 
 //#include "native_putty_common.h"
-void fatalbox(const char *fmt, ...);
+void modalfatalbox(const char *fmt, ...);
 
 class WindowInterface
 {
@@ -53,7 +53,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		if (NULL != browser->AddBlankTab(true)){
@@ -65,7 +65,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		if (NULL != browser->AddTabWithGlobalCfg(true)){
@@ -77,7 +77,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->DuplicateCurrentTab();
@@ -88,7 +88,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->SelectNextTab();
@@ -98,7 +98,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->SelectPreviousTab();
@@ -108,7 +108,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->MoveTabNext();
@@ -118,7 +118,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->MoveTabPrevious();
@@ -128,7 +128,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->SelectNumberedTab(index);
@@ -138,7 +138,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		browser->CloseTab();
@@ -148,7 +148,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return ;
 		}
 		TabContents* tab = browser->GetSelectedTabContents();
@@ -162,7 +162,7 @@ public:
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL){
-			fatalbox("%s", "last ative window is not found");
+			modalfatalbox("%s", "last ative window is not found");
 			return NULL;
 		}
 		return browser->window();

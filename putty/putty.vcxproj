@@ -200,6 +200,7 @@
     <ClCompile Include="raw.c" />
     <ClCompile Include="rlogin.c" />
     <ClCompile Include="sercfg.c" />
+    <ClCompile Include="sessprep.c" />
     <ClCompile Include="settings.c" />
     <ClCompile Include="sftp.c" />
     <ClCompile Include="ssh.c">

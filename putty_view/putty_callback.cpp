@@ -325,20 +325,6 @@ void set_sbar(void *frontend, int total, int start, int page)
     	SetScrollInfo(puttyController->getNativePage(), SB_VERT, &si, TRUE);
 }
 
-void fatalbox(const char *fmt, ...)
-{
-	USES_CONVERSION;
-    va_list ap;
-    char *stuff, morestuff[100];
-
-    va_start(ap, fmt);
-    stuff = dupvprintf(fmt, ap);
-    va_end(ap);
-    sprintf(morestuff, "%.70s Fatal Error", appname);
-	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK | MB_TOPMOST);
-    sfree(stuff);
-    cleanup_exit(1);
-}
 /*
  * Wrapper that handles combining characters.
  */

@@ -2510,6 +2510,15 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    SendMessage(getNativePage(), WM_VSCROLL, SB_PAGEUP, 0);
 	    return 0;
 	}
+        if (wParam == VK_PRIOR && shift_state == 3) { /* ctrl-shift-pageup */
+            SendMessage(getNativePage(), WM_VSCROLL, SB_TOP, 0);
+            return 0;
+        }
+        if (wParam == VK_NEXT && shift_state == 3) { /* ctrl-shift-pagedown */
+            SendMessage(getNativePage(), WM_VSCROLL, SB_BOTTOM, 0);
+            return 0;
+        }
+
 	if (wParam == VK_PRIOR && shift_state == 2) {
 	    SendMessage(getNativePage(), WM_VSCROLL, SB_LINEUP, 0);
 	    return 0;

@@ -81,6 +81,9 @@
     <ClCompile Include="sercfg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sessprep.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="settings.c">
       <Filter>Source Files</Filter>
     </ClCompile>

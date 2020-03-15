@@ -731,10 +731,8 @@ void optimised_move(void *frontend, int, int, int);
 void set_raw_mouse_mode(void *frontend, int);
 void connection_fatal(void *frontend, const char *const, ...);
 void nonfatal(const char *, ...);
-void fatalbox(const char *, ...);
 void modalfatalbox(const char *, ...);
 #ifdef macintosh
-#pragma noreturn(fatalbox)
 #pragma noreturn(modalfatalbox)
 #endif
 void do_beep(void *frontend, int);
@@ -1333,6 +1331,11 @@ int conf_launchable(Conf *conf);
 char const *conf_dest(Conf *conf);
 
 /*
+ * Exports from sessprep.c.
+ */
+void prepare_session(Conf *conf);
+
+/*
  * Exports from sercfg.c.
  */
 void ser_setup_config_box(struct controlbox *b, int midsession,
@@ -1502,8 +1505,14 @@ int cmdline_process_param(const char *, char *, int, Conf *);
 void cmdline_run_saved(Conf *);
 void cmdline_cleanup(void);
 int cmdline_get_passwd_input(prompts_t *p, const unsigned char *in, int inlen, Conf *cfg);
+int cmdline_host_ok(Conf *);
 #define TOOLTYPE_FILETRANSFER 1
 #define TOOLTYPE_NONNETWORK 2
+#define TOOLTYPE_HOST_ARG 4
+#define TOOLTYPE_HOST_ARG_CAN_BE_SESSION 8
+#define TOOLTYPE_HOST_ARG_PROTOCOL_PREFIX 16
+#define TOOLTYPE_HOST_ARG_FROM_LAUNCHABLE_LOAD 32
+#define TOOLTYPE_PORT_ARG 64
 extern int cmdline_tooltype;
 
 void cmdline_error(const char *, ...);
@@ -1699,6 +1708,7 @@ typedef void (*toplevel_callback_fn_t)(void *ctx);
 void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx);
 void run_toplevel_callbacks(void);
 int toplevel_callback_pending(void);
+void delete_callbacks_for_context(void *ctx);
 
 typedef void (*toplevel_callback_notify_fn_t)(void *frontend);
 void request_callback_notifications(toplevel_callback_notify_fn_t notify,
