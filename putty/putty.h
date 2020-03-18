@@ -112,6 +112,13 @@ static const char* all_shortcut_type_str[] = { "Alt+", "Ctrl+", "Ctrl+Shift+", "
 static const int all_key_type_count = sizeof(all_shortcut_type_str) / sizeof(all_shortcut_type_str[0]);
 
 /*
+ * We express various time intervals in unsigned long minutes, but may need to
+ * clip some values so that the resulting number of ticks does not overflow an
+ * integer value.
+ */
+#define MAX_TICK_MINS	(INT_MAX / (60 * TICKSPERSEC))
+
+/*
  * Fingerprints of the PGP master keys that can be used to establish a trust
  * path between an executable and other files.
  */

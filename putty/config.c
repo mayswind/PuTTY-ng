@@ -2540,7 +2540,7 @@ void setup_config_box(struct controlbox *b, int midsession,
     s = ctrl_getset(b, "Window/Selection", "paste",
                     "Control pasting of text from clipboard to terminal");
     ctrl_checkbox(s, "Permit control characters in pasted text",
-                  NO_SHORTCUT, HELPCTX(no_help),
+                  NO_SHORTCUT, HELPCTX(selection_pastectrl),
                   conf_checkbox_handler, I(CONF_paste_controls));
 
     /*
@@ -2554,7 +2554,7 @@ void setup_config_box(struct controlbox *b, int midsession,
     ccd = (struct charclass_data *)
 	ctrl_alloc(b, sizeof(struct charclass_data));
     ccd->listbox = ctrl_listbox(s, "Character classes:", 'e',
-				HELPCTX(selection_charclasses),
+				HELPCTX(copy_charclasses),
 				charclass_handler, P(ccd));
     ccd->listbox->listbox.multisel = 1;
     ccd->listbox->listbox.ncols = 4;
@@ -2565,11 +2565,11 @@ void setup_config_box(struct controlbox *b, int midsession,
     ccd->listbox->listbox.percentages[3] = 40;
     ctrl_columns(s, 2, 67, 33);
     ccd->editbox = ctrl_editbox(s, "Set to class", 't', 50,
-				HELPCTX(selection_charclasses),
+				HELPCTX(copy_charclasses),
 				charclass_handler, P(ccd), P(NULL));
     ccd->editbox->generic.column = 0;
     ccd->button = ctrl_pushbutton(s, "Set", 's',
-				  HELPCTX(selection_charclasses),
+				  HELPCTX(copy_charclasses),
 				  charclass_handler, P(ccd));
     ccd->button->generic.column = 1;
     ctrl_columns(s, 1, 100);
