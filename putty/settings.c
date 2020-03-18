@@ -791,6 +791,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "PasteRTF", conf_get_int(conf, CONF_rtf_paste));
     iStorage->write_setting_i(sesskey, "MouseIsXterm", conf_get_int(conf, CONF_mouse_is_xterm));
     iStorage->write_setting_i(sesskey, "RectSelect", conf_get_int(conf, CONF_rect_select));
+    iStorage->write_setting_i(sesskey, "PasteControls", conf_get_int(conf, CONF_paste_controls));
     iStorage->write_setting_i(sesskey, "MouseOverride", conf_get_int(conf, CONF_mouse_override));
     for (i = 0; i < 256; i += 32) {
 		char buf[20], buf2[256];
@@ -1379,6 +1380,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "PasteRTF", 0, conf, CONF_rtf_paste);
     gppi(iStorage, sesskey, "MouseIsXterm", 0, conf, CONF_mouse_is_xterm);
     gppi(iStorage, sesskey, "RectSelect", 0, conf, CONF_rect_select);
+    gppi(iStorage, sesskey, "PasteControls", 0, conf, CONF_paste_controls);
     gppi(iStorage, sesskey, "MouseOverride", 1, conf, CONF_mouse_override);
     for (i = 0; i < 256; i += 32) {
 	static const char *const defaults[] = {

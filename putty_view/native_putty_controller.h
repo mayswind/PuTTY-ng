@@ -20,6 +20,9 @@ struct rgb {
     int r, g, b;
 };
 
+#define LOGEVENT_INITIAL_MAX 128
+#define LOGEVENT_CIRCULAR_MAX 128
+
 static const int clips_system[] = { CLIP_SYSTEM };
 
 class NativePuttyController{
@@ -217,9 +220,11 @@ public:
     HANDLE close_mutex;
 
     HWND logbox;
-    unsigned nevents;
-	unsigned negsize;
-    char **events;
+    char *events_initial[LOGEVENT_INITIAL_MAX];
+    char *events_circular[LOGEVENT_CIRCULAR_MAX];
+    int ninitial = 0;
+    int ncircular = 0;
+    int circular_first = 0;
 
 	std::vector<ParamPair> pending_param_list;
 

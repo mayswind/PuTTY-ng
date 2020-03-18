@@ -71,9 +71,9 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
     hRgn = NULL;
     hCloserRgn = NULL;
     logbox = NULL;
-    nevents = 0;
-    negsize = 0;
-    events = NULL;
+    ninitial = 0;
+    ncircular = 0;
+    circular_first = 0;
     window_name = icon_name = NULL;
     ldisc = NULL;  
     pal = NULL;
@@ -250,11 +250,6 @@ void NativePuttyController::fini()
     	crypto_wrapup();
 #endif
     }
-    
-    for (i = 0; i < nevents; i++)
-        sfree(events[i]);
-    sfree(events);
-
 }
 
 //-----------------------------------------------------------------------

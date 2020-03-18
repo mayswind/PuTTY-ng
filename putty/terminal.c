@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <limits.h>
+#include <wchar.h>
 
 #include <time.h>
 #include <assert.h>
@@ -1099,19 +1100,21 @@ static termline *lineptr(Terminal *term, int y, int lineno, int screen)
 
     /* We assume that we don't screw up and retrieve something out of range. */
     if (line == NULL) {
+        extern char commitid[]; /* in version.c */
 	modalfatalbox("line==NULL in terminal.c\n"
                       "lineno=%d y=%d w=%d h=%d\n"
                       "count(scrollback=%p)=%d\n"
                       "count(screen=%p)=%d\n"
                       "count(alt=%p)=%d alt_sblines=%d\n"
-                      "whichtree=%p treeindex=%d\n\n"
+                      "whichtree=%p treeindex=%d\n"
+                      "commitid=%s\n\n"
                       "Please contact <putty@projects.tartarus.org> "
                       "and pass on the above information.",
                       lineno, y, term->cols, term->rows,
                       term->scrollback, count234(term->scrollback),
                       term->screen, count234(term->screen),
                       term->alt_screen, count234(term->alt_screen),
-                      term->alt_sblines, whichtree, treeindex);
+                      term->alt_sblines, whichtree, treeindex, commitid);
     }
     assert(line != NULL);
 
@@ -6454,9 +6457,21 @@ static void term_paste_callback(void *vterm)
     term->paste_len = 0;
 }
 
+/*
+ * Specialist string compare function. Returns true if the buffer of
+ * alen wide characters starting at a has as a prefix the buffer of
+ * blen characters starting at b.
+ */
+static int wstartswith(const wchar_t *a, size_t alen,
+                        const wchar_t *b, size_t blen)
+{
+    return alen >= blen && !wcsncmp(a, b, blen);
+}
+
 void term_add_paste_buffer(Terminal* term, const wchar_t* data, int len)
 {
-	const wchar_t *p, *q;
+    const wchar_t *p;
+    int paste_controls = conf_get_int(term->conf, CONF_paste_controls);
 
 	term_seen_key_event(term);     /* pasted data counts */
 
@@ -6481,29 +6496,52 @@ void term_add_paste_buffer(Terminal* term, const wchar_t* data, int len)
 		term->paste_len += 6;
 	}
 
-	p = q = data;
-	while (p < data + len) {
-		while (p < data + len &&
-			!(p <= data + len - sel_nl_sz &&
-				!memcmp(p, sel_nl, sizeof(sel_nl))))
-		{
-			p++;
-		}
+    p = data;
+    while (p < data + len) {
+        wchar_t wc = *p++;
 
-		{
-			int i;
-			for (i = 0; i < p - q; i++) {
-				term->paste_buffer[term->paste_len++] = q[i];
-			}
-		}
+        if (wc == sel_nl[0] &&
+            wstartswith(p-1, data+len-(p-1), sel_nl, sel_nl_sz)) {
+            /*
+             * This is the (platform-dependent) sequence that the host
+             * OS uses to represent newlines in clipboard data.
+             * Normalise it to a press of CR.
+             */
+            p += sel_nl_sz - 1;
+            wc = '\015';
+        }
 
-		if (p <= data + len - sel_nl_sz &&
-			!memcmp(p, sel_nl, sizeof(sel_nl))) {
-			term->paste_buffer[term->paste_len++] = '\015';
-			p += sel_nl_sz;
-		}
-		q = p;
-	}
+        if ((wc & ~(wint_t)0x9F) == 0) {
+            /*
+             * This is a control code, either in the range 0x00-0x1F
+             * or 0x80-0x9F. We reject all of these in pastecontrols
+             * mode, except for a small set of permitted ones.
+             */
+            if (!paste_controls) {
+                /* In line with xterm 292, accepted control chars are:
+                 * CR, LF, tab, backspace. (And DEL, i.e. 0x7F, but
+                 * that's permitted by virtue of not matching the bit
+                 * mask that got us into this if statement, so we
+                 * don't have to permit it here. */
+                static const unsigned mask =
+                    (1<<13) | (1<<10) | (1<<9) | (1<<8);
+
+                if (wc > 15 || !((mask >> wc) & 1))
+                    continue;
+            }
+
+            if (wc == '\033' && term->bracketed_paste &&
+                wstartswith(p-1, data+len-(p-1), L"\033[201~", 6)) {
+                /*
+                 * Also, in bracketed-paste mode, reject the ESC
+                 * character that begins the end-of-paste sequence.
+                 */
+                continue;
+            }
+        }
+
+        term->paste_buffer[term->paste_len++] = wc;
+    }
 
 	if (term->bracketed_paste) {
 		memcpy(term->paste_buffer + term->paste_len,

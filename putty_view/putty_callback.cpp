@@ -1705,32 +1705,48 @@ void logevent(void *frontend, const char *str)
     }
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     char timebuf[40];
+    char **location;
     struct tm tm;
     int i;
 
     log_eventlog(puttyController->logctx, str);
 
-    if (puttyController->nevents >= puttyController->negsize) {
-    	puttyController->negsize += 64;
-    	puttyController->events = sresize(puttyController->events, puttyController->negsize, char *);
-        for (i = puttyController->nevents + 1; i < puttyController->negsize; i++)
-            puttyController->events[i] = NULL;
-    }
-
     tm=ltime();
     strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S\t", &tm);
 
-    puttyController->events[puttyController->nevents] = snewn(strlen(timebuf) + strlen(str) + 1, char);
-    strcpy(puttyController->events[puttyController->nevents], timebuf);
-    strcat(puttyController->events[puttyController->nevents], str);
+    if (puttyController->ninitial < LOGEVENT_INITIAL_MAX)
+        location = &puttyController->events_initial[puttyController->ninitial];
+    else
+        location = &puttyController->events_circular[(puttyController->circular_first + puttyController->ncircular) % LOGEVENT_CIRCULAR_MAX];
+
+    if (*location)
+        sfree(*location);
+    *location = dupcat(timebuf, str, (const char *)NULL);
     if (puttyController->logbox) {
 	int count;
 	SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_ADDSTRING,
-			   0, (LPARAM) puttyController->events[puttyController->nevents]);
+			   0, (LPARAM) *location);
 	count = SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_GETCOUNT, 0, 0);
 	SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_SETTOPINDEX, count - 1, 0);
     }
-    puttyController->nevents++;
+    if (puttyController->ninitial < LOGEVENT_INITIAL_MAX) {
+        puttyController->ninitial++;
+    } else if (puttyController->ncircular < LOGEVENT_CIRCULAR_MAX) {
+        puttyController->ncircular++;
+    } else if (puttyController->ncircular == LOGEVENT_CIRCULAR_MAX) {
+        puttyController->circular_first = (puttyController->circular_first + 1) % LOGEVENT_CIRCULAR_MAX;
+        sfree(puttyController->events_circular[puttyController->circular_first]);
+        puttyController->events_circular[puttyController->circular_first] = dupstr("..");
+    }
+}
+
+static char *getevent(NativePuttyController *puttyController, int i)
+{
+    if (i < puttyController->ninitial)
+        return puttyController->events_initial[i];
+    if ((i -= puttyController->ninitial) < puttyController->ncircular)
+        return puttyController->events_circular[(puttyController->circular_first + i) % LOGEVENT_CIRCULAR_MAX];
+    return NULL;
 }
 
 static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
@@ -1758,9 +1774,12 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 	    SendDlgItemMessage(hwnd, IDN_LIST, LB_SETTABSTOPS, 2,
 			       (LPARAM) tabs);
 	}
-	for (i = 0; i < puttyController->nevents; i++)
+	for (i = 0; i < puttyController->ninitial; i++)
 	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
-			       0, (LPARAM) A2W( puttyController->events[i]));
+			       0, (LPARAM) puttyController->events_initial[i]);
+	for (i = 0; i < puttyController->ncircular; i++)
+	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
+			       0, (LPARAM) puttyController->events_circular[(puttyController->circular_first + i) % LOGEVENT_CIRCULAR_MAX]);
 	return 1;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -1801,13 +1820,13 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 		    size = 0;
 		    for (i = 0; i < count; i++)
 			size +=
-			    strlen(puttyController->events[selitems[i]]) + sizeof(sel_nl);
+			    strlen(getevent(puttyController, selitems[i])) + sizeof(sel_nl);
 
 		    clipdata = snewn(size, char);
 		    if (clipdata) {
 			char *p = clipdata;
 			for (i = 0; i < count; i++) {
-			    char *q = puttyController->events[selitems[i]];
+			    char *q = getevent(puttyController, selitems[i]);
 			    int qlen = strlen(q);
 			    memcpy(p, q, qlen);
 			    p += qlen;
@@ -1819,7 +1838,7 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 		    }
 		    sfree(selitems);
 
-		    for (i = 0; i < puttyController->nevents; i++)
+		    for (i = 0; i < (puttyController->ninitial + puttyController->ncircular); i++)
 			SendDlgItemMessage(hwnd, IDN_LIST, LB_SETSEL,
 					   FALSE, i);
 		}
