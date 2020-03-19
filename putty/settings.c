@@ -795,6 +795,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		iStorage->write_setting_s(sesskey, buf, buf2);
     }
     iStorage->write_setting_i(sesskey, "RawCNP", conf_get_int(conf, CONF_rawcnp));
+    iStorage->write_setting_i(sesskey, "UTF8linedraw", conf_get_int(conf, CONF_utf8linedraw));
     iStorage->write_setting_i(sesskey, "PasteRTF", conf_get_int(conf, CONF_rtf_paste));
     iStorage->write_setting_i(sesskey, "MouseIsXterm", conf_get_int(conf, CONF_mouse_is_xterm));
     iStorage->write_setting_i(sesskey, "RectSelect", conf_get_int(conf, CONF_rect_select));
@@ -1393,6 +1394,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	sfree(buf2);
     }
     gppi(iStorage, sesskey, "RawCNP", 0, conf, CONF_rawcnp);
+    gppi(iStorage, sesskey, "UTF8linedraw", 0, conf, CONF_utf8linedraw);
     gppi(iStorage, sesskey, "PasteRTF", 0, conf, CONF_rtf_paste);
     gppi(iStorage, sesskey, "MouseIsXterm", 0, conf, CONF_mouse_is_xterm);
     gppi(iStorage, sesskey, "RectSelect", 0, conf, CONF_rect_select);
