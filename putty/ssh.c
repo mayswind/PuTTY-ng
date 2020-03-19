@@ -11480,6 +11480,7 @@ static void ssh_free(void *handle)
 	if (ssh->s)
 	{
 		ssh_do_close(ssh, TRUE);
+        need_random_unref = ssh->need_random_unref;
         if (need_random_unref)
             random_unref();
 	}
@@ -11497,7 +11498,6 @@ static void ssh_free(void *handle)
     if (ssh->gsslibs)
 	ssh_gss_cleanup(ssh->gsslibs);
 #endif
-    need_random_unref = ssh->need_random_unref;
     sfree(ssh);
 }
 

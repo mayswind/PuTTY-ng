@@ -71,6 +71,11 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
     hRgn = NULL;
     hCloserRgn = NULL;
     logbox = NULL;
+    for (int i = 0; i < LOGEVENT_INITIAL_MAX; i++)
+    {
+        events_initial[i] = NULL;
+        events_circular[i] = NULL;
+    }
     ninitial = 0;
     ncircular = 0;
     circular_first = 0;
