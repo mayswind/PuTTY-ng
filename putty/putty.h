@@ -883,8 +883,10 @@ void cleanup_exit(int);
     X(INT, NONE, ssh_show_banner) /* show USERAUTH_BANNERs (SSH-2 only) */ \
     X(INT, NONE, try_tis_auth) \
     X(INT, NONE, try_ki_auth) \
-    X(INT, NONE, try_gssapi_auth) /* attempt gssapi auth */ \
+    X(INT, NONE, try_gssapi_auth) /* attempt gssapi auth via ssh userauth */ \
+    X(INT, NONE, try_gssapi_kex) /* attempt gssapi auth via ssh kex */ \
     X(INT, NONE, gssapifwd) /* forward tgt via gss */ \
+    X(INT, NONE, gssapirekey) /* KEXGSS refresh interval (mins) */ \
     X(INT, INT, ssh_gsslist) /* preference order for local GSS libs */ \
     X(FILENAME, NONE, ssh_gss_custom) \
     X(INT, NONE, ssh_subsys) /* run a subsystem rather than a command */ \

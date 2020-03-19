@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include "putty.h"
 #include "storage.h"
+#ifndef NO_GSSAPI
+#include "sshgssc.h"
+#include "sshgss.h"
+#endif
+
 #include "des.h"
 
 #include <map>
@@ -690,12 +695,14 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     wprefs(iStorage, sesskey, "KEX", kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
     wprefs(iStorage, sesskey, "HostKey", hknames, HK_MAX, conf, CONF_ssh_hklist);
     iStorage->write_setting_i(sesskey, "RekeyTime", conf_get_int(conf, CONF_ssh_rekey_time));
+    iStorage->write_setting_i(sesskey, "GssapiRekey", conf_get_int(conf, CONF_gssapirekey));
     iStorage->write_setting_s(sesskey, "RekeyBytes", conf_get_str(conf, CONF_ssh_rekey_data));
     iStorage->write_setting_i(sesskey, "SshNoAuth", conf_get_int(conf, CONF_ssh_no_userauth));
     iStorage->write_setting_i(sesskey, "SshBanner", conf_get_int(conf, CONF_ssh_show_banner));
     iStorage->write_setting_i(sesskey, "AuthTIS", conf_get_int(conf, CONF_try_tis_auth));
     iStorage->write_setting_i(sesskey, "AuthKI", conf_get_int(conf, CONF_try_ki_auth));
     iStorage->write_setting_i(sesskey, "AuthGSSAPI", conf_get_int(conf, CONF_try_gssapi_auth));
+    iStorage->write_setting_i(sesskey, "AuthGSSAPIKEX", conf_get_int(conf, CONF_try_gssapi_kex));
 #ifndef NO_GSSAPI
     wprefs(iStorage, sesskey, "GSSLibs", gsslibkeywords, ngsslibs, conf, CONF_ssh_gsslist);
     iStorage->write_setting_filename(sesskey, "GSSCustom", conf_get_filename(conf, CONF_ssh_gss_custom));
@@ -1205,7 +1212,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	 * a server which offered it then choked, but we never got
 	 * a server version string or any other reports. */
 	const char *default_kexes,
-	           *normal_default = "ecdh,dh-gex-sha1,dh-group14-sha1,rsa,"
+		   *normal_default = "ecdh,dh-gex-sha1,dh-group14-sha1,rsa,"
 		       "WARN,dh-group1-sha1",
 		   *bugdhgex2_default = "ecdh,dh-group14-sha1,rsa,"
 		       "WARN,dh-group1-sha1,dh-gex-sha1";
@@ -1235,12 +1242,20 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	    sfree(raw);
 	    raw = dupstr(normal_default);
 	}
-	gprefs_from_str(raw, kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
+	/* (For the record: after 0.70, the default algorithm list
+	 * very briefly contained the string 'gss-sha1-krb5'; this was
+	 * never used in any committed version of code, but was left
+	 * over from a pre-commit version of GSS key exchange.
+	 * Mentioned here as it is remotely possible that it will turn
+	 * up in someone's saved settings in future.) */
+
+        gprefs_from_str(raw, kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
 	sfree(raw);
     }
     gprefs(iStorage, sesskey, "HostKey", "ed25519,ecdsa,rsa,dsa,WARN",
            hknames, HK_MAX, conf, CONF_ssh_hklist);
     gppi(iStorage, sesskey, "RekeyTime", 60, conf, CONF_ssh_rekey_time);
+    gppi(iStorage, sesskey, "GssapiRekey", GSS_DEF_REKEY_MINS, conf, CONF_gssapirekey);
     gpps(iStorage, sesskey, "RekeyBytes", "1G", conf, CONF_ssh_rekey_data);
     {
 	/* SSH-2 only by default */
@@ -1258,6 +1273,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "AuthTIS", 0, conf, CONF_try_tis_auth);
     gppi(iStorage, sesskey, "AuthKI", 1, conf, CONF_try_ki_auth);
     gppi(iStorage, sesskey, "AuthGSSAPI", 1, conf, CONF_try_gssapi_auth);
+    gppi(iStorage, sesskey, "AuthGSSAPIKEX", 1, conf, CONF_try_gssapi_kex);
 #ifndef NO_GSSAPI
     gprefs(iStorage, sesskey, "GSSLibs", "\0",
 	   gsslibkeywords, ngsslibs, conf, CONF_ssh_gsslist);

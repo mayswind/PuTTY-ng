@@ -379,7 +379,7 @@ struct ssh_hash {
     int hlen; /* output length in bytes */
     const char *text_name;
 };   
-typedef enum { KEXTYPE_DH, KEXTYPE_RSA, KEXTYPE_ECDH } ssh_kex_main_type;
+typedef enum { KEXTYPE_DH, KEXTYPE_RSA, KEXTYPE_ECDH, KEXTYPE_GSS } ssh_kex_main_type;
 struct ssh_kex {
     const char *name, *groupname;
     int main_type;
@@ -467,6 +467,7 @@ extern const struct ssh_hash ssh_sha512;
 extern const struct ssh_kexes ssh_diffiehellman_group1;
 extern const struct ssh_kexes ssh_diffiehellman_group14;
 extern const struct ssh_kexes ssh_diffiehellman_gex;
+extern const struct ssh_kexes ssh_gssk5_sha1_kex;
 extern const struct ssh_kexes ssh_rsa_kex;
 extern const struct ssh_kexes ssh_ecdh_kex;
 extern const struct ssh_signkey ssh_dss;
@@ -955,6 +956,13 @@ void platform_ssh_share_cleanup(const char *name);
 #define SSH2_MSG_KEX_DH_GEX_GROUP                 31	/* 0x1f */
 #define SSH2_MSG_KEX_DH_GEX_INIT                  32	/* 0x20 */
 #define SSH2_MSG_KEX_DH_GEX_REPLY                 33	/* 0x21 */
+#define SSH2_MSG_KEXGSS_INIT                      30	/* 0x1e */
+#define SSH2_MSG_KEXGSS_CONTINUE                  31	/* 0x1f */
+#define SSH2_MSG_KEXGSS_COMPLETE                  32	/* 0x20 */
+#define SSH2_MSG_KEXGSS_HOSTKEY                   33	/* 0x21 */
+#define SSH2_MSG_KEXGSS_ERROR                     34	/* 0x22 */
+#define SSH2_MSG_KEXGSS_GROUPREQ                  40	/* 0x28 */
+#define SSH2_MSG_KEXGSS_GROUP                     41	/* 0x29 */
 #define SSH2_MSG_KEXRSA_PUBKEY                    30    /* 0x1e */
 #define SSH2_MSG_KEXRSA_SECRET                    31    /* 0x1f */
 #define SSH2_MSG_KEXRSA_DONE                      32    /* 0x20 */
