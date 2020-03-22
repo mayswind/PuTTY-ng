@@ -9,19 +9,12 @@
 
 #include "putty.h"
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
-
 #define RLOGIN_MAX_BACKLOG 4096
 
 typedef struct rlogin_tag {
-    const struct plug_function_table *fn;
+    const Plug_vtable *plugvt;
     void *frontend;
-    /* the above field _must_ be first in the structure */
+    // plugvt and frontend should be put in the head
 
     Socket s;
     int closed_on_socket_error;
@@ -38,7 +31,7 @@ typedef struct rlogin_tag {
 
 static void rlogin_size(void *handle, int width, int height);
 
-static void c_write(Rlogin rlogin, char *buf, int len)
+static void c_write(Rlogin rlogin, const void *buf, int len)
 {
     int backlog = from_backend(rlogin->frontend, 0, buf, len);
     sk_set_frozen(rlogin->s, backlog > RLOGIN_MAX_BACKLOG);
@@ -47,7 +40,7 @@ static void c_write(Rlogin rlogin, char *buf, int len)
 static void rlogin_log(Plug plug, int type, SockAddr addr, int port,
 		       const char *error_msg, int error_code)
 {
-    Rlogin rlogin = (Rlogin) plug;
+    Rlogin rlogin = FROMFIELD(plug, struct rlogin_tag, plugvt);
     backend_socket_log(rlogin->frontend, type, addr, port,
                        error_msg, error_code,
                        rlogin->conf, !rlogin->firstbyte);
@@ -56,7 +49,7 @@ static void rlogin_log(Plug plug, int type, SockAddr addr, int port,
 static void rlogin_closing(Plug plug, const char *error_msg, int error_code,
 			   int calling_back)
 {
-    Rlogin rlogin = (Rlogin) plug;
+    Rlogin rlogin = FROMFIELD(plug, struct rlogin_tag, plugvt);
 
     /*
      * We don't implement independent EOF in each direction for Telnet
@@ -80,7 +73,7 @@ static void rlogin_closing(Plug plug, const char *error_msg, int error_code,
 
 static void rlogin_receive(Plug plug, int urgent, char *data, int len)
 {
-    Rlogin rlogin = (Rlogin) plug;
+    Rlogin rlogin = FROMFIELD(plug, struct rlogin_tag, plugvt);
     if (urgent == 2) {
 	char c;
 
@@ -116,7 +109,7 @@ static void rlogin_receive(Plug plug, int urgent, char *data, int len)
 
 static void rlogin_sent(Plug plug, int bufsize)
 {
-    Rlogin rlogin = (Rlogin) plug;
+    Rlogin rlogin = FROMFIELD(plug, struct rlogin_tag, plugvt);
     rlogin->bufsize = bufsize;
 }
 
@@ -141,6 +134,13 @@ static void rlogin_startup(Rlogin rlogin, const char *ruser)
     rlogin->prompt = NULL;
 }
 
+static const Plug_vtable Rlogin_plugvt = {
+    rlogin_log,
+    rlogin_closing,
+    rlogin_receive,
+    rlogin_sent
+};
+
 /*
  * Called to set up the rlogin connection.
  * 
@@ -154,12 +154,6 @@ static const char *rlogin_init(void *frontend_handle, void **backend_handle,
 			       const char *host, int port, char **realhost,
 			       int nodelay, int keepalive)
 {
-    static const struct plug_function_table fn_table = {
-	rlogin_log,
-	rlogin_closing,
-	rlogin_receive,
-	rlogin_sent
-    };
     SockAddr addr;
     const char *err;
     Rlogin rlogin;
@@ -168,7 +162,7 @@ static const char *rlogin_init(void *frontend_handle, void **backend_handle,
     char *loghost;
 
     rlogin = snew(struct rlogin_tag);
-    rlogin->fn = &fn_table;
+    rlogin->plugvt = &Rlogin_plugvt;
     rlogin->s = NULL;
     rlogin->closed_on_socket_error = FALSE;
     rlogin->frontend = frontend_handle;
@@ -198,7 +192,7 @@ static const char *rlogin_init(void *frontend_handle, void **backend_handle,
      * Open socket.
      */
     rlogin->s = new_connection(addr, *realhost, port, 1, 0,
-			       nodelay, keepalive, (Plug) rlogin, conf);
+			       nodelay, keepalive, &rlogin->plugvt, conf);
     if ((err = sk_socket_error(rlogin->s)) != NULL)
 	return err;
 
@@ -230,7 +224,7 @@ static const char *rlogin_init(void *frontend_handle, void **backend_handle,
         rlogin->prompt->to_server = TRUE;
         rlogin->prompt->name = dupstr("Rlogin login name");
         add_prompt(rlogin->prompt, dupstr("rlogin username: "), TRUE); 
-        ret = get_userpass_input(rlogin->frontend, rlogin->prompt, NULL, 0);
+        ret = get_userpass_input(rlogin->frontend, rlogin->prompt, NULL);
         if (ret >= 0) {
             rlogin_startup(rlogin, rlogin->prompt->prompts[0]->result);
         }
@@ -264,25 +258,38 @@ static void rlogin_reconfig(void *handle, Conf *conf)
 static int rlogin_send(void *handle, const char *buf, int len)
 {
     Rlogin rlogin = (Rlogin) handle;
+    bufchain bc;
 
     if (rlogin->s == NULL)
 	return 0;
+
+    bufchain_init(&bc);
+    bufchain_add(&bc, buf, len);
 
     if (rlogin->prompt) {
         /*
          * We're still prompting for a username, and aren't talking
          * directly to the network connection yet.
          */
-        int ret = get_userpass_input(rlogin->frontend, rlogin->prompt,
-                                     (unsigned char *)buf, len);
+        int ret = get_userpass_input(rlogin->frontend, rlogin->prompt, &bc);
         if (ret >= 0) {
             rlogin_startup(rlogin, rlogin->prompt->prompts[0]->result);
             /* that nulls out rlogin->prompt, so then we'll start sending
              * data down the wire in the obvious way */
         }
-    } else {
-        rlogin->bufsize = sk_write(rlogin->s, buf, len);
     }
+
+    if (!rlogin->prompt) {
+        while (bufchain_size(&bc) > 0) {
+            void *data;
+            int len;
+            bufchain_prefix(&bc, &data, &len);
+            rlogin->bufsize = sk_write(rlogin->s, data, len);
+            bufchain_consume(&bc, len);
+        }
+    }
+
+    bufchain_clear(&bc);
 
     return rlogin->bufsize;
 }

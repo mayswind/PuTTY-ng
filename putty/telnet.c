@@ -8,13 +8,6 @@
 
 #include "putty.h"
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE 1
-#endif
-
 #define	IAC	255		       /* interpret as command: */
 #define	DONT	254		       /* you are not to use option */
 #define	DO	253		       /* please, you use option */
@@ -183,12 +176,13 @@ typedef enum {
 	    SEENSB, SUBNEGOT, SUBNEG_IAC, SEENCR
     } TelnetState;
 typedef struct telnet_tag {
-    const struct plug_function_table *fn;
-    void* frontend;
-    /* the above field _must_ be first in the structure */
+    const Plug_vtable *plugvt;
+    void *frontend;
+    // plugvt and frontend should be put in the head
 
     Socket s;
     int closed_on_socket_error;
+
     void *ldisc;
     int term_width, term_height;
 
@@ -214,7 +208,7 @@ typedef struct telnet_tag {
 
 #define SB_DELTA 1024
 
-static void c_write(Telnet telnet, const char *buf, int len)
+static void c_write(Telnet telnet, const void *buf, int len)
 {
     int backlog;
     backlog = from_backend(telnet->frontend, 0, buf, len);
@@ -244,7 +238,7 @@ static void send_opt(Telnet telnet, int cmd, int option)
     b[0] = IAC;
     b[1] = cmd;
     b[2] = option;
-    telnet->bufsize = sk_write(telnet->s, (char *)b, 3);
+    telnet->bufsize = sk_write(telnet->s, b, 3);
     log_option(telnet, "client", cmd, option);
 }
 
@@ -385,7 +379,7 @@ static void process_subneg(Telnet telnet)
 	    n = 4 + strlen(termspeed);
 	    b[n] = IAC;
 	    b[n + 1] = SE;
-	    telnet->bufsize = sk_write(telnet->s, (char *)b, n + 2);
+	    telnet->bufsize = sk_write(telnet->s, b, n + 2);
 	    logevent(telnet->frontend, "server:\tSB TSPEED SEND");
 	    logbuf = dupprintf("client:\tSB TSPEED IS %s", termspeed);
 	    logevent(telnet->frontend, logbuf);
@@ -409,7 +403,7 @@ static void process_subneg(Telnet telnet)
 			    termtype[n]);
 	    b[n + 4] = IAC;
 	    b[n + 5] = SE;
-	    telnet->bufsize = sk_write(telnet->s, (char *)b, n + 6);
+	    telnet->bufsize = sk_write(telnet->s, b, n + 6);
 	    b[n + 4] = 0;
 	    logevent(telnet->frontend, "server:\tSB TTYPE SEND");
 	    logbuf = dupprintf("client:\tSB TTYPE IS %s", b + 4);
@@ -499,7 +493,7 @@ static void process_subneg(Telnet telnet)
 	    }
 	    b[n++] = IAC;
 	    b[n++] = SE;
-	    telnet->bufsize = sk_write(telnet->s, (char *)b, n);
+	    telnet->bufsize = sk_write(telnet->s, b, n);
 	    if (n == 6) {
 		logbuf = dupprintf("client:\tSB %s IS <nothing>",
 				   telopt(telnet->sb_opt));
@@ -653,7 +647,7 @@ static void do_telnet_read(Telnet telnet, char *buf, int len)
 static void telnet_log(Plug plug, int type, SockAddr addr, int port,
 		       const char *error_msg, int error_code)
 {
-    Telnet telnet = (Telnet) plug;
+    Telnet telnet = FROMFIELD(plug, struct telnet_tag, plugvt);
     backend_socket_log(telnet->frontend, type, addr, port,
                        error_msg, error_code, telnet->conf,
                        telnet->session_started);
@@ -662,7 +656,7 @@ static void telnet_log(Plug plug, int type, SockAddr addr, int port,
 static void telnet_closing(Plug plug, const char *error_msg, int error_code,
 			   int calling_back)
 {
-    Telnet telnet = (Telnet) plug;
+    Telnet telnet = FROMFIELD(plug, struct telnet_tag, plugvt);
 
     /*
      * We don't implement independent EOF in each direction for Telnet
@@ -686,7 +680,7 @@ static void telnet_closing(Plug plug, const char *error_msg, int error_code,
 
 static void telnet_receive(Plug plug, int urgent, char *data, int len)
 {
-    Telnet telnet = (Telnet) plug;
+    Telnet telnet = FROMFIELD(plug, struct telnet_tag, plugvt);
     if (urgent)
 	telnet->in_synch = TRUE;
     telnet->session_started = TRUE;
@@ -695,9 +689,16 @@ static void telnet_receive(Plug plug, int urgent, char *data, int len)
 
 static void telnet_sent(Plug plug, int bufsize)
 {
-    Telnet telnet = (Telnet) plug;
+    Telnet telnet = FROMFIELD(plug, struct telnet_tag, plugvt);
     telnet->bufsize = bufsize;
 }
+
+static const Plug_vtable Telnet_plugvt = {
+    telnet_log,
+    telnet_closing,
+    telnet_receive,
+    telnet_sent
+};
 
 /*
  * Called to set up the Telnet connection.
@@ -711,12 +712,6 @@ static const char *telnet_init(void *frontend_handle, void **backend_handle,
 			       Conf *conf, const char *host, int port,
 			       char **realhost, int nodelay, int keepalive)
 {
-    static const struct plug_function_table fn_table = {
-	telnet_log,
-	telnet_closing,
-	telnet_receive,
-	telnet_sent
-    };
     SockAddr addr;
     const char *err;
     Telnet telnet;
@@ -725,7 +720,7 @@ static const char *telnet_init(void *frontend_handle, void **backend_handle,
 
     telnet = snew(struct telnet_tag);
     telnet->frontend = frontend_handle;
-    telnet->fn = &fn_table;
+    telnet->plugvt = &Telnet_plugvt;
     telnet->conf = conf_copy(conf);
     telnet->s = NULL;
     telnet->closed_on_socket_error = FALSE;
@@ -760,8 +755,8 @@ static const char *telnet_init(void *frontend_handle, void **backend_handle,
     /*
      * Open socket.
      */
-    telnet->s = new_connection(addr, *realhost, port, 0, 1,
-			       nodelay, keepalive, (Plug) telnet, telnet->conf);
+    telnet->s = new_connection(addr, *realhost, port, 0, 1, nodelay, keepalive,
+                               &telnet->plugvt, telnet->conf);
     if ((err = sk_socket_error(telnet->s)) != NULL)
 	return err;
 
@@ -862,11 +857,11 @@ static int telnet_send(void *handle, const char *buf, int len)
 
 	while (p < end && iswritable(*p))
 	    p++;
-	telnet->bufsize = sk_write(telnet->s, (char *)q, p - q);
+	telnet->bufsize = sk_write(telnet->s, q, p - q);
 
 	while (p < end && !iswritable(*p)) {
 	    telnet->bufsize = 
-		sk_write(telnet->s, (char *)(*p == IAC ? iac : cr), 2);
+		sk_write(telnet->s, (*p == IAC) ? iac : cr, 2);
 	    p++;
 	}
     }
@@ -912,7 +907,7 @@ static void telnet_size(void *handle, int width, int height)
     if (b[n-1] == IAC) b[n++] = IAC;   /* duplicate any IAC byte occurs */
     b[n++] = IAC;
     b[n++] = SE;
-    telnet->bufsize = sk_write(telnet->s, (char *)b, n);
+    telnet->bufsize = sk_write(telnet->s, b, n);
     logbuf = dupprintf("client:\tSB NAWS %d,%d",
 		       telnet->term_width, telnet->term_height);
     logevent(telnet->frontend, logbuf);
@@ -934,51 +929,51 @@ static void telnet_special(void *handle, Telnet_Special code)
     switch (code) {
       case TS_AYT:
 	b[1] = AYT;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_BRK:
 	b[1] = BREAK;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_EC:
 	b[1] = EC;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_EL:
 	b[1] = EL;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_GA:
 	b[1] = GA;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_NOP:
 	b[1] = NOP;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_ABORT:
 	b[1] = ABORT;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_AO:
 	b[1] = AO;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_IP:
 	b[1] = IP;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_SUSP:
 	b[1] = SUSP;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_EOR:
 	b[1] = EOR;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_EOF:
 	b[1] = xEOF;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	telnet->bufsize = sk_write(telnet->s, b, 2);
 	break;
       case TS_EOL:
 	/* In BINARY mode, CR-LF becomes just CR -
@@ -990,8 +985,8 @@ static void telnet_special(void *handle, Telnet_Special code)
 	break;
       case TS_SYNCH:
 	b[1] = DM;
-	telnet->bufsize = sk_write(telnet->s, (char *)b, 1);
-	telnet->bufsize = sk_write_oob(telnet->s, (char *)(b + 1), 1);
+	telnet->bufsize = sk_write(telnet->s, b, 1);
+	telnet->bufsize = sk_write_oob(telnet->s, b + 1, 1);
 	break;
       case TS_RECHO:
 	if (telnet->opt_states[o_echo.index] == INACTIVE ||
@@ -1009,7 +1004,7 @@ static void telnet_special(void *handle, Telnet_Special code)
       case TS_PING:
 	if (telnet->opt_states[o_they_sga.index] == ACTIVE) {
 	    b[1] = NOP;
-	    telnet->bufsize = sk_write(telnet->s, (char *)b, 2);
+	    telnet->bufsize = sk_write(telnet->s, b, 2);
 	}
 	break;
       default:

@@ -251,9 +251,6 @@ void NativePuttyController::fini()
     	DeleteObject(pal);
     if (conf_get_int(cfg, CONF_protocol) == PROT_SSH) {
     	random_save_seed();
-#ifdef MSCRYPTOAPI
-    	crypto_wrapup();
-#endif
     }
 }
 
@@ -1397,11 +1394,10 @@ void NativePuttyController::sys_cursor_update()
     SetCaretPos(caret_x, caret_y);
 
     /* IMM calls on Win98 and beyond only */
-	OSVERSIONINFO& osVersion = get_os_version();
-    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return; /* 3.11 */
+    if (osPlatformId == VER_PLATFORM_WIN32s) return; /* 3.11 */
     
-    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
-	    osVersion.dwMinorVersion == 0) return; /* 95 */
+    if (osPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
+        osMinorVersion == 0) return; /* 95 */
 
     /* we should have the IMM functions */
     hIMC = ImmGetContext(getNativePage());
@@ -1415,8 +1411,7 @@ void NativePuttyController::sys_cursor_update()
 
 void NativePuttyController::update_mouse_pointer()
 {
-    
-    LPTSTR curstype;
+    LPTSTR curstype = NULL;
     int force_visible = FALSE;
     switch (busy_status) {
       case BUSY_NOT:
@@ -3049,8 +3044,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	/* XXX how do we know what the max size of the keys array should
 	 * be is? There's indication on MS' website of an Inquire/InquireEx
 	 * functioning returning a KBINFO structure which tells us. */
-	OSVERSIONINFO& osVersion = get_os_version();
-	if (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT && p_ToUnicodeEx) {
+	if (osPlatformId == VER_PLATFORM_WIN32_NT && p_ToUnicodeEx) {
 	    r = p_ToUnicodeEx(wParam, scan, keystate, keys_unicode,
                               lenof(keys_unicode), 0, kbd_layout);
 	} else {
@@ -3254,7 +3248,7 @@ int NativePuttyController::on_key(HWND hwnd, UINT message,
 				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
 					WindowInterface::GetInstance()->cmdScat(LDISC_SEND, (char*)&buf, len, 1);
 				}else{
-					ldisc_send(ldisc, (char*)buf, len, 1);
+					ldisc_send(ldisc, buf, len, 1);
 				}
 		    }
 		    show_mouseptr( 0);
@@ -3735,9 +3729,9 @@ int NativePuttyController::on_ime_composition(HWND hwnd, UINT message,
     int n;
     char *buff;
 	
-	OSVERSIONINFO& osVersion = get_os_version();
-    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS || 
-        osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return 1; /* no Unicode */
+    if (osPlatformId == VER_PLATFORM_WIN32_WINDOWS || 
+	        osPlatformId == VER_PLATFORM_WIN32s)
+                return 1; /* no Unicode */
 
     if ((lParam & GCS_RESULTSTR) == 0) /* Composition unfinished. */
     	return 1; /* fall back to DefWindowProc */

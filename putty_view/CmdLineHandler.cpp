@@ -242,7 +242,10 @@ int CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    //if (sscanf(p + 1, "%p", &filemap) == 1 &&
 		//(cp = (Conf*)MapViewOfFile(filemap, FILE_MAP_READ,
 		//		    0, 0, sizeof(Config))) != NULL) {
-		//cfg = *cp;
+        //        BinarySource src[1];
+        //        BinarySource_BARE_INIT(src, cp, cpsize);
+		//if (!conf_deserialise(conf, src))
+        //            modalfatalbox("Serialised configuration data was invalid");
 		//UnmapViewOfFile(cp);
 		//CloseHandle(filemap);
 	    //} else if (!do_config()) {

@@ -188,10 +188,12 @@
     <ClCompile Include="ldisc.c" />
     <ClCompile Include="ldiscucs.c" />
     <ClCompile Include="logging.c" />
+    <ClCompile Include="marshal.c" />
     <ClCompile Include="memstore.c" />
     <ClCompile Include="minibidi.c" />
     <ClCompile Include="misc.c" />
     <ClCompile Include="miscucs.c" />
+    <ClCompile Include="nullplug.c" />
     <ClCompile Include="pageant.c" />
     <ClCompile Include="pgssapi.c" />
     <ClCompile Include="pinger.c" />
@@ -207,6 +209,20 @@
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <ClCompile Include="ssh1bpp.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ClCompile Include="ssh1censor.c" />
+    <ClCompile Include="ssh2bpp.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ClCompile Include="ssh2bpp-bare.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ClCompile Include="ssh2censor.c" />
     <ClCompile Include="sshaes.c" />
     <ClCompile Include="ssharcf.c" />
     <ClCompile Include="sshblowf.c" />
@@ -285,10 +301,12 @@
     <ClInclude Include="extend\encoding_util.h" />
     <ClInclude Include="charset\charset.h" />
     <ClInclude Include="charset\internal.h" />
+    <ClInclude Include="defs.h" />
     <ClInclude Include="des.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="int64.h" />
     <ClInclude Include="ldisc.h" />
+    <ClInclude Include="marshal.h" />
     <ClInclude Include="misc.h" />
     <ClInclude Include="network.h" />
     <ClInclude Include="pgssapi.h" />
@@ -300,8 +318,10 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="sftp.h" />
     <ClInclude Include="ssh.h" />
+    <ClInclude Include="sshbpp.h" />
     <ClInclude Include="sshgss.h" />
     <ClInclude Include="sshgssc.h" />
+    <ClInclude Include="sshcr.h" />
     <ClInclude Include="storage.h" />
     <ClInclude Include="terminal.h" />
     <ClInclude Include="tree234.h" />

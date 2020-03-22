@@ -108,9 +108,10 @@ static BOOL MyCreatePipeEx(
 
 enum{RUNNING = 0, UI_WANT_STOP = 1, ADB_THREAD_STOPPED = 2, UI_STOPPED = 3};
 typedef struct adb_backend_data {
-    const struct plug_function_table *fn;
-    void* frontend;
-    /* the above field _must_ be first in the structure */
+	const Plug_vtable *plugvt;
+	void* frontend;
+	// plugvt and frontend should be put in the head
+
 	HANDLE child_stdin_read, child_stdin_write;
 	HANDLE child_stdout_read, child_stdout_write;
 	PROCESS_INFORMATION   pinfo;
@@ -391,12 +392,6 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
 			    const char *host, int port, char **realhost,
                             int nodelay, int keepalive)
 {
-    static const struct plug_function_table fn_table = {
-	adb_log,
-	adb_closing,
-	adb_receive,
-	adb_sent
-    };
     SockAddr addr;
     const char *err;
     Adb adb;
@@ -404,7 +399,6 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
     char *loghost;
 
     adb = snew( struct adb_backend_data );
-    adb->fn = &fn_table;
     adb->frontend = frontend_handle;
 	adb->conf = conf;
 

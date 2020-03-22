@@ -53,35 +53,24 @@ init_config* process_init()
 
 	set_explicit_app_user_model_id();
 
-	if (!init_winver())
-    {
-		char *str = dupprintf("%s Fatal Error", appname);
-		MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), "Windows refuses to report a version",
-			str, MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST);
-		sfree(str);
-		exit(-1);
-    }
+	init_winver();
 	
-	OSVERSIONINFO& osVersion = get_os_version();
     /*
      * If we're running a version of Windows that doesn't support
      * WM_MOUSEWHEEL, find out what message number we should be
      * using instead.
      */
-    if (osVersion.dwMajorVersion < 4 ||
-	(osVersion.dwMajorVersion == 4 && 
-	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT))
+    if (osMajorVersion < 4 ||
+	(osMajorVersion == 4 && osPlatformId != VER_PLATFORM_WIN32_NT))
 		NativePuttyController::wm_mousewheel = RegisterWindowMessage(TEXT("MSWHEEL_ROLLMSG"));
 	/*
      * If we're running a version of Windows that doesn't support
      * WM_MOUSEWHEEL, find out what message number we should be
      * using instead.
      */
-    if (osVersion.dwMajorVersion < 4 ||
-	(osVersion.dwMajorVersion == 4 && 
-	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT)){
+    if (osMajorVersion < 4 ||
+	(osMajorVersion == 4 && osPlatformId != VER_PLATFORM_WIN32_NT))
 		NativePuttyController::wm_mousewheel = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
-	}
 
 	default_protocol = be_default_protocol;
 	/* Find the appropriate default port. */
@@ -1046,8 +1035,7 @@ void do_beep(void *frontend, int mode)
 	 * We must beep in different ways depending on whether this
 	 * is a 95-series or NT-series OS.
 	 */
-	OSVERSIONINFO& osVersion = get_os_version();
-	if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT)
+	if (osPlatformId == VER_PLATFORM_WIN32_NT)
 	    Beep(800, 100);
 	else
 	    MessageBeep(-1);
@@ -1337,12 +1325,12 @@ void ldisc_update(void *frontend, int echo, int edit)
 }
 //---------------------------------------------------------------------------------
 // for backend
-int from_backend(void *frontend, int is_stderr, const char *data, int len)
+int from_backend(void *frontend, int is_stderr, const void *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
 	if (1){
-		if (puttyController->checkZSession(data, len)){
+		if (puttyController->checkZSession((const char *)data, len)){
 			return 500;
 		}
 		return term_data(puttyController->term, is_stderr, data, len);
@@ -1352,7 +1340,7 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 	}
 }
 
-int from_backend_untrusted(void *frontend, const char *data, int len)
+int from_backend_untrusted(void *frontend, const void *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1597,7 +1585,7 @@ void set_autocmd_enabled(void *frontend, bool enabled)
 	puttyController->isAutoCmdEnabled_ = enabled;
 }
 
-int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, int inlen)
+int get_userpass_input(void *frontend, prompts_t *p, bufchain *input)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1605,9 +1593,9 @@ int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, i
     ret = autocmd_get_passwd_input(frontend, p, puttyController->term->conf);
 	set_autocmd_enabled(frontend, FALSE);
     if (ret == -1)
-		ret = cmdline_get_passwd_input(p, in, inlen, puttyController->term->conf);
+		ret = cmdline_get_passwd_input(p, puttyController->term->conf);
     if (ret == -1)
-		ret = term_get_userpass_input(puttyController->term, p, in, inlen);
+		ret = term_get_userpass_input(puttyController->term, p, input);
 	set_autocmd_enabled(frontend, TRUE);
     return ret;
 }
@@ -2149,6 +2137,21 @@ void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
     //    cbhead = cb;
     //cbtail = cb;
     //cb->next = NULL;
+}
+
+void run_idempotent_callback(void *ctx)
+{
+	struct IdempotentCallback *ic = (struct IdempotentCallback *)ctx;
+	ic->queued = FALSE;
+	ic->fn(ic->ctx);
+}
+
+void queue_idempotent_callback(struct IdempotentCallback *ic)
+{
+	if (ic->queued)
+		return;
+	ic->queued = TRUE;
+	queue_toplevel_callback(run_idempotent_callback, ic);
 }
 
 void process_in_ui_msg_loop(boost::function<void(void)> func)

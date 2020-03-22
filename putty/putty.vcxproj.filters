@@ -54,10 +54,16 @@
     <ClCompile Include="logging.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="marshal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="minibidi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="misc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nullplug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pgssapi.c">
@@ -91,6 +97,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ssh.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh1bpp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh1censor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2bpp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2bpp-bare.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2censor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sshaes.c">
@@ -335,6 +356,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="des.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -345,6 +369,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ldisc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="marshal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="misc.h">
@@ -380,10 +407,16 @@
     <ClInclude Include="ssh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sshbpp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="sshgss.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sshgssc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sshcr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="storage.h">
