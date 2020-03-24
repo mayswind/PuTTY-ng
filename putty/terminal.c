@@ -7034,7 +7034,7 @@ int term_data(Terminal *term, int is_stderr, const void *data, int len)
 			getclipbuf(term, top, bottom, 0, buf);
 			std::wstring wStrLastLine(buf.textbuf, buf.bufpos);
 			std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
-			Ldisc ldisc = (Ldisc)term->ldisc;
+			Ldisc *ldisc = term->ldisc;
 			if (ldisc)
 				exec_autocmd(term->frontend,
 				ldisc->backhandle, 

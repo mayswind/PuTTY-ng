@@ -12,10 +12,9 @@
 #include "terminal.h"
 #include "ldisc.h"
 
-void lpage_send(void *handle,
+void lpage_send(Ldisc *ldisc,
 		int codepage, const char *buf, int len, int interactive)
 {
-    Ldisc ldisc = (Ldisc)handle;
     wchar_t *widebuffer = 0;
     int widesize = 0;
     int wclen;
@@ -36,9 +35,8 @@ void lpage_send(void *handle,
 
 bool if_need_cmd_scat();
 void cmd_scat(int type, const char * buffer, int buflen, int interactive);
-void luni_send(void *handle, const wchar_t *widebuf, int len, int interactive)
+void luni_send(Ldisc *ldisc, const wchar_t *widebuf, int len, int interactive)
 {
-    Ldisc ldisc = (Ldisc)handle;
     int ratio = (in_utf(ldisc->term))?3:1;
     char *linebuffer;
     int linesize;

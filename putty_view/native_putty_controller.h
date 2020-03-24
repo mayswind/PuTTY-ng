@@ -185,7 +185,7 @@ public:
 
     Backend *back;
     void *backhandle;
-    void *ldisc;
+    Ldisc *ldisc;
 
     int must_close_session, session_closed;
 	int must_close_tab_; 

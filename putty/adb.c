@@ -607,12 +607,11 @@ static int adb_ldisc(void *handle, int option)
 	return 0;
 }
 
-static void adb_provide_ldisc(void *handle, void *ldisc)
+static void adb_provide_ldisc(void *handle, Ldisc *ldisc)
 {
 	if (ldisc == NULL) { return; }
-	Ldisc disc = (Ldisc)ldisc;
-	disc->localedit = FORCE_OFF;
-	disc->localecho = FORCE_OFF;
+	ldisc->localedit = FORCE_OFF;
+	ldisc->localecho = FORCE_OFF;
 }
 
 static void adb_provide_logctx(void *handle, void *logctx)
