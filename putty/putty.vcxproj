@@ -331,7 +331,6 @@
     <ClInclude Include="windows\winhelp.h" />
     <ClInclude Include="windows\winsecur.h" />
     <ClInclude Include="windows\winstuff.h" />
-    <ClInclude Include="windows\wintab.h" />
     <ClInclude Include="windows\wintabdraw.h" />
     <ClInclude Include="windows\win_res.h" />
   </ItemGroup>

@@ -440,9 +440,6 @@
     <ClInclude Include="windows\winstuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\wintab.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="windows\wintabdraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
