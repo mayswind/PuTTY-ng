@@ -246,7 +246,7 @@ struct terminal_tag {
 
     void *frontend;
 
-    void *logctx;
+    LogContext *logctx;
 
     struct unicode_data *ucsdata;
 

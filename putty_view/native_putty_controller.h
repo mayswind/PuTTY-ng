@@ -161,7 +161,7 @@ public:
     
     Conf* cfg;
     Terminal *term;
-    void *logctx;
+    LogContext *logctx;
     RGBTRIPLE defpal[NALLCOLOURS];
     struct unicode_data ucsdata;
 

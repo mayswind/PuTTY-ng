@@ -614,7 +614,7 @@ static void adb_provide_ldisc(void *handle, Ldisc *ldisc)
 	ldisc->localecho = FORCE_OFF;
 }
 
-static void adb_provide_logctx(void *handle, void *logctx)
+static void adb_provide_logctx(void *handle, LogContext *logctx)
 {
     /* This is a stub. */
 }

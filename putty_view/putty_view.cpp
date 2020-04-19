@@ -7,9 +7,9 @@
 #include "terminal.h"
 #include "storage.h"
 #include "tab_contents.h"
-extern int is_session_log_enabled(void *handle);
-extern void log_restart(void *handle, Conf *cfg);
-extern void log_stop(void *handle, Conf *cfg);
+extern int is_session_log_enabled(LogContext *ctx);
+extern void log_restart(LogContext *ctx, Conf *cfg);
+extern void log_stop(LogContext *ctx, Conf *cfg);
 
 namespace view{
 	// static
