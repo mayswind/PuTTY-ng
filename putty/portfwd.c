@@ -27,8 +27,8 @@ struct PortForwarding {
     // plugvt and frontend should be put in the head
 
     struct ssh_channel *c;        /* channel structure held by ssh.c */
-    void *backhandle;		       /* instance of SSH backend itself */
-    /* Note that backhandle need not be filled in if c is non-NULL */
+    Ssh ssh;                      /* instance of SSH backend itself */
+    /* Note that ssh need not be filled in if c is non-NULL */
     Socket s;
     int throttled, throttle_override;
     int ready;
@@ -53,7 +53,7 @@ struct PortListener {
     void *frontend;
     // plugvt and frontend should be put in the head
 
-    void *backhandle;		       /* instance of SSH backend itself */
+    Ssh ssh;                      /* instance of SSH backend itself */
     Socket s;
     int is_dynamic;
     /*
@@ -402,7 +402,7 @@ static void pfd_receive(Plug plug, int urgent, char *data, int len)
 	 */
 	sk_set_frozen(pf->s, 1);
 
-	pf->c = (struct ssh_channel*)new_sock_channel(pf->backhandle, pf);
+        pf->c = (struct ssh_channel*)new_sock_channel(pf->ssh, pf);
 	if (pf->c == NULL) {
 	    pfd_close(pf);
 	    return;
@@ -471,7 +471,7 @@ char *pfd_connect(void* frontend, struct PortForwarding **pf_ret, char *hostname
     pf->throttled = pf->throttle_override = 0;
     pf->ready = 1;
     pf->c = (struct ssh_channel*)c;
-    pf->backhandle = NULL;	       /* we shouldn't need this */
+    pf->ssh = NULL;            /* we shouldn't need this */
     pf->socks_state = SOCKS_NONE;
 
     pf->s = new_connection(addr, dummy_realhost, port,
@@ -505,7 +505,7 @@ static int pfl_accepting(Plug p, accept_fn_t constructor, accept_ctx_t ctx)
     pf->plugvt = &PortForwarding_plugvt;
 
     pf->c = NULL;
-    pf->backhandle = pl->backhandle;
+    pf->ssh = pl->ssh;
 
     pf->s = s = constructor(ctx, &pf->plugvt);
     if ((err = sk_socket_error(s)) != NULL) {
@@ -526,7 +526,7 @@ static int pfl_accepting(Plug p, accept_fn_t constructor, accept_ctx_t ctx)
 	pf->socks_state = SOCKS_NONE;
 	pf->hostname = dupstr(pl->hostname);
 	pf->port = pl->port;	
-	pf->c = (struct ssh_channel*)new_sock_channel(pl->backhandle, pf);
+        pf->c = (struct ssh_channel*)new_sock_channel(pl->ssh, pf);
 
 	if (pf->c == NULL) {
 	    free_portfwd_state(pf);
@@ -555,7 +555,7 @@ static const Plug_vtable PortListener_plugvt = {
  * dynamically allocated error message string.
  */
 char *pfl_listen(void* frontend, char *desthost, int destport, char *srcaddr,
-                 int port, void *backhandle, Conf *conf,
+                 int port, Ssh ssh, Conf *conf,
                  struct PortListener **pl_ret, int address_family)
 {
     const char *err;
@@ -573,7 +573,7 @@ char *pfl_listen(void* frontend, char *desthost, int destport, char *srcaddr,
 	pl->is_dynamic = FALSE;
     } else
 	pl->is_dynamic = TRUE;
-    pl->backhandle = backhandle;
+    pl->ssh = ssh;
 
     pl->s = new_listener(srcaddr, port, &pl->plugvt,
                          !conf_get_int(conf, CONF_lport_acceptall),
