@@ -1764,10 +1764,10 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 	}
 	for (i = 0; i < puttyController->ninitial; i++)
 	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
-			       0, (LPARAM) puttyController->events_initial[i]);
+			       0, (LPARAM) A2W(puttyController->events_initial[i]));
 	for (i = 0; i < puttyController->ncircular; i++)
 	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
-			       0, (LPARAM) puttyController->events_circular[(puttyController->circular_first + i) % LOGEVENT_CIRCULAR_MAX]);
+			       0, (LPARAM) A2W(puttyController->events_circular[(puttyController->circular_first + i) % LOGEVENT_CIRCULAR_MAX]));
 	return 1;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
