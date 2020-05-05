@@ -599,6 +599,7 @@ int NativePuttyController::init_mouse()
 int NativePuttyController::start_backend()
 {
 	 USES_CONVERSION;;
+	const struct Backend_vtable *vt;
     const char *error;
 	char msg[2048] = { 0 };
     char *realhost = NULL; 
@@ -606,8 +607,8 @@ int NativePuttyController::start_backend()
      * Select protocol. This is farmed out into a table in a
      * separate file to enable an ssh-free variant.
      */
-    back = backend_from_proto(conf_get_int(cfg, CONF_protocol));
-    if (back == NULL) {
+    vt = backend_vt_from_proto(conf_get_int(cfg, CONF_protocol));
+    if (!vt) {
 		const char* str = "\r\n"
 			"===============================================================\r\n"
 			"--------         Unsupported protocol number found      -------\r\n"
@@ -616,10 +617,13 @@ int NativePuttyController::start_backend()
 	    return -1;
     }
 
-    error = back->init(this, &backhandle, cfg,
-		       conf_get_str(cfg, CONF_host), conf_get_int(cfg, CONF_port), &realhost, conf_get_int(cfg, CONF_tcp_nodelay),
-		       conf_get_int(cfg, CONF_tcp_keepalives));
-    back->provide_logctx(backhandle, logctx);
+    error = backend_init(vt, this, &backend, cfg,
+                         conf_get_str(cfg, CONF_host),
+                         conf_get_int(cfg, CONF_port),
+                         &realhost,
+                         conf_get_int(cfg, CONF_tcp_nodelay),
+                         conf_get_int(cfg, CONF_tcp_keepalives));
+    backend_provide_logctx(backend, logctx);
     if (error) {
     	snprintf(msg, sizeof(msg) - 1,"\r\n"
 			"===============================================================\r\n"
@@ -636,13 +640,12 @@ int NativePuttyController::start_backend()
     /*
      * Connect the terminal to the backend for resize purposes.
      */
-    term_provide_resize_fn(term, back->size, backhandle);
+    term_provide_backend(term, backend);
 
     /*
      * Set up a line discipline.
      */
-    ldisc = ldisc_create(cfg, term
-                    , back, backhandle, this);
+    ldisc = ldisc_create(cfg, term, backend, this);
 	int protocol = conf_get_int(cfg, CONF_protocol);
 	if (PROT_SERIAL == protocol || PROT_ADB == protocol){
 		setConnected();
@@ -695,13 +698,13 @@ void NativePuttyController::close_session()
 {
     must_close_session = FALSE;
     
-    if (!back)  return;
+    if (!backend)  return;
     
     DWORD wait_result = WaitForSingleObject(close_mutex, INFINITE);
     if (WAIT_OBJECT_0 != wait_result)
         return;
 
-    if (!back)  {
+    if (!backend)  {
         ReleaseMutex(close_mutex);
         return;
     }
@@ -720,11 +723,10 @@ void NativePuttyController::close_session()
     	ldisc = NULL;
 		term->ldisc = NULL;
     }
-    if (back) {
-    	back->free(backhandle);
-    	backhandle = NULL;
-    	back = NULL;
-        term_provide_resize_fn(term, NULL, NULL);
+    if (backend) {
+        backend_free(backend);
+        backend = NULL;
+        term_provide_backend(term, NULL);
         update_specials_menu();
 	
     }
@@ -752,8 +754,8 @@ void NativePuttyController::update_specials_menu()
     HMENU new_menu;
     int i;//, j;
 
-    if (back)
-	specials = back->get_specials(backhandle);
+    if (backend)
+        specials = backend_get_specials(backend);
     else
 	specials = NULL;
 
@@ -1081,7 +1083,7 @@ int NativePuttyController::on_reconfig()
     conf_copy_into(::cfg, this->cfg);
 
 	reconfig_result =
-	    do_reconfig(getNativePage(), this->back ? this->back->cfg_info(this->backhandle) : 0);
+                do_reconfig(getNativePage(), this->backend ? backend_cfg_info(this->backend) : 0);
    if (!reconfig_result)
 	    return 0;
     
@@ -1128,8 +1130,8 @@ int NativePuttyController::on_reconfig()
                 setup_clipboards(this->term, this->cfg);
 
 	/* Pass new config data to the back end */
-	if (this->back)
-	    this->back->reconfig(this->backhandle, this->cfg);
+	if (this->backend)
+	    backend_reconfig(this->backend, this->cfg);
 
 	/* Enable or disable the scroll bar, etc */
 	{
@@ -1317,8 +1319,8 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //                */
  //               if (i >= n_specials)
  //                   break;
- //               if (back)
- //                   back->special(backhandle, (Telnet_Special)specials[i].code);
+ //               if (backend)
+ //                   backend_special(backend, (Telnet_Special)specials[i].code);
  //               net_pending_errors();
  //           }
 			break;
@@ -2784,8 +2786,8 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return p - output;
 	}
 	if (wParam == VK_CANCEL && shift_state == 2) {	/* Ctrl-Break */
-	    if (back)
-		back->special(backhandle, TS_BRK);
+            if (backend)
+                backend_special(backend, TS_BRK);
 	    return 0;
 	}
 	if (wParam == VK_PAUSE) {      /* Break/Pause */
@@ -3666,7 +3668,7 @@ void NativePuttyController::restartBackend()
         return;
     }
     close_session();
-    if (!back) {
+    if (!backend) {
 		logevent(this, "----- Session is going to be restarted -----");
 		const char* str = "\r\n"
 			"===============================================================\r\n"
@@ -3822,7 +3824,7 @@ void NativePuttyController::sendScript(int type, const char * buffer, int buflen
 int NativePuttyController::send_buffer_size()
 {
 	if (!isDisconnected()) 
-		return back->sendbuffer(backhandle);
+		return backend_sendbuffer(backend);
 	return 0;
 }
 

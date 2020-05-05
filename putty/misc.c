@@ -1012,14 +1012,14 @@ int conf_launchable(const char* session)
 {
 	int ret = 0;
 	char* prot = load_ssetting(session, "Protocol", "ssh");
-	const Backend *b = backend_from_name(prot);
-	if (b->protocol == PROT_SERIAL)
+	const struct Backend_vtable *vt = backend_vt_from_name(prot);
+	if (vt->protocol == PROT_SERIAL)
 	{
 		char* serline = load_ssetting(session, "SerialLine", "");
 		ret = (serline[0] != 0);
 		sfree(serline);
 	}
-	else if (b->protocol == PROT_ADB)
+	else if (vt->protocol == PROT_ADB)
 	{
 		ret = 1;
 	}
@@ -1378,9 +1378,9 @@ void autocmd_init(Conf *cfg)
  */
 const char* get_autocmd(void* frontend, Conf *cfg,
     const char *recv_buf, int len, int count_in_retry);
-void exec_autocmd(void* frontend, void *handle, Conf *cfg,
+void exec_autocmd(void* frontend, Backend *be, Conf *cfg,
     const char *recv_buf, int len, 
-    int (*send) (void *handle, const char *buf, int len), int count_in_retry)
+    int count_in_retry)
 {
     const char* autocmd = get_autocmd(frontend, cfg, recv_buf, len, count_in_retry);
     if (autocmd == NULL)
@@ -1389,9 +1389,9 @@ void exec_autocmd(void* frontend, void *handle, Conf *cfg,
 	cmdlen = cmdlen > 4000 ? 4000 : cmdlen;
     if (cmdlen > 0)
     {
-        send(handle, autocmd,cmdlen);
+        backend_send(be, autocmd,cmdlen);
     }
-    send(handle, "\n", 1);
+    backend_send(be, "\n", 1);
 }
 
 

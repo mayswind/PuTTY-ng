@@ -75,10 +75,11 @@ init_config* process_init()
 	default_protocol = be_default_protocol;
 	/* Find the appropriate default port. */
 	{
-	    Backend *b = backend_from_proto(default_protocol);
+            const struct Backend_vtable *vt =
+                backend_vt_from_proto(default_protocol);
 	    default_port = 0; /* illegal */
-	    if (b)
-		default_port = b->default_port;
+            if (vt)
+                default_port = vt->default_port;
 	}
 	conf_set_int(cfg, CONF_logtype, LGTYP_NONE);
 	do_defaults(NULL, cfg);
@@ -1430,8 +1431,8 @@ void update_specials_menu(void *frontend)
     HMENU new_menu;
     int i;//, j;
 
-    if (puttyController->back)
-	puttyController->specials = puttyController->back->get_specials(puttyController->backhandle);
+    if (puttyController->backend)
+        puttyController->specials = backend_get_specials(puttyController->backend);
     else
 	puttyController->specials = NULL;
 
@@ -1502,7 +1503,7 @@ void notify_remote_exit(void *frontend)
 	puttyController->setDisconnected();
 
     if (!puttyController->session_closed &&
-        (exitcode = puttyController->back->exitcode(puttyController->backhandle)) >= 0) {
+        (exitcode = backend_exitcode(puttyController->backend)) >= 0) {
 	/* Abnormal exits will already have set session_closed and taken
 	 * appropriate action. */
 	int close_on_exit = conf_get_int(puttyController->cfg, CONF_close_on_exit);

@@ -183,8 +183,7 @@ public:
     int dbltime, lasttime, lastact;
     Mouse_Button lastbtn;
 
-    Backend *back;
-    void *backhandle;
+    Backend *backend;
     Ldisc *ldisc;
 
     int must_close_session, session_closed;

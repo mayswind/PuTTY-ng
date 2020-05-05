@@ -122,9 +122,9 @@ typedef struct adb_backend_data {
 
 	Conf *conf;
 	int is_stopped;
-} *Adb;
 
-static void adb_size(void *handle, int width, int height);
+	Backend backend;
+} *Adb;
 
 static void c_write(Adb adb, char *buf, int len)
 {
@@ -387,7 +387,7 @@ static char* init_adb_connection(Adb adb)
  * Also places the canonical host name into `realhost'. It must be
  * freed by the caller.
  */
-static const char *adb_init(void *frontend_handle, void **backend_handle,
+static const char *adb_init(void *frontend_handle, Backend **backend_handle,
 			    Conf *conf,
 			    const char *host, int port, char **realhost,
                             int nodelay, int keepalive)
@@ -407,7 +407,8 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
 	adb->send_buffer = new KfifoBuffer(11);;
 	adb->recv_buffer = new KfifoBuffer(12);
 
-	*backend_handle = adb;
+    adb->backend.vt = &adb_backend;
+    *backend_handle = &adb->backend;
 
 	return init_adb_connection(adb);
 }
@@ -438,37 +439,37 @@ static void adb_fini_in_ui(void* handle)
     sfree(adb);
 }
 
-static void adb_fini_in_adb_thread(void *handle)
+static void adb_fini_in_adb_thread(Backend *be)
 {
-	Adb adb = (Adb)handle;
+	Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 	if (adb->poll_timer != NULL)
 	{
-		g_adb_processor->cancelLocalTimer((unsigned long long)handle, adb->poll_timer);
+		g_adb_processor->cancelLocalTimer((unsigned long long)be, adb->poll_timer);
 	}
 	adb->is_stopped = ADB_THREAD_STOPPED;
 	process_in_ui_msg_loop(boost::bind(adb_fini_in_ui, adb));
 }
 
-static void adb_free(void *handle)
+static void adb_free(Backend *be)
 {
-	Adb adb = (Adb) handle;
+	Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 	adb->is_stopped = UI_WANT_STOP;
-	g_adb_processor->process((unsigned long long)handle, NEW_PROCESSOR_JOB(adb_fini_in_adb_thread, handle));
+	g_adb_processor->process((unsigned long long)be, NEW_PROCESSOR_JOB(adb_fini_in_adb_thread, be));
 }
 
 /*
  * Stub routine (we don't have any need to reconfigure this backend).
  */
-static void adb_reconfig(void *handle, Conf *conf)
+static void adb_reconfig(Backend *be, Conf *conf)
 {
 }
 
 /*
  * Called to send data down the adb connection.
  */
-static int adb_send(void *handle, const char *buf, int len)
+static int adb_send(Backend *be, const char *buf, int len)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 	int compel_crlf = conf_get_int(adb->conf, CONF_adb_compel_crlf);
 	int dwError;
 	if (len == 1 && buf[0] == 0x03 && adb->pinfo.dwProcessId != 0)
@@ -530,16 +531,16 @@ static int adb_send(void *handle, const char *buf, int len)
 /*
  * Called to query the current socket sendability status.
  */
-static int adb_sendbuffer(void *handle)
+static int adb_sendbuffer(Backend *be)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 	return adb->send_buffer->unusedSize()/2;
 }
 
 /*
  * Called to set the size of the window
  */
-static void adb_size(void *handle, int width, int height)
+static void adb_size(Backend *be, int width, int height)
 {
     /* Do nothing! */
     return;
@@ -548,9 +549,9 @@ static void adb_size(void *handle, int width, int height)
 /*
  * Send adb special codes. We only handle outgoing EOF here.
  */
-static void adb_special(void *handle, Telnet_Special code)
+static void adb_special(Backend *be, Telnet_Special code)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
     if (code == TS_EOF) {
         adb_check_close(adb);
     }
@@ -561,7 +562,7 @@ static void adb_special(void *handle, Telnet_Special code)
  * Return a list of the special codes that make sense in this
  * protocol.
  */
-static const struct telnet_special *adb_get_specials(void *handle)
+static const struct telnet_special *adb_get_specials(Backend *be)
 {
 	static const struct telnet_special specials[] = {
 		{ "Are You There", TS_AYT },
@@ -584,56 +585,56 @@ static const struct telnet_special *adb_get_specials(void *handle)
 	return specials;
 }
 
-static int adb_connected(void *handle)
+static int adb_connected(Backend *be)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 	return adb->poll_timer != NULL;
 }
 
-static int adb_sendok(void *handle)
+static int adb_sendok(Backend *be)
 {
     return 1;
 }
 
-static void adb_unthrottle(void *handle, int backlog)
+static void adb_unthrottle(Backend *be, int backlog)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
 }
 
-static int adb_ldisc(void *handle, int option)
+static int adb_ldisc(Backend *be, int option)
 {
     if (option == LD_ECHO)
 	return 1;
 	return 0;
 }
 
-static void adb_provide_ldisc(void *handle, Ldisc *ldisc)
+static void adb_provide_ldisc(Backend *be, Ldisc *ldisc)
 {
 	if (ldisc == NULL) { return; }
 	ldisc->localedit = FORCE_OFF;
 	ldisc->localecho = FORCE_OFF;
 }
 
-static void adb_provide_logctx(void *handle, LogContext *logctx)
+static void adb_provide_logctx(Backend *be, LogContext *logctx)
 {
     /* This is a stub. */
 }
 
-static int adb_exitcode(void *handle)
+static int adb_exitcode(Backend *be)
 {
-    Adb adb = (Adb) handle;
+    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
     return 0;
 }
 
 /*
  * cfg_info for Adb does nothing at all.
  */
-static int adb_cfg_info(void *handle)
+static int adb_cfg_info(Backend *be)
 {
     return 0;
 }
 
-Backend adb_backend = {
+const struct Backend_vtable adb_backend = {
     adb_init,
     adb_free,
     adb_reconfig,

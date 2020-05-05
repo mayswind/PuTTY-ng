@@ -630,7 +630,7 @@ extern char sshver[];
  * that fails. This variable is the means by which scp.c can reach
  * into the SSH code and find out which one it got.
  */
-extern int ssh_fallback_cmd(void *handle);
+extern int ssh_fallback_cmd(Backend *backend);
 
 void SHATransform(word32 * digest, word32 * data);
 
