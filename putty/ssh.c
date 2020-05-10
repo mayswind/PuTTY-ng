@@ -702,7 +702,7 @@ typedef enum {
     };
 struct ssh_tag {
     const Plug_vtable *plugvt;
-    void *frontend;
+    Frontend *frontend;
     // plugvt and frontend should be put in the head
 
     char *v_c, *v_s;
@@ -10679,7 +10679,7 @@ static void ssh_cache_conf_values(Ssh ssh)
  *
  * Returns an error message, or NULL on success.
  */
-static const char *ssh_init(void *frontend_handle, Backend **backend_handle,
+static const char *ssh_init(Frontend *frontend, Backend **backend_handle,
 			    Conf *conf,
                             const char *host, int port, char **realhost,
 			    int nodelay, int keepalive)
@@ -10795,7 +10795,7 @@ static const char *ssh_init(void *frontend_handle, Backend **backend_handle,
     ssh->backend.vt = &ssh_backend;
     *backend_handle = &ssh->backend;
 
-    ssh->frontend = frontend_handle;
+    ssh->frontend = frontend;
     ssh->term_width = global_conf_get_int(WINDOW_WIDTH_KEY);
     ssh->term_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
 

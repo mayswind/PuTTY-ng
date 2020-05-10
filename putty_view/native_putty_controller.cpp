@@ -138,9 +138,9 @@ int NativePuttyController::init(HWND hwndParent)
     cfgtopalette();
 
     memset(&ucsdata, 0, sizeof(ucsdata));
-    term = term_init(cfg, &ucsdata, this);
+    term = term_init(cfg, &ucsdata, (Frontend *)this);
     setup_clipboards(term, cfg);
-    logctx = log_init(this, cfg);
+    logctx = log_init((Frontend *)this, cfg);
     term_provide_logctx(term, logctx);
     term_size(term, global_conf_get_int(WINDOW_HEIGHT_KEY),
         global_conf_get_int(WINDOW_WIDTH_KEY), conf_get_int(cfg, CONF_savelines));
@@ -157,7 +157,7 @@ int NativePuttyController::init(HWND hwndParent)
 		}
 		else{
 			const char* tips = "The pageant is not running.\r\nSo the password of the key, if any, is required for each connection.\r\n";
-			from_backend(this, 0, tips, strlen(tips));
+			from_backend((Frontend *)this, 0, tips, strlen(tips));
 		}
 	}
 
@@ -617,7 +617,7 @@ int NativePuttyController::start_backend()
 	    return -1;
     }
 
-    error = backend_init(vt, this, &backend, cfg,
+    error = backend_init(vt, (Frontend *)this, &backend, cfg,
                          conf_get_str(cfg, CONF_host),
                          conf_get_int(cfg, CONF_port),
                          &realhost,
@@ -645,7 +645,7 @@ int NativePuttyController::start_backend()
     /*
      * Set up a line discipline.
      */
-    ldisc = ldisc_create(cfg, term, backend, this);
+    ldisc = ldisc_create(cfg, term, backend, (Frontend *)this);
 	int protocol = conf_get_int(cfg, CONF_protocol);
 	if (PROT_SERIAL == protocol || PROT_ADB == protocol){
 		setConnected();
@@ -2209,10 +2209,10 @@ BOOL flash_window_ex(HWND hwnd, DWORD dwFlags, UINT uCount, DWORD dwTimeout)
  * Timer for platforms where we must maintain window flashing manually
  * (e.g., Win95).
  */
-static void flash_window_timer(void *frontend, unsigned long now)
+static void flash_window_timer(void *ctx, unsigned long now)
 {
-	assert(frontend != NULL);
-    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+	assert(ctx != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)ctx;
     if (puttyController->flashing && now - puttyController->next_flash >= 0) {
 		puttyController->flash_window(1);
     }
@@ -3669,7 +3669,7 @@ void NativePuttyController::restartBackend()
     }
     close_session();
     if (!backend) {
-		logevent(this, "----- Session is going to be restarted -----");
+		logevent((Frontend *)this, "----- Session is going to be restarted -----");
 		const char* str = "\r\n"
 			"===============================================================\r\n"
 			"--------         trying to restart the session         --------\r\n"
@@ -3766,11 +3766,11 @@ int NativePuttyController::on_palette_changed(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
     if ((HWND) wParam != hwnd && pal != NULL) {
-        NativePuttyController *item = (NativePuttyController*)get_ctx(this);
+        NativePuttyController *item = (NativePuttyController*)get_ctx((Frontend *)this);
 	    if (item && item->hdc) {
     		if (RealizePalette(item->hdc) > 0)
     		    UpdateColors(item->hdc);
-    		free_ctx(item, (Context)item);
+    		free_ctx((Frontend *)item, (Context)item);
 	    }
 	}
     return 0;
@@ -3780,11 +3780,11 @@ int NativePuttyController::on_query_new_palette(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
     if (pal != NULL) {
-        NativePuttyController *item = (NativePuttyController*)get_ctx(this);
+        NativePuttyController *item = (NativePuttyController*)get_ctx((Frontend *)this);
 	    if (item && item->hdc) {
 		if (RealizePalette(item->hdc) > 0)
 		    UpdateColors(item->hdc);
-		free_ctx(item, (Context)item);
+		free_ctx((Frontend *)item, (Context)item);
 		return TRUE;
 	    }
 	}

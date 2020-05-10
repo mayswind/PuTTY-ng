@@ -12,7 +12,7 @@
 
 typedef struct raw_backend_data {
     const Plug_vtable *plugvt;
-    void *frontend;
+    Frontend *frontend;
     // plugvt and frontend should be put in the head
 
     Socket s;
@@ -118,7 +118,7 @@ static const Plug_vtable Raw_plugvt = {
  * Also places the canonical host name into `realhost'. It must be
  * freed by the caller.
  */
-static const char *raw_init(void *frontend_handle, Backend **backend_handle,
+static const char *raw_init(Frontend *frontend, Backend **backend_handle,
 			    Conf *conf,
 			    const char *host, int port, char **realhost,
                             int nodelay, int keepalive)
@@ -140,7 +140,7 @@ static const char *raw_init(void *frontend_handle, Backend **backend_handle,
     raw->session_started = FALSE;
     raw->conf = conf_copy(conf);
 
-    raw->frontend = frontend_handle;
+    raw->frontend = frontend;
 
     addressfamily = conf_get_int(conf, CONF_addressfamily);
     /*

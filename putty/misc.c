@@ -216,7 +216,7 @@ char *host_strduptrim(const char *s)
     return dupstr(s);
 }
 
-prompts_t *new_prompts(void *frontend)
+prompts_t *new_prompts(Frontend *frontend)
 {
     prompts_t *p = snew(prompts_t);
     p->prompts = NULL;
@@ -1376,9 +1376,9 @@ void autocmd_init(Conf *cfg)
  * reverse compare the expect and the receive buffer
  * and send the auto command
  */
-const char* get_autocmd(void* frontend, Conf *cfg,
+const char* get_autocmd(Frontend* frontend, Conf *cfg,
     const char *recv_buf, int len, int count_in_retry);
-void exec_autocmd(void* frontend, Backend *be, Conf *cfg,
+void exec_autocmd(Frontend* frontend, Backend *be, Conf *cfg,
     const char *recv_buf, int len, 
     int count_in_retry)
 {
@@ -1404,7 +1404,7 @@ int is_autocmd_completed(Conf* cfg){
 		|| index < 0 || index >= AUTOCMD_COUNT);
 }
 
-void autocmd_logevent(void* frontend, const char* expect, int is_hidden,
+void autocmd_logevent(Frontend* frontend, const char* expect, int is_hidden,
 	const char* recv_buf, int recv_len, int matched)
 {
 	char logstr[128] = {0};
@@ -1419,7 +1419,7 @@ void autocmd_logevent(void* frontend, const char* expect, int is_hidden,
  * return the autocmd in cfg if matched
  * NULL if unmatched
  */
-const char* get_autocmd(void* frontend, Conf *cfg,
+const char* get_autocmd(Frontend* frontend, Conf *cfg,
     const char *recv_buf, int len, int count_in_retry)
 {
     const int cmd_debug = 0;
@@ -1427,7 +1427,7 @@ const char* get_autocmd(void* frontend, Conf *cfg,
         debug(("\nrecv[%s]\n", recv_buf));
     }
 
-	extern bool is_autocmd_enabled(void *frontend);
+	extern bool is_autocmd_enabled(Frontend *frontend);
 	if (!is_autocmd_enabled(frontend)){ return NULL; }
 
     /* autocmd is completed or it reach retry times */
@@ -1480,7 +1480,7 @@ const char* get_autocmd(void* frontend, Conf *cfg,
     return NULL;
 }
 
-int autocmd_get_passwd_input(void* frontend, prompts_t *p, Conf *cfg)
+int autocmd_get_passwd_input(Frontend* frontend, prompts_t *p, Conf *cfg)
 {
 	if (p->n_prompts < 1)
 		return -1;

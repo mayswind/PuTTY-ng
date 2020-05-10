@@ -175,7 +175,7 @@ typedef enum {
     } TelnetState;
 typedef struct telnet_tag {
     const Plug_vtable *plugvt;
-    void *frontend;
+    Frontend *frontend;
     // plugvt and frontend should be put in the head
 
     Socket s;
@@ -709,7 +709,7 @@ static const Plug_vtable Telnet_plugvt = {
  * Also places the canonical host name into `realhost'. It must be
  * freed by the caller.
  */
-static const char *telnet_init(void *frontend_handle, Backend **backend_handle,
+static const char *telnet_init(Frontend *frontend, Backend **backend_handle,
 			       Conf *conf, const char *host, int port,
 			       char **realhost, int nodelay, int keepalive)
 {
@@ -720,7 +720,6 @@ static const char *telnet_init(void *frontend_handle, Backend **backend_handle,
     int addressfamily;
 
     telnet = snew(struct telnet_tag);
-    telnet->frontend = frontend_handle;
     telnet->plugvt = &Telnet_plugvt;
     telnet->backend.vt = &telnet_backend;
     telnet->conf = conf_copy(conf);
@@ -731,7 +730,7 @@ static const char *telnet_init(void *frontend_handle, Backend **backend_handle,
     telnet->activated = FALSE;
     telnet->sb_buf = NULL;
     telnet->sb_size = 0;
-    telnet->frontend = frontend_handle;
+    telnet->frontend = frontend;
     telnet->term_width = global_conf_get_int(WINDOW_WIDTH_KEY);
     telnet->term_height = global_conf_get_int(WINDOW_HEIGHT_KEY);
     telnet->state = TOP_LEVEL;

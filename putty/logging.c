@@ -18,7 +18,7 @@ struct LogContext_tag {
     int state;
     bufchain queue;
     Filename *currlogfilename;
-    void *frontend;
+    Frontend *frontend;
     Conf *conf;
     int logtype;		       /* cached out of conf */
 };
@@ -368,7 +368,7 @@ void log_packet(LogContext *ctx, int direction, int type,
     logflush(ctx);
 }
 
-LogContext *log_init(void *frontend, Conf *conf)
+LogContext *log_init(Frontend *frontend, Conf *conf)
 {
     LogContext *ctx = snew(LogContext);
     ctx->lgfp = NULL;

@@ -109,7 +109,7 @@ static BOOL MyCreatePipeEx(
 enum{RUNNING = 0, UI_WANT_STOP = 1, ADB_THREAD_STOPPED = 2, UI_STOPPED = 3};
 typedef struct adb_backend_data {
 	const Plug_vtable *plugvt;
-	void* frontend;
+	Frontend* frontend;
 	// plugvt and frontend should be put in the head
 
 	HANDLE child_stdin_read, child_stdin_write;
@@ -387,7 +387,7 @@ static char* init_adb_connection(Adb adb)
  * Also places the canonical host name into `realhost'. It must be
  * freed by the caller.
  */
-static const char *adb_init(void *frontend_handle, Backend **backend_handle,
+static const char *adb_init(Frontend *frontend, Backend **backend_handle,
 			    Conf *conf,
 			    const char *host, int port, char **realhost,
                             int nodelay, int keepalive)
@@ -399,7 +399,7 @@ static const char *adb_init(void *frontend_handle, Backend **backend_handle,
     char *loghost;
 
     adb = snew( struct adb_backend_data );
-    adb->frontend = frontend_handle;
+    adb->frontend = frontend;
 	adb->conf = conf;
 
 	adb->poll_timer = NULL;

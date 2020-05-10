@@ -1692,7 +1692,7 @@ const optionalrgb optionalrgb_none = {0, 0, 0, 0};
  * Initialise the terminal.
  */
 Terminal *term_init(Conf *myconf, struct unicode_data *ucsdata,
-		    void *frontend)
+                    Frontend *frontend)
 {
     Terminal *term;
 

@@ -146,7 +146,7 @@ void process_fini()
 }
 //------------------------------------------------------------------
 //for term
-Context get_ctx(void *frontend)
+Context get_ctx(Frontend *frontend)
 {
     assert(frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -159,7 +159,7 @@ Context get_ctx(void *frontend)
     return (Context)puttyController;
 }
 
-void free_ctx(void *frontend, Context ctx)
+void free_ctx(Frontend *frontend, Context ctx)
 {
     assert(frontend != NULL && ctx != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -176,7 +176,7 @@ void free_ctx(void *frontend, Context ctx)
  * helper software tracks the system caret, so we should arrange to
  * have one.)
  */
-void sys_cursor(void *frontend, int x, int y)
+void sys_cursor(Frontend *frontend, int x, int y)
 {
     assert(frontend != NULL);
     int cx, cy;
@@ -282,7 +282,7 @@ void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
 /*
  * set or clear the "raw mouse message" mode
  */
-void set_raw_mouse_mode(void *frontend, int activate)
+void set_raw_mouse_mode(Frontend *frontend, int activate)
 {
     assert (frontend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -291,7 +291,7 @@ void set_raw_mouse_mode(void *frontend, int activate)
     puttyController->update_mouse_pointer();
 }
 
-void set_sbar(void *frontend, int total, int start, int page)
+void set_sbar(Frontend *frontend, int total, int start, int page)
 {
     assert (frontend != NULL);
 
@@ -414,7 +414,7 @@ int cmpCOLORREF(void *va, void *vb)
 /*
  * Note: unlike write_aclip() this will not append a nul.
  */
-void write_clip(void *frontend, int clipboard,
+void write_clip(Frontend *frontend, int clipboard,
                 wchar_t *data, int *attr, truecolour *truecolour, int len,
                 int must_deselect)
 {
@@ -844,7 +844,7 @@ static DWORD WINAPI clipboard_read_threadfunc(void *param)
     return 0;
 }
 
-void frontend_request_paste(void *frontend, int clipboard)
+void frontend_request_paste(Frontend *frontend, int clipboard)
 {
     assert (frontend != NULL);
 
@@ -912,7 +912,7 @@ void process_clipdata(Terminal *term, HGLOBAL clipdata, int unicode)
     sfree(clipboard_contents);
 }
 
-int palette_get(void *frontend, int n, int *r, int *g, int *b)
+int palette_get(Frontend *frontend, int n, int *r, int *g, int *b)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -925,7 +925,7 @@ int palette_get(void *frontend, int n, int *r, int *g, int *b)
     return TRUE;
 }
 
-void palette_set(void *frontend, int n, int r, int g, int b)
+void palette_set(Frontend *frontend, int n, int r, int g, int b)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -951,7 +951,7 @@ void palette_set(void *frontend, int n, int r, int g, int b)
     }
 }
 
-void palette_reset(void *frontend)
+void palette_reset(Frontend *frontend)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -987,7 +987,7 @@ void palette_reset(void *frontend)
 /*
  * Beep.
  */
-void do_beep(void *frontend, int mode)
+void do_beep(Frontend *frontend, int mode)
 {
 	USES_CONVERSION;
     assert (frontend != NULL);
@@ -1053,7 +1053,7 @@ void do_beep(void *frontend, int mode)
  * Minimise or restore the window in response to a server-side
  * request.
  */
-void set_iconic(void *frontend, int iconic)
+void set_iconic(Frontend *frontend, int iconic)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1069,7 +1069,7 @@ void set_iconic(void *frontend, int iconic)
 /*
  * Move the window in response to a server-side request.
  */
-void move_window(void *frontend, int x, int y)
+void move_window(Frontend *frontend, int x, int y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1086,7 +1086,7 @@ void move_window(void *frontend, int x, int y)
  * Move the window to the top or bottom of the z-order in response
  * to a server-side request.
  */
-void set_zorder(void *frontend, int top)
+void set_zorder(Frontend *frontend, int top)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1099,7 +1099,7 @@ void set_zorder(void *frontend, int top)
 /*
  * Refresh the window in response to a server-side request.
  */
-void refresh_window(void *frontend)
+void refresh_window(Frontend *frontend)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1110,7 +1110,7 @@ void refresh_window(void *frontend)
  * Maximise or restore the window in response to a server-side
  * request.
  */
-void set_zoomed(void *frontend, int zoomed)
+void set_zoomed(Frontend *frontend, int zoomed)
 {
     if (IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) {
         if (!zoomed)
@@ -1124,7 +1124,7 @@ void set_zoomed(void *frontend, int zoomed)
 /*
  * Report whether the window is iconic, for terminal reports.
  */
-int is_iconic(void *frontend)
+int is_iconic(Frontend *frontend)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1134,7 +1134,7 @@ int is_iconic(void *frontend)
 /*
  * Report the window's position, for terminal reports.
  */
-void get_window_pos(void *frontend, int *x, int *y)
+void get_window_pos(Frontend *frontend, int *x, int *y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1147,7 +1147,7 @@ void get_window_pos(void *frontend, int *x, int *y)
 /*
  * Report the window's pixel size, for terminal reports.
  */
-void get_window_pixels(void *frontend, int *x, int *y)
+void get_window_pixels(Frontend *frontend, int *x, int *y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1160,7 +1160,7 @@ void get_window_pixels(void *frontend, int *x, int *y)
 /*
  * Return the window or icon title.
  */
-char *get_window_title(void *frontend, int icon)
+char *get_window_title(Frontend *frontend, int icon)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1168,7 +1168,7 @@ char *get_window_title(void *frontend, int icon)
 }
 
 
-void request_resize(void *frontend, int w, int h)
+void request_resize(Frontend *frontend, int w, int h)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1228,7 +1228,7 @@ void request_resize(void *frontend, int w, int h)
 }
 
 
-void set_title(void *frontend, char *title)
+void set_title(Frontend *frontend, char *title)
 {
     assert (frontend != NULL);
     if (!title || !*title) return;
@@ -1256,7 +1256,7 @@ void set_title(void *frontend, char *title)
 	
 }
 
-void set_icon(void *frontend, char *title)
+void set_icon(Frontend *frontend, char *title)
 {
     assert (frontend != NULL);
     if (!title || !*title) return;
@@ -1309,7 +1309,7 @@ void nonfatal(const char *fmt, ...)
 	sfree(stuff);
 }
 
-void frontend_keypress(void *handle)
+void frontend_keypress(Frontend *frontend)
 {
     /*
      * Keypress termination in non-Close-On-Exit mode is not
@@ -1321,12 +1321,12 @@ void frontend_keypress(void *handle)
 }
 
 /* Dummy routine, only required in plink. */
-void ldisc_update(void *frontend, int echo, int edit)
+void ldisc_update(Frontend *frontend, int echo, int edit)
 {
 }
 //---------------------------------------------------------------------------------
 // for backend
-int from_backend(void *frontend, int is_stderr, const void *data, int len)
+int from_backend(Frontend *frontend, int is_stderr, const void *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1341,19 +1341,19 @@ int from_backend(void *frontend, int is_stderr, const void *data, int len)
 	}
 }
 
-int from_backend_untrusted(void *frontend, const void *data, int len)
+int from_backend_untrusted(Frontend *frontend, const void *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     return term_data_untrusted(puttyController->term, data, len);
 }
 
-int from_backend_eof(void *frontend)
+int from_backend_eof(Frontend *frontend)
 {
     return TRUE;   /* do respond to incoming EOF with outgoing */
 }
 
-void frontend_echoedit_update(void *frontend, int echo, int edit)
+void frontend_echoedit_update(Frontend *frontend, int echo, int edit)
 {
 }
 //---------------------------------------------------------------
@@ -1383,7 +1383,7 @@ RECT getMaxWorkArea()
 	return /*fullscr_on_max ? mi.rcMonitor:*/ mi.rcWork;
 }
 
-void write_aclip(void *frontend, int clipboard,
+void write_aclip(Frontend *frontend, int clipboard,
                  char *data, int len, int must_deselect)
 {
     assert (frontend != NULL);
@@ -1422,7 +1422,7 @@ void write_aclip(void *frontend, int clipboard,
 /*
  * Update the Special Commands submenu.
  */
-void update_specials_menu(void *frontend)
+void update_specials_menu(Frontend *frontend)
 {
 	USES_CONVERSION;
     assert (frontend != NULL);
@@ -1494,7 +1494,7 @@ void update_specials_menu(void *frontend)
     puttyController->specials_menu = new_menu;
 }
 
-void notify_remote_exit(void *frontend)
+void notify_remote_exit(Frontend *frontend)
 {
 	USES_CONVERSION;
     int exitcode;
@@ -1522,7 +1522,7 @@ void notify_remote_exit(void *frontend)
 	     * by a fatal error, so an error box will be coming our way and
 	     * we should not generate this informational one. */
 	    if (exitcode != INT_MAX){
-			logevent(puttyController, "Connection closed by remote host");
+			logevent((Frontend *)puttyController, "Connection closed by remote host");
 			const char* str = "\r\n"
 			"===============================================================\r\n"
 			"--------         Connection closed by remote host      --------\r\n"
@@ -1538,7 +1538,7 @@ void notify_remote_exit(void *frontend)
 /*
  * Print a message box and close the connection.
  */
-void connection_fatal(void *frontend, const char * const fmt, ...)
+void connection_fatal(Frontend *frontend, const char * const fmt, ...)
 {
 	USES_CONVERSION;
     assert (frontend != NULL);
@@ -1564,7 +1564,7 @@ void connection_fatal(void *frontend, const char * const fmt, ...)
     
 }
 
-void set_busy_status(void *frontend, int status)
+void set_busy_status(Frontend *frontend, int status)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1572,21 +1572,21 @@ void set_busy_status(void *frontend, int status)
     puttyController->update_mouse_pointer();
 }
 
-bool is_autocmd_enabled(void *frontend)
+bool is_autocmd_enabled(Frontend *frontend)
 {
 	assert(frontend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frontend;
 	return puttyController->isAutoCmdEnabled_;
 }
 
-void set_autocmd_enabled(void *frontend, bool enabled)
+void set_autocmd_enabled(Frontend *frontend, bool enabled)
 {
 	assert(frontend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frontend;
 	puttyController->isAutoCmdEnabled_ = enabled;
 }
 
-int get_userpass_input(void *frontend, prompts_t *p, bufchain *input)
+int get_userpass_input(Frontend *frontend, prompts_t *p, bufchain *input)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1601,14 +1601,14 @@ int get_userpass_input(void *frontend, prompts_t *p, bufchain *input)
     return ret;
 }
 
-int frontend_is_utf8(void *frontend)
+int frontend_is_utf8(Frontend *frontend)
 {
     assert(frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     return puttyController->term->ucsdata->line_codepage == CP_UTF8;
 }
 
-char *get_ttymode(void *frontend, const char *mode)
+char *get_ttymode(Frontend *frontend, const char *mode)
 {
     assert(frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1686,7 +1686,7 @@ void cmdline_error(const char *fmt, ...)
 }
 
 #include "win_res.h"
-void logevent(void *frontend, const char *str)
+void logevent(Frontend *frontend, const char *str)
 {
     if (frontend == NULL){
         debug(("%s\n", str));
@@ -1822,7 +1822,7 @@ static INT_PTR CALLBACK LogProc(HWND hwnd, UINT msg,
 			    memcpy(p, sel_nl, sizeof(sel_nl));
 			    p += sizeof(sel_nl);
 			}
-			write_aclip(puttyController, CLIP_SYSTEM, clipdata, size, TRUE);
+			write_aclip((Frontend *)puttyController, CLIP_SYSTEM, clipdata, size, TRUE);
 			sfree(clipdata);
 		    }
 		    sfree(selitems);
@@ -2130,7 +2130,7 @@ void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
     // * callbacks, and we didn't already have one queued, let it know
     // * we do have one now. */
     //if (notify_frontend && !cbhead)
-    //    notify_frontend(frontend);
+    //    notify_frontend(notify_ctx);
 	//
     //if (cbtail)
     //    cbtail->next = cb;
