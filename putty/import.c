@@ -549,7 +549,7 @@ struct ssh2_userkey *openssh_pem_read(const Filename *filename,
             des3_decrypt_pubkey_ossh(keybuf, key->iv,
                                      key->keyblob->u, key->keyblob->len);
         else {
-            void *ctx;
+            AESContext *ctx;
             assert(key->encryption == OP_E_AES);
             ctx = aes_make_context();
             aes128_key(ctx, keybuf);
@@ -1394,7 +1394,7 @@ struct ssh2_userkey *openssh_new_read(const Filename *filename,
                 goto error;
             }
             {
-                void *ctx = aes_make_context();
+                AESContext *ctx = aes_make_context();
                 aes256_key(ctx, keybuf);
                 aes_iv(ctx, keybuf + 32);
                 /* Decrypt the private section in place, casting away
@@ -1598,7 +1598,7 @@ int openssh_new_write(const Filename *filename, struct ssh2_userkey *key,
              * material: 32 bytes AES key + 16 bytes iv.
              */
             unsigned char keybuf[48];
-            void *ctx;
+            AESContext *ctx;
 
             openssh_bcrypt(passphrase,
                            bcrypt_salt, sizeof(bcrypt_salt), bcrypt_rounds,

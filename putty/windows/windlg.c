@@ -1734,7 +1734,7 @@ int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam
 	return FALSE;
 }
 
-void create_session(union control *ctrl, void *dlg,
+void create_session(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
@@ -1744,7 +1744,7 @@ void create_session(union control *ctrl, void *dlg,
 	}
 }
 
-void fork_session(union control *ctrl, void *dlg,
+void fork_session(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
@@ -1753,7 +1753,7 @@ void fork_session(union control *ctrl, void *dlg,
 		handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
 	}
 }
-void delete_item(union control *ctrl, void *dlg,
+void delete_item(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
@@ -1764,7 +1764,7 @@ void delete_item(union control *ctrl, void *dlg,
 		del_session_treeview(hwndSess, hitem, pre_session, sess_flags);
 	}
 }
-void export_all(union control *ctrl, void *dlg,
+void export_all(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
@@ -1778,7 +1778,7 @@ void export_all(union control *ctrl, void *dlg,
 		refresh_session_treeview(hwndSess, &tvfaff, "");
 	}
 }
-void import(union control *ctrl, void *dlg,
+void import(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {

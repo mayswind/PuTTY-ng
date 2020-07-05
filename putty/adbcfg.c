@@ -8,11 +8,11 @@ struct hostport {
 	union control *host, *port;
 	struct controlset *adbcmd_set;
 };
-extern void config_protocolbuttons_handler(union control *, void *,
+extern void config_protocolbuttons_handler(union control *, dlgparam *,
 						void *, int);
-extern void conf_editbox_with_tips_handler(union control *ctrl, void *dlg,
+extern void conf_editbox_with_tips_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event);
-extern void conf_cmd_handler(union control *ctrl, void *dlg,
+extern void conf_cmd_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event);
 void adb_setup_config_box(struct controlbox *b, int midsession,
 			  int parity_mask, int flow_mask)

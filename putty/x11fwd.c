@@ -43,7 +43,7 @@ typedef struct X11Connection {
     int no_data_sent_to_x_client;
     char *peer_addr;
     int peer_port;
-    struct ssh_channel *c;        /* channel structure held by ssh.c */
+    SshChannel *c;               /* channel structure held by SSH backend */
     Socket s;
     Channel chan;
 } X11Connection;
@@ -730,7 +730,7 @@ static const struct ChannelVtable X11Connection_channelvt = {
  * Called to set up the X11Connection structure, though this does not
  * yet connect to an actual server.
  */
-Channel *x11_new_channel(void* frontend, tree234 *authtree, struct ssh_channel *c,
+Channel *x11_new_channel(void* frontend, tree234 *authtree, SshChannel *c,
                          const char *peeraddr, int peerport,
                          int connection_sharing_possible)
 {
@@ -751,7 +751,7 @@ Channel *x11_new_channel(void* frontend, tree234 *authtree, struct ssh_channel *
     xconn->data_read = 0;
     xconn->input_wanted = TRUE;
     xconn->no_data_sent_to_x_client = TRUE;
-    xconn->c = (struct ssh_channel *)c;
+    xconn->c = c;
 
     /*
      * We don't actually open a local socket to the X server just yet,

@@ -240,6 +240,7 @@
     <ClCompile Include="sshdssg.c" />
     <ClCompile Include="sshecc.c" />
     <ClCompile Include="sshgssc.c" />
+    <ClCompile Include="sshmac.c" />
     <ClCompile Include="sshmd5.c" />
     <ClCompile Include="sshprime.c" />
     <ClCompile Include="sshpubk.c" />

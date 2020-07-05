@@ -9,7 +9,7 @@ static const char* all_key_str[] = {"TAB", "`~",     "1", "2", "3", "4", "5", "6
 static const int all_key_val[] = { VK_TAB, VK_OEM_3, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', VK_OEM_MINUS, VK_OEM_PLUS, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6, VK_OEM_5, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1, VK_OEM_7, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2 };
 static const int all_key_val_count = sizeof(all_key_str) / sizeof(all_key_str[0]);
 
-static void global_key_radiobutton_handler(union control *ctrl, void *dlg,
+static void global_key_radiobutton_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->checkbox.context.p;
@@ -39,7 +39,7 @@ static void global_key_radiobutton_handler(union control *ctrl, void *dlg,
 	}
 }
 
-static void global_key_checkbox_handler(union control *ctrl, void *dlg,
+static void global_key_checkbox_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->checkbox.context.p;
@@ -53,7 +53,7 @@ static void global_key_checkbox_handler(union control *ctrl, void *dlg,
 	}
 }
 
-static void global_key_checkbox_handler0(union control *ctrl, void *dlg,
+static void global_key_checkbox_handler0(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->checkbox.context.p;
@@ -67,7 +67,7 @@ static void global_key_checkbox_handler0(union control *ctrl, void *dlg,
 	}
 }
 
-static void global_key_editbox_handler(union control *ctrl, void *dlg,
+static void global_key_editbox_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->checkbox.context.p;
@@ -106,9 +106,9 @@ static void global_key_editbox_handler(union control *ctrl, void *dlg,
 	}
 }
 
-static void shortcut_keys_handler(union control *ctrl, void *dlg,
+static void shortcut_keys_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event);
-static void shortcut_type_handler(union control *ctrl, void *dlg,
+static void shortcut_type_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->generic.context.p;
@@ -143,7 +143,7 @@ static void shortcut_type_handler(union control *ctrl, void *dlg,
 	}
 }
 
-static void shortcut_keys_handler(union control *ctrl, void *dlg,
+static void shortcut_keys_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	char* key = (char*)ctrl->generic.context.p;

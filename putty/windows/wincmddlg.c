@@ -88,7 +88,7 @@ static RECT dlgMonitorRect;
 static void refresh_cmd_treeview(const char* select_cmd);
 static int edit_cmd_treeview(HWND hwndCmd, int eflag);
 RECT getMaxWorkArea();
-static void on_button_send(union control *ctrl, void *dlg,
+static void on_button_send(union control *ctrl, dlgparam *dlg,
 	void *data, int event);
 
 static void SaneEndDialog(HWND hwnd, int ret)
@@ -678,7 +678,7 @@ static void get_final_cmd(char* cmd_buffer, int buflen)
 }
 
 void send_script(int state, const char *buf, int len, int interactive);
-static void on_button_send(union control *ctrl, void *dlg,
+static void on_button_send(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -691,7 +691,7 @@ static void on_button_send(union control *ctrl, void *dlg,
 	send_script(0, cmd_buffer, strlen(cmd_buffer), 1);
 }
 
-static void on_button_send_to_all(union control *ctrl, void *dlg,
+static void on_button_send_to_all(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -709,7 +709,7 @@ static void on_button_send_to_all(union control *ctrl, void *dlg,
 	}
 }
 
-static void on_button_save_cmd(union control *ctrl, void *dlg,
+static void on_button_save_cmd(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -721,7 +721,7 @@ static void on_button_save_cmd(union control *ctrl, void *dlg,
 	sfree(name);
 }
 
-static void on_button_add_cmd(union control *ctrl, void *dlg,
+static void on_button_add_cmd(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -752,7 +752,7 @@ static void on_button_add_cmd(union control *ctrl, void *dlg,
 	TreeView_EditLabel(cmdview, TreeView_GetSelection(cmdview));
 }
 
-static void on_button_del_cmd(union control *ctrl, void *dlg,
+static void on_button_del_cmd(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -761,7 +761,7 @@ static void on_button_del_cmd(union control *ctrl, void *dlg,
 }
 
 
-void cmd_name_handler(union control *ctrl, void *dlg,
+void cmd_name_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event == EVENT_REFRESH) {	
@@ -773,7 +773,7 @@ void cmd_name_handler(union control *ctrl, void *dlg,
 	}
 }
 
-void cmd_scripts_handler(union control *ctrl, void *dlg,
+void cmd_scripts_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event == EVENT_REFRESH) {
@@ -786,7 +786,7 @@ void cmd_scripts_handler(union control *ctrl, void *dlg,
 	}
 }
 
-void cmd_param_handler(union control *ctrl, void *dlg,
+void cmd_param_handler(union control *ctrl, dlgparam *dlg,
 	void *data, int event)
 {
 	if (event == EVENT_REFRESH) {

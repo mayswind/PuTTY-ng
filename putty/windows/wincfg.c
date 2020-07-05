@@ -12,7 +12,7 @@
 
 #include <shellapi.h>
 
-static void about_handler(union control *ctrl, void *dlg,
+static void about_handler(union control *ctrl, dlgparam *dlg,
 			  void *data, int event)
 {
     HWND *hwndp = (HWND *)ctrl->generic.context.p;
@@ -22,7 +22,7 @@ static void about_handler(union control *ctrl, void *dlg,
     }
 }
 
-static void help_handler(union control *ctrl, void *dlg,
+static void help_handler(union control *ctrl, dlgparam *dlg,
 			 void *data, int event)
 {
     HWND *hwndp = (HWND *)ctrl->generic.context.p;
@@ -32,7 +32,7 @@ static void help_handler(union control *ctrl, void *dlg,
     }
 }
 
-static void variable_pitch_handler(union control *ctrl, void *dlg,
+static void variable_pitch_handler(union control *ctrl, dlgparam *dlg,
                                    void *data, int event)
 {
     if (event == EVENT_REFRESH) {
@@ -42,7 +42,7 @@ static void variable_pitch_handler(union control *ctrl, void *dlg,
     }
 }
 
-static void mouse_button_override_handler(union control *ctrl, void *dlg,
+static void mouse_button_override_handler(union control *ctrl, dlgparam *dlg,
                                           void *data, int event)
 {
 	Conf *conf = (Conf *)data;
@@ -74,15 +74,15 @@ static void mouse_button_override_handler(union control *ctrl, void *dlg,
 	}
 }
 
-void create_session(union control *ctrl, void *dlg,
+void create_session(union control *ctrl, dlgparam *dlg,
 			  void *data, int event);
-void fork_session(union control *ctrl, void *dlg,
+void fork_session(union control *ctrl, dlgparam *dlg,
 			  void *data, int event);
-void delete_item(union control *ctrl, void *dlg,
+void delete_item(union control *ctrl, dlgparam *dlg,
 			  void *data, int event);
-void export_all(union control *ctrl, void *dlg,
+void export_all(union control *ctrl, dlgparam *dlg,
 			  void *data, int event);
-void import(union control *ctrl, void *dlg,
+void import(union control *ctrl, dlgparam *dlg,
 			  void *data, int event);
 
 void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
