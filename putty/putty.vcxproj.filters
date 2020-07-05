@@ -354,6 +354,9 @@
     <ClCompile Include="extend\encoding_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="agentf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defs.h">
@@ -459,6 +462,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extend\encoding_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sshchan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

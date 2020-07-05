@@ -160,6 +160,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="agentf.c" />
     <ClCompile Include="extend\encoding_util.cpp" />
     <ClCompile Include="adb.c" />
     <ClCompile Include="adbcfg.c" />
@@ -319,6 +320,7 @@
     <ClInclude Include="sftp.h" />
     <ClInclude Include="ssh.h" />
     <ClInclude Include="sshbpp.h" />
+    <ClInclude Include="sshchan.h" />
     <ClInclude Include="sshgss.h" />
     <ClInclude Include="sshgssc.h" />
     <ClInclude Include="sshcr.h" />
