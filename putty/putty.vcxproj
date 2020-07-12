@@ -256,6 +256,7 @@
       <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessKeepComments>
       <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</PreprocessKeepComments>
     </ClCompile>
+    <ClCompile Include="sshverstring.c" />
     <ClCompile Include="sshzlib.c" />
     <ClCompile Include="telnet.c" />
     <ClCompile Include="terminal.c" />
