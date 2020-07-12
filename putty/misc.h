@@ -31,6 +31,13 @@ char *dupprintf(const char *fmt, ...)
 char *dupvprintf(const char *fmt, va_list ap);
 void burnstr(char *string);
 
+/*
+ * Pass a dynamically allocated string to logevent and immediately
+ * free it. Intended for use by wrapper macros which pass the return
+ * value of dupprintf straight to this.
+ */
+void logevent_and_free(Frontend *frontend, char *msg);
+
 struct strbuf {
     char *s;
     unsigned char *u;
@@ -100,6 +107,12 @@ int string_length_for_printf(size_t);
 /* Derive two printf arguments from a ptrlen, suitable for "%.*s" */
 #define PTRLEN_PRINTF(pl) \
     string_length_for_printf((pl).len), (const char *)(pl).ptr
+/* Make a ptrlen out of a compile-time string literal. We try to
+ * enforce that it _is_ a string literal by token-pasting "" on to it,
+ * which should provoke a compile error if it's any other kind of
+ * string. */
+#define PTRLEN_LITERAL(stringlit) \
+    TYPECHECK("" stringlit "", make_ptrlen(stringlit, sizeof(stringlit)-1))
 
 /* Wipe sensitive data out of memory that's about to be freed. Simpler
  * than memset because we don't need the fill char parameter; also
