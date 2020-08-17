@@ -6982,6 +6982,22 @@ void term_data_timer(void *ctx, unsigned long now)
 #include "ldisc.h"
 #include <string>
 int is_autocmd_completed(Conf* cfg);
+static void term_added_data(Terminal *term)
+{
+    if (!term->in_term_out) {
+	term->in_term_out = TRUE;
+	term_reset_cblink(term);
+	/*
+	 * During drag-selects, we do not process terminal input,
+	 * because the user will want the screen to hold still to
+	 * be selected.
+	 */
+	if (term->selstate != DRAGGING)
+	    term_out(term);
+	term->in_term_out = FALSE;
+    }
+}
+
 int term_data(Terminal *term, int is_stderr, const void *data, int len)
 {
 	if (data != NULL)
@@ -7000,18 +7016,7 @@ int term_data(Terminal *term, int is_stderr, const void *data, int len)
 		return 0;
 	}
 
-    if (!term->in_term_out) {
-	term->in_term_out = TRUE;
-	term_reset_cblink(term);
-	/*
-	 * During drag-selects, we do not process terminal input,
-	 * because the user will want the screen to hold still to
-	 * be selected.
-	 */
-	if (term->selstate != DRAGGING)
-	    term_out(term);
-	term->in_term_out = FALSE;
-    }
+    term_added_data(term);
 
 	//auto cmd
 	if (!is_autocmd_completed(term->conf)){
@@ -7103,24 +7108,10 @@ void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int le
 	term_data(term, 1, data_to_show.c_str(), data_to_show.length());
 }
 
-
-/*
- * Write untrusted data to the terminal.
- * The only control character that should be honoured is \n (which
- * will behave as a CRLF).
- */
-int term_data_untrusted(Terminal *term, const void *vdata, int len)
+static void term_data_untrusted(Terminal *term, const void *data, int len)
 {
-    const char *data = (const char *)vdata;
-    int i;
-    /* FIXME: more sophisticated checking? */
-    for (i = 0; i < len; i++) {
-	if (data[i] == '\n')
-	    term_data(term, 1, "\r\n", 2);
-	else if (data[i] & 0x60)
-	    term_data(term, 1, data + i, 1);
-    }
-    return 0; /* assumes that term_data() always returns 0 */
+    sanitise_term_data(&term->inbuf, data, len);
+    term_added_data(term);
 }
 
 void term_provide_logctx(Terminal *term, LogContext *logctx)

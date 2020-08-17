@@ -1341,13 +1341,6 @@ int from_backend(Frontend *frontend, int is_stderr, const void *data, int len)
 	}
 }
 
-int from_backend_untrusted(Frontend *frontend, const void *data, int len)
-{
-    assert (frontend != NULL);
-    NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    return term_data_untrusted(puttyController->term, data, len);
-}
-
 int from_backend_eof(Frontend *frontend)
 {
     return TRUE;   /* do respond to incoming EOF with outgoing */
