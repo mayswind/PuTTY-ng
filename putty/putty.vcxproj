@@ -231,6 +231,7 @@
       <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</InlineFunctionExpansion>
       <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
     </ClCompile>
+    <ClCompile Include="sshcommon.c" />
     <ClCompile Include="sshccp.c" />
     <ClCompile Include="sshcrc.c" />
     <ClCompile Include="sshcrcda.c" />

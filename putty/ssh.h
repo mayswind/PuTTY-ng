@@ -102,7 +102,8 @@ typedef struct PktOutQueue {
 void pq_base_init(PacketQueueBase *pqb);
 void pq_base_push(PacketQueueBase *pqb, PacketQueueNode *node);
 void pq_base_push_front(PacketQueueBase *pqb, PacketQueueNode *node);
-int pq_base_empty_on_to_front_of(PacketQueueBase *src, PacketQueueBase *dest);
+void pq_base_concatenate(PacketQueueBase *dest,
+                         PacketQueueBase *q1, PacketQueueBase *q2);
 
 void pq_in_init(PktInQueue *pq);
 void pq_out_init(PktOutQueue *pq);
@@ -117,10 +118,12 @@ void pq_out_clear(PktOutQueue *pq);
               pq_base_push_front(&(pq)->pqb, &(pkt)->qnode))
 #define pq_peek(pq) ((pq)->get(&(pq)->pqb, FALSE))
 #define pq_pop(pq) ((pq)->get(&(pq)->pqb, TRUE))
-#define pq_empty_on_to_front_of(src, dst)                               \
-    TYPECHECK((src)->get(&(src)->pqb, FALSE) ==                         \
+#define pq_concatenate(dst, q1, q2)                                      \
+    TYPECHECK((q1)->get(&(q1)->pqb, FALSE) ==                           \
+              (dst)->get(&(dst)->pqb, FALSE) &&                         \
+              (q2)->get(&(q2)->pqb, FALSE) ==                           \
               (dst)->get(&(dst)->pqb, FALSE),                           \
-              pq_base_empty_on_to_front_of(&(src)->pqb, &(dst)->pqb))
+              pq_base_concatenate(&(dst)->pqb, &(q1)->pqb, &(q2)->pqb))
 
 /*
  * Packet type contexts, so that ssh2_pkt_type can correctly decode
@@ -1321,3 +1324,21 @@ enum { SSH_IMPL_BUG_LIST(TMP_DECLARE_LOG2_ENUM) };
 #define TMP_DECLARE_REAL_ENUM(thing) thing = 1 << log2_##thing,
 enum { SSH_IMPL_BUG_LIST(TMP_DECLARE_REAL_ENUM) };
 #undef TMP_DECLARE_REAL_ENUM
+
+/* Shared function that writes tty modes into a pty request */
+void write_ttymodes_to_packet_from_conf(
+    BinarySink *bs, Frontend *frontend, Conf *conf,
+    int ssh_version, int ospeed, int ispeed);
+
+/* Shared system for allocating local SSH channel ids. Expects to be
+ * passed a tree full of structs that have a field called 'localid' of
+ * type unsigned, and will check that! */
+unsigned alloc_channel_id_general(tree234 *channels, size_t localid_offset);
+#define alloc_channel_id(tree, type) \
+    TYPECHECK(&((type *)0)->localid == (unsigned *)0, \
+              alloc_channel_id_general(tree, offsetof(type, localid)))
+
+int first_in_commasep_string(char const *needle, char const *haystack,
+                             int haylen);
+int in_commasep_string(char const *needle, char const *haystack, int haylen);
+void add_to_commasep(strbuf *buf, const char *data);

@@ -303,6 +303,9 @@
     <ClCompile Include="sshccp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sshcommon.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="windows\winsecur.c">
       <Filter>Source Files</Filter>
     </ClCompile>
