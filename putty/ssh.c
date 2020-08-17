@@ -562,8 +562,8 @@ struct ssh_tag {
      * Track incoming and outgoing data sizes and time, for
      * size-based rekeys.
      */
-    unsigned long incoming_data_size, outgoing_data_size;
     unsigned long max_data_size;
+    struct DataTransferStats stats;
     int kex_in_progress;
     unsigned long next_rekey, last_rekey;
     const char *deferred_rekey_reason;
@@ -707,21 +707,9 @@ static int ssh_rportcmp_ssh2(void *av, void *bv)
     return 0;
 }
 
-static void c_write_stderr(int trusted, const void *vbuf, int len)
-{
-    const char *buf = (const char *)vbuf;
-    int i;
-    for (i = 0; i < len; i++)
-	if (buf[i] != '\r' && (trusted || buf[i] == '\n' || (buf[i] & 0x60)))
-	    fputc(buf[i], stderr);
-}
-
 static void c_write(Ssh ssh, const void *buf, int len)
 {
-    if (flags & FLAG_STDERR)
-	c_write_stderr(1, buf, len);
-    else
-	from_backend(ssh->frontend, 1, buf, len);
+    from_backend(ssh->frontend, 1, buf, len);
 }
 
 static void c_write_str(Ssh ssh, const char *buf)
@@ -784,10 +772,9 @@ static void ssh_send_outgoing_data(void *ctx)
         backlog = s_write(ssh, data, len);
         bufchain_consume(&ssh->outgoing_data, len);
 
-	ssh->outgoing_data_size += len;
         if (ssh->version == 2 && !ssh->kex_in_progress &&
-	    !ssh->bare_connection && ssh->max_data_size != 0 &&
-	    ssh->outgoing_data_size > ssh->max_data_size) {
+            ssh->state != SSH_STATE_PREPACKET &&
+            !ssh->bare_connection && !ssh->stats.out.running) {
             ssh->rekey_reason = "too much data sent";
             ssh->rekey_class = RK_NORMAL;
             queue_idempotent_callback(&ssh->ssh2_transport_icb);
@@ -931,6 +918,14 @@ static void ssh_got_ssh_version(struct ssh_version_receiver *rcv,
 {
     Ssh ssh = FROMFIELD(rcv, struct ssh_tag, version_receiver);
     BinaryPacketProtocol *old_bpp;
+
+    /*
+     * This is as good a time as any to stop printing proxy-command
+     * diagnostics in the terminal window, on the assumption that the
+     * proxy command must by now have made a sensible connection and
+     * the real session output will start shortly.
+     */
+    ssh->session_started = TRUE;
 
     /*
      * Queue an outgoing-data run: if the version string has been sent
@@ -1871,8 +1866,7 @@ static void do_ssh1_login(void *vctx)
     {
         char *userlog = dupprintf("Sent username \"%s\"", ssh->username);
         logevent(userlog);
-        if (flags & FLAG_INTERACTIVE &&
-            (!((flags & FLAG_STDERR) && (flags & FLAG_VERBOSE)))) {
+        if ((flags & FLAG_VERBOSE) || (flags & FLAG_INTERACTIVE)) {
             c_write_str(ssh, userlog);
             c_write_str(ssh, "\r\n");
         }
@@ -3219,6 +3213,7 @@ static void do_ssh1_connection(void *vctx)
         pkt = ssh_bpp_new_pktout(ssh->bpp, SSH1_CMSG_REQUEST_COMPRESSION);
         put_uint32(pkt, 6);            /* gzip compression level */
         ssh_pkt_write(ssh, pkt);
+        ssh1_bpp_requested_compression(ssh->bpp);
         crMaybeWaitUntilV((pktin = pq_pop(&ssh->pq_ssh1_connection)) != NULL);
 	if (pktin->type != SSH1_SMSG_SUCCESS
 	    && pktin->type != SSH1_SMSG_FAILURE) {
@@ -3226,9 +3221,9 @@ static void do_ssh1_connection(void *vctx)
 	    crStopV;
 	} else if (pktin->type == SSH1_SMSG_FAILURE) {
 	    c_write_str(ssh, "Server refused to compress\r\n");
-	}
-	logevent("Started zlib (RFC1950) compression");
-        ssh1_bpp_start_compression(ssh->bpp);
+	} else {
+            logevent("Started zlib (RFC1950) compression");
+        }
     }
 
     /*
@@ -5144,7 +5139,9 @@ static void do_ssh2_transport(void *vctx)
      */
     s->pktout = ssh_bpp_new_pktout(ssh->bpp, SSH2_MSG_NEWKEYS);
     ssh_pkt_write(ssh, s->pktout);
-    ssh->outgoing_data_size = 0;       /* start counting from here */
+    /* Start counting down the outgoing-data limit for these cipher keys. */
+    ssh->stats.out.running = TRUE;
+    ssh->stats.out.remaining = ssh->max_data_size;
 
     /*
      * We've sent client NEWKEYS, so create and initialise
@@ -5217,7 +5214,9 @@ static void do_ssh2_transport(void *vctx)
 	bombout(("expected new-keys packet from server"));
 	crStopV;
     }
-    ssh->incoming_data_size = 0;       /* start counting from here */
+    /* Start counting down the incoming-data limit for these cipher keys. */
+    ssh->stats.in.running = TRUE;
+    ssh->stats.in.remaining = ssh->max_data_size;
 
     /*
      * We've seen server NEWKEYS, so create and initialise
@@ -5376,8 +5375,9 @@ static void do_ssh2_transport(void *vctx)
                       ssh->rekey_reason);
             /* Reset the counters, so that at least this message doesn't
              * hit the event log _too_ often. */
-            ssh->outgoing_data_size = 0;
-            ssh->incoming_data_size = 0;
+            ssh->stats.in.running = ssh->stats.out.running = TRUE;
+            ssh->stats.in.remaining = ssh->stats.out.remaining =
+                ssh->max_data_size;
             (void) ssh2_timer_update(ssh, 0);
             goto wait_for_rekey;       /* this is still utterly horrid */
         } else {
@@ -8665,7 +8665,7 @@ static void ssh2_protocol_setup(Ssh ssh)
 {
     int i;
 
-    ssh->bpp = ssh2_bpp_new();
+    ssh->bpp = ssh2_bpp_new(&ssh->stats);
 
 #ifndef NO_GSSAPI
     /* Load and pick the highest GSS library on the preference list. */
@@ -9071,10 +9071,8 @@ static void ssh2_timer(void *ctx, unsigned long now)
 
 static void ssh2_general_packet_processing(Ssh ssh, PktIn *pktin)
 {
-    ssh->incoming_data_size += pktin->encrypted_len;
-    if (!ssh->kex_in_progress &&
-        ssh->max_data_size != 0 &&
-        ssh->incoming_data_size > ssh->max_data_size) {
+    if (!ssh->kex_in_progress && ssh->max_data_size != 0 &&
+        ssh->state != SSH_STATE_PREPACKET && !ssh->stats.in.running) {
         ssh->rekey_reason = "too much data received";
         ssh->rekey_class = RK_NORMAL;
         queue_idempotent_callback(&ssh->ssh2_transport_icb);
@@ -9229,7 +9227,7 @@ static const char *ssh_init(Frontend *frontend, Backend **backend_handle,
 
     ssh->pinger = NULL;
 
-    ssh->incoming_data_size = ssh->outgoing_data_size = 0L;
+    memset(&ssh->stats, 0, sizeof(ssh->stats));
     ssh->max_data_size = parse_blocksize(conf_get_str(ssh->conf,
 						      CONF_ssh_rekey_data));
     ssh->kex_in_progress = FALSE;
@@ -9391,9 +9389,22 @@ static void ssh_reconfig(Backend *be, Conf *conf)
 						      CONF_ssh_rekey_data));
     if (old_max_data_size != ssh->max_data_size &&
 	ssh->max_data_size != 0) {
-	if (ssh->outgoing_data_size > ssh->max_data_size ||
-	    ssh->incoming_data_size > ssh->max_data_size)
-	    rekeying = "data limit lowered";
+        if (ssh->max_data_size < old_max_data_size) {
+            unsigned long diff = old_max_data_size - ssh->max_data_size;
+
+            /* Intentionally use bitwise OR instead of logical, so
+             * that we decrement both counters even if the first one
+             * runs out */
+            if ((DTS_CONSUME(&ssh->stats, out, diff) != 0) |
+                (DTS_CONSUME(&ssh->stats, in, diff) != 0))
+                rekeying = "data limit lowered";
+        } else {
+            unsigned long diff = ssh->max_data_size - old_max_data_size;
+            if (ssh->stats.out.running)
+                ssh->stats.out.remaining += diff;
+            if (ssh->stats.in.running)
+                ssh->stats.in.remaining += diff;
+        }
     }
 
     if (conf_get_int(ssh->conf, CONF_compression) !=
