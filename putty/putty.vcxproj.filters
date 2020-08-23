@@ -96,6 +96,21 @@
     <ClCompile Include="sftp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ssh1connection.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh1login.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2connection.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2transport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ssh2userauth.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ssh.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -416,7 +431,7 @@
     <ClInclude Include="sftp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ssh.h">
+    <ClInclude Include="sshppl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sshbpp.h">

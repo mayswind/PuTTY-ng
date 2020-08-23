@@ -104,7 +104,7 @@ static void logfopen_callback(void *vctx, int mode)
         }
     }
 
-    if (ctx->state == L_OPEN) {
+    if (ctx->state == L_OPEN && conf_get_int(ctx->conf, CONF_logheader)) {
 	/* Write header line into log file. */
 	tm = ltime();
 	strftime(buf, 24, "%Y.%m.%d %H:%M:%S", &tm);
@@ -154,6 +154,7 @@ static void logfopen_callback(void *vctx, int mode)
 	logwrite(ctx, data, len);
 	bufchain_consume(&ctx->queue, len);
     }
+    logflush(ctx);
 }
 
 /*

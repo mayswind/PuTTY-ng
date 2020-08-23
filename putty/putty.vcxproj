@@ -206,6 +206,11 @@
     <ClCompile Include="sessprep.c" />
     <ClCompile Include="settings.c" />
     <ClCompile Include="sftp.c" />
+    <ClCompile Include="ssh1connection.c" />
+    <ClCompile Include="ssh1login.c" />
+    <ClCompile Include="ssh2connection.c" />
+    <ClCompile Include="ssh2transport.c" />
+    <ClCompile Include="ssh2userauth.c" />
     <ClCompile Include="ssh.c">
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
       <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ProgramDatabase</DebugInformationFormat>
@@ -321,6 +326,7 @@
     <ClInclude Include="puttyps.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="sftp.h" />
+    <ClInclude Include="sshppl.h" />
     <ClInclude Include="ssh.h" />
     <ClInclude Include="sshbpp.h" />
     <ClInclude Include="sshchan.h" />

@@ -2,6 +2,7 @@
 #define PUTTY_PUTTY_H
 
 #include <stddef.h>		       /* for wchar_t */
+#include <limits.h>                    /* for INT_MAX */
 
 #include <boost/bind.hpp> 
 #include <boost/function.hpp>
@@ -1016,6 +1017,7 @@ void cleanup_exit(int);
     X(INT, NONE, logtype) \
     X(INT, NONE, logxfovr) \
     X(INT, NONE, logflush) \
+    X(INT, NONE, logheader) \
     X(INT, NONE, logomitpass) \
     X(INT, NONE, logomitdata) \
     X(INT, NONE, hide_mouseptr) \
@@ -1399,10 +1401,10 @@ void random_unref(void);
 /*
  * Exports from pinger.c.
  */
-typedef struct pinger_tag *Pinger;
-Pinger pinger_new(Conf *conf, Backend *backend);
-void pinger_reconfig(Pinger, Conf *oldconf, Conf *newconf);
-void pinger_free(Pinger);
+typedef struct Pinger Pinger;
+Pinger *pinger_new(Conf *conf, Backend *backend);
+void pinger_reconfig(Pinger *, Conf *oldconf, Conf *newconf);
+void pinger_free(Pinger *);
 
 /*
  * Exports from misc.c.

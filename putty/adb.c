@@ -107,7 +107,8 @@ static BOOL MyCreatePipeEx(
 }
 
 enum{RUNNING = 0, UI_WANT_STOP = 1, ADB_THREAD_STOPPED = 2, UI_STOPPED = 3};
-typedef struct adb_backend_data {
+typedef struct Adb Adb;
+struct Adb {
 	const Plug_vtable *plugvt;
 	Frontend* frontend;
 	// plugvt and frontend should be put in the head
@@ -124,15 +125,15 @@ typedef struct adb_backend_data {
 	int is_stopped;
 
 	Backend backend;
-} *Adb;
+};
 
-static void c_write(Adb adb, char *buf, int len)
+static void c_write(Adb *adb, char *buf, int len)
 {
 	if (adb->is_stopped){ return; }
     int backlog = from_backend(adb->frontend, 0, buf, len);
 }
 
-static void c_write_cmd(Adb adb, char *buf, int len)
+static void c_write_cmd(Adb *adb, char *buf, int len)
 {
 	if (adb->is_stopped){ return; }
 	c_write(adb, "cmd > ", sizeof("cmd > "));
@@ -141,7 +142,7 @@ static void c_write_cmd(Adb adb, char *buf, int len)
 }
 
 const char *win_strerror(int error);
-static void c_write_error(Adb adb, int err)
+static void c_write_error(Adb *adb, int err)
 {
 	if (adb->is_stopped){ return; }
 	const char* str = win_strerror(err);
@@ -150,24 +151,24 @@ static void c_write_error(Adb adb, int err)
 	c_write_cmd(adb, errstr, strlen(errstr));
 }
 
-static void adb_log(Plug plug, int type, SockAddr addr, int port,
+static void adb_log(Plug *plug, int type, SockAddr *addr, int port,
 		    const char *error_msg, int error_code)
 {
-    Adb adb = (Adb) plug;
+    Adb *adb = FROMFIELD(plug, Adb, plugvt);
 
     //logevent(adb->frontend, msg);
 }
 
-static void adb_check_close(Adb adb)
+static void adb_check_close(Adb *adb)
 {
 	if (adb->is_stopped){ return; }
     notify_remote_exit(adb->frontend);
 }
 
-static void adb_closing(Plug plug, const char *error_msg, int error_code,
+static void adb_closing(Plug *plug, const char *error_msg, int error_code,
 		       int calling_back)
 {
-    Adb adb = (Adb) plug;
+    Adb *adb = FROMFIELD(plug, Adb, plugvt);
 	if (adb->is_stopped){ return; }
 
     if (error_msg) {
@@ -178,21 +179,21 @@ static void adb_closing(Plug plug, const char *error_msg, int error_code,
     }
 }
 
-static void adb_receive(Plug plug, int urgent, char *data, int len)
+static void adb_receive(Plug *plug, int urgent, char *data, int len)
 {
-    Adb adb = (Adb) plug;
+    Adb *adb = FROMFIELD(plug, Adb, plugvt);
 	if (adb->is_stopped){ return; }
     c_write(adb, data, len);
 }
 
-static void adb_sent(Plug plug, int bufsize)
+static void adb_sent(Plug *plug, int bufsize)
 {
-    Adb adb = (Adb) plug;
+    Adb *adb = FROMFIELD(plug, Adb, plugvt);
 }
 
 extern void process_in_ui_msg_loop(boost::function<void(void)> func);
 extern void adb_poll(void* adb);
-void adb_delay_poll(Adb adb)
+void adb_delay_poll(Adb *adb)
 {
 	if (adb->is_stopped){ return; }
 	struct timeval timeout;
@@ -201,7 +202,7 @@ void adb_delay_poll(Adb adb)
 	adb->poll_timer = g_adb_processor->addLocalTimer(0, timeout, adb_poll, adb);
 }
 
-void adb_process_buffer(Adb adb)
+void adb_process_buffer(Adb *adb)
 {
 	char  temp[1024] = { 0 };
 	unsigned size = 0;
@@ -211,7 +212,7 @@ void adb_process_buffer(Adb adb)
 	} while (size > 0);
 }
 
-static void notify_ui_remote_exit(Adb adb)
+static void notify_ui_remote_exit(Adb *adb)
 {
 	if (adb->is_stopped){ return; }
 	notify_remote_exit(adb->frontend);
@@ -219,7 +220,7 @@ static void notify_ui_remote_exit(Adb adb)
 
 void adb_poll(void* arg)
 {
-	Adb adb = (Adb)arg;
+	Adb *adb = (Adb *)arg;
 	adb->poll_timer = NULL;
 	bool should_wait = true;
 
@@ -313,8 +314,8 @@ void get_plain_cmd_text(Conf *conf, char* cmd_buff, const int length)
 
 void register_atexit(void* key, std::function<void()> cb);
 bool remove_atexit(void* key);
-void adb_close_process(Adb adb);
-static char* init_adb_connection(Adb adb)
+void adb_close_process(Adb *adb);
+static char* init_adb_connection(Adb *adb)
 {
 	SECURITY_ATTRIBUTES   sa;
 	STARTUPINFO           startup;
@@ -392,13 +393,13 @@ static const char *adb_init(Frontend *frontend, Backend **backend_handle,
 			    const char *host, int port, char **realhost,
                             int nodelay, int keepalive)
 {
-    SockAddr addr;
+    SockAddr *addr;
     const char *err;
-    Adb adb;
+    Adb *adb;
     int addressfamily;
     char *loghost;
 
-    adb = snew( struct adb_backend_data );
+    adb = snew(Adb);
     adb->frontend = frontend;
 	adb->conf = conf;
 
@@ -413,7 +414,7 @@ static const char *adb_init(Frontend *frontend, Backend **backend_handle,
 	return init_adb_connection(adb);
 }
 
-void adb_close_process(Adb adb)
+void adb_close_process(Adb *adb)
 {
 	if (adb->pinfo.dwProcessId > 0)
 	{
@@ -428,7 +429,7 @@ void adb_close_process(Adb adb)
 
 static void adb_fini_in_ui(void* handle)
 {
-	Adb adb = (Adb) handle;
+	Adb *adb = (Adb *) handle;
 	delete adb->send_buffer;
 	delete adb->recv_buffer;
 
@@ -441,7 +442,7 @@ static void adb_fini_in_ui(void* handle)
 
 static void adb_fini_in_adb_thread(Backend *be)
 {
-	Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+	Adb *adb = FROMFIELD(be, Adb, backend);
 	if (adb->poll_timer != NULL)
 	{
 		g_adb_processor->cancelLocalTimer((unsigned long long)be, adb->poll_timer);
@@ -452,7 +453,7 @@ static void adb_fini_in_adb_thread(Backend *be)
 
 static void adb_free(Backend *be)
 {
-	Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+	Adb *adb = FROMFIELD(be, Adb, backend);
 	adb->is_stopped = UI_WANT_STOP;
 	g_adb_processor->process((unsigned long long)be, NEW_PROCESSOR_JOB(adb_fini_in_adb_thread, be));
 }
@@ -469,7 +470,7 @@ static void adb_reconfig(Backend *be, Conf *conf)
  */
 static int adb_send(Backend *be, const char *buf, int len)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
 	int compel_crlf = conf_get_int(adb->conf, CONF_adb_compel_crlf);
 	int dwError;
 	if (len == 1 && buf[0] == 0x03 && adb->pinfo.dwProcessId != 0)
@@ -533,7 +534,7 @@ static int adb_send(Backend *be, const char *buf, int len)
  */
 static int adb_sendbuffer(Backend *be)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
 	return adb->send_buffer->unusedSize()/2;
 }
 
@@ -551,7 +552,7 @@ static void adb_size(Backend *be, int width, int height)
  */
 static void adb_special(Backend *be, SessionSpecialCode code, int arg)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
     if (code == SS_EOF) {
         adb_check_close(adb);
     }
@@ -587,7 +588,7 @@ static const SessionSpecial *adb_get_specials(Backend *be)
 
 static int adb_connected(Backend *be)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
 	return adb->poll_timer != NULL;
 }
 
@@ -598,7 +599,7 @@ static int adb_sendok(Backend *be)
 
 static void adb_unthrottle(Backend *be, int backlog)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
 }
 
 static int adb_ldisc(Backend *be, int option)
@@ -622,7 +623,7 @@ static void adb_provide_logctx(Backend *be, LogContext *logctx)
 
 static int adb_exitcode(Backend *be)
 {
-    Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
+    Adb *adb = FROMFIELD(be, Adb, backend);
     return 0;
 }
 

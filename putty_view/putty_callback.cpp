@@ -2148,6 +2148,32 @@ void queue_idempotent_callback(struct IdempotentCallback *ic)
 	queue_toplevel_callback(run_idempotent_callback, ic);
 }
 
+void delete_callbacks_for_context(void *ctx)
+{
+    //struct callback *newhead, *newtail;
+
+    //newhead = newtail = NULL;
+    //while (cbhead) {
+    //    struct callback *cb = cbhead;
+    //    cbhead = cbhead->next;
+    //    if (cb->ctx == ctx ||
+    //        (cb->fn == run_idempotent_callback &&
+    //         ((struct IdempotentCallback *)cb->ctx)->ctx == ctx)) {
+    //        sfree(cb);
+    //    } else {
+    //        if (!newhead)
+    //            newhead = cb;
+    //        else
+    //            newtail->next = cb;
+
+    //        newtail = cb;
+    //    }
+    //}
+
+    //cbhead = newhead;
+    //cbtail = newtail;
+}
+
 void process_in_ui_msg_loop(boost::function<void(void)> func)
 {
 	WindowInterface::GetInstance()->process_in_msg_loop(func);

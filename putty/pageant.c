@@ -695,7 +695,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    } while (0)
 
 //struct pageant_conn_state {
-//    Socket connsock;
+//    Socket *connsock;
 //    void *logctx;
 //    pageant_logfn_t logfn;
 //    unsigned char lenbuf[4], pktbuf[AGENT_MAX_MSGLEN];
@@ -706,7 +706,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    const Plug_vtable *plugvt;
 //};
 
-//static void pageant_conn_closing(Plug plug, const char *error_msg,
+//static void pageant_conn_closing(Plug *plug, const char *error_msg,
 //				 int error_code, int calling_back)
 //{
 //    struct pageant_conn_state *pc = FROMFIELD(
@@ -719,7 +719,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    sfree(pc);
 //}
 
-//static void pageant_conn_sent(Plug plug, int bufsize)
+//static void pageant_conn_sent(Plug *plug, int bufsize)
 //{
 //    /* struct pageant_conn_state *pc = FROMFIELD(
 //        plug, struct pageant_conn_state, plugvt); */
@@ -741,7 +741,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    sfree(formatted);
 //}
 
-//static void pageant_conn_receive(Plug plug, int urgent, char *data, int len)
+//static void pageant_conn_receive(Plug *plug, int urgent, char *data, int len)
 //{
 //    struct pageant_conn_state *pc = FROMFIELD(
 //        plug, struct pageant_conn_state, plugvt);
@@ -793,14 +793,14 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //}
 
 //struct pageant_listen_state {
-//    Socket listensock;
+//    Socket *listensock;
 //    void *logctx;
 //    pageant_logfn_t logfn;
 
 //    const Plug_vtable *plugvt;
 //};
 
-//static void pageant_listen_closing(Plug plug, const char *error_msg,
+//static void pageant_listen_closing(Plug *plug, const char *error_msg,
 //				   int error_code, int calling_back)
 //{
 //    struct pageant_listen_state *pl = FROMFIELD(
@@ -819,7 +819,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    NULL /* no accepting function, because we've already done it */
 //};
 
-//static int pageant_listen_accepting(Plug plug,
+//static int pageant_listen_accepting(Plug *plug,
 //                                    accept_fn_t constructor, accept_ctx_t ctx)
 //{
 //    struct pageant_listen_state *pl = FROMFIELD(
@@ -862,7 +862,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    pageant_listen_accepting
 //};
 
-//struct pageant_listen_state *pageant_listener_new(Plug *plug)
+//struct pageant_listen_state *pageant_listener_new(Plug **plug)
 //{
 //    struct pageant_listen_state *pl = snew(struct pageant_listen_state);
 //    pl->plugvt = &pageant_listener_plugvt;
@@ -873,7 +873,7 @@ int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 //    return pl;
 //}
 
-//void pageant_listener_got_socket(struct pageant_listen_state *pl, Socket sock)
+//void pageant_listener_got_socket(struct pageant_listen_state *pl, Socket *sock)
 //{
 //    pl->listensock = sock;
 //}

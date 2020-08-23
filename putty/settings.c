@@ -645,6 +645,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "LogType", conf_get_int(conf, CONF_logtype));
     iStorage->write_setting_i(sesskey, "LogFileClash", conf_get_int(conf, CONF_logxfovr));
     iStorage->write_setting_i(sesskey, "LogFlush", conf_get_int(conf, CONF_logflush));
+    iStorage->write_setting_i(sesskey, "LogHeader", conf_get_int(conf, CONF_logheader));
     iStorage->write_setting_i(sesskey, "SSHLogOmitPasswords", conf_get_int(conf, CONF_logomitpass));
     iStorage->write_setting_i(sesskey, "SSHLogOmitData", conf_get_int(conf, CONF_logomitdata));
     p = "raw";
@@ -1079,6 +1080,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "LogType", 0, conf, CONF_logtype);
     gppi(iStorage, sesskey, "LogFileClash", LGXF_ASK, conf, CONF_logxfovr);
     gppi(iStorage, sesskey, "LogFlush", 1, conf, CONF_logflush);
+    gppi(iStorage, sesskey, "LogHeader", 1, conf, CONF_logheader);
     gppi(iStorage, sesskey, "SSHLogOmitPasswords", 1, conf, CONF_logomitpass);
     gppi(iStorage, sesskey, "SSHLogOmitData", 0, conf, CONF_logomitdata);
 
