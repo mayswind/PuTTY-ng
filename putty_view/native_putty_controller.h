@@ -199,7 +199,7 @@ public:
     int compose_state;
     static UINT wm_mousewheel;
 
-    const struct telnet_special *specials;
+    const SessionSpecial *specials;
     HMENU specials_menu;
     int n_specials;
 

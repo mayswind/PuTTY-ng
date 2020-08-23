@@ -66,6 +66,8 @@ typedef struct ConnectionLayer ConnectionLayer;
 
 typedef struct dlgparam dlgparam;
 
+typedef struct SessionSpecial SessionSpecial;
+
 /* Note indirection: for historical reasons (it used to be closer to
  * the OS socket type), the type that most code uses for a socket is
  * 'Socket', not 'Socket *'. So an implementation of Socket or Plug

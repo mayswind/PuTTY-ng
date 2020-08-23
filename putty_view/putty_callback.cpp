@@ -1438,10 +1438,10 @@ void update_specials_menu(Frontend *frontend)
 	for (i = 0; nesting > 0; i++) {
 	    assert(IDM_SPECIAL_MIN + 0x10 * i < IDM_SPECIAL_MAX);
 	    switch (puttyController->specials[i].code) {
-	      case TS_SEP:
+	      case SS_SEP:
 		AppendMenu(new_menu, MF_SEPARATOR, 0, 0);
 		break;
-	      case TS_SUBMENU:
+	      case SS_SUBMENU:
 		assert(nesting < 2);
 		nesting++;
 		saved_menu = new_menu; /* XXX lame stacking */
@@ -1449,7 +1449,7 @@ void update_specials_menu(Frontend *frontend)
 		AppendMenu(saved_menu, MF_POPUP | MF_ENABLED,
 			   (UINT_PTR) new_menu, A2W(puttyController->specials[i].name));
 		break;
-	      case TS_EXITMENU:
+	      case SS_EXITMENU:
 		nesting--;
 		if (nesting) {
 		    new_menu = saved_menu; /* XXX lame stacking */

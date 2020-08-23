@@ -549,10 +549,10 @@ static void adb_size(Backend *be, int width, int height)
 /*
  * Send adb special codes. We only handle outgoing EOF here.
  */
-static void adb_special(Backend *be, Telnet_Special code)
+static void adb_special(Backend *be, SessionSpecialCode code, int arg)
 {
     Adb adb = FROMFIELD(be, struct adb_backend_data, backend);
-    if (code == TS_EOF) {
+    if (code == SS_EOF) {
         adb_check_close(adb);
     }
     return;
@@ -562,25 +562,25 @@ static void adb_special(Backend *be, Telnet_Special code)
  * Return a list of the special codes that make sense in this
  * protocol.
  */
-static const struct telnet_special *adb_get_specials(Backend *be)
+static const SessionSpecial *adb_get_specials(Backend *be)
 {
-	static const struct telnet_special specials[] = {
-		{ "Are You There", TS_AYT },
-		{ "Break", TS_BRK },
-		{ "Synch", TS_SYNCH },
-		{ "Erase Character", TS_EC },
-		{ "Erase Line", TS_EL },
-		{ "Go Ahead", TS_GA },
-		{ "No Operation", TS_NOP },
-		{ NULL, TS_SEP },
-		{ "Abort Process", TS_ABORT },
-		{ "Abort Output", TS_AO },
-		{ "Interrupt Process", TS_IP },
-		{ "Suspend Process", TS_SUSP },
-		{ NULL, TS_SEP },
-		{ "End Of Record", TS_EOR },
-		{ "End Of File", TS_EOF },
-		{ NULL, TS_EXITMENU }
+	static const SessionSpecial specials[] = {
+		{ "Are You There", SS_AYT },
+		{ "Break", SS_BRK },
+		{ "Synch", SS_SYNCH },
+		{ "Erase Character", SS_EC },
+		{ "Erase Line", SS_EL },
+		{ "Go Ahead", SS_GA },
+		{ "No Operation", SS_NOP },
+		{ NULL, SS_SEP },
+		{ "Abort Process", SS_ABORT },
+		{ "Abort Output", SS_AO },
+		{ "Interrupt Process", SS_IP },
+		{ "Suspend Process", SS_SUSP },
+		{ NULL, SS_SEP },
+		{ "End Of Record", SS_EOR },
+		{ "End Of File", SS_EOF },
+		{ NULL, SS_EXITMENU }
 	};
 	return specials;
 }
