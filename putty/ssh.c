@@ -856,6 +856,9 @@ static void ssh_free(Backend *be)
     if (ssh->gss_state.libs)
 	ssh_gss_cleanup(ssh->gss_state.libs);
 #endif
+
+    delete_callbacks_for_context(ssh); /* likely to catch ic_out_raw */
+
     sfree(ssh);
 }
 
