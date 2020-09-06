@@ -2112,7 +2112,10 @@ int load_sessions_from_others(struct sesslist* sesslist)
 #include "base/message_loop.h"
 void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
 {
-	MessageLoop::current()->PostNonNestableTask(NewRunnableFunction(fn, ctx));
+    struct MessageLoopTag tag;
+    tag.fn = fn;
+    tag.ctx = ctx;
+	MessageLoop::current()->PostNonNestableTask(NewRunnableFunction(fn, ctx), tag);
     //struct callback *cb;
 	//
     //cb = snew(struct callback);
@@ -2148,8 +2151,32 @@ void queue_idempotent_callback(struct IdempotentCallback *ic)
 	queue_toplevel_callback(run_idempotent_callback, ic);
 }
 
+class PuTTYCallbackValidChecker : public MessageLoop::TaskValidChecker {
+public:
+    PuTTYCallbackValidChecker(struct MessageLoopTag tag) : tag_(tag) {}
+
+    bool isValid(struct MessageLoopTag tag)
+    {
+        if (tag.ctx == tag_.ctx || 
+            (tag.fn == run_idempotent_callback && 
+            ((struct IdempotentCallback *)tag.ctx)->ctx == tag_.ctx))
+        {
+            return false;
+        }
+
+        return true;
+    }
+private:
+    struct MessageLoopTag tag_;
+};
+
 void delete_callbacks_for_context(void *ctx)
 {
+    struct MessageLoopTag tag;
+    tag.fn = run_idempotent_callback;
+    tag.ctx = ctx;
+    PuTTYCallbackValidChecker checker(tag);
+    MessageLoop::current()->RemovePendingTasks(&checker);
     //struct callback *newhead, *newtail;
 
     //newhead = newtail = NULL;

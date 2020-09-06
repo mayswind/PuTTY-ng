@@ -18,6 +18,11 @@ namespace base
     class Histogram;
 }
 
+struct MessageLoopTag {
+    void* fn;
+    void* ctx;
+};
+
 // MessageLoop用于处理特定线程的事件. 一个线程最多只能有一个MessageLoop.
 //
 // 事件至少包括PostTask提交的Task或者TimerManager管理的DelayTask. 是否会处理
@@ -116,6 +121,7 @@ public:
     void PostTask(Task* task);
     void PostDelayedTask(Task* task, int64 delay_ms);
     void PostNonNestableTask(Task* task);
+    void PostNonNestableTask(Task* task, struct MessageLoopTag tag);
     void PostNonNestableDelayedTask(Task* task, int64 delay_ms);
 
     // TODO(ajwong): Remove the functions above once the Task -> Closure migration
@@ -129,6 +135,14 @@ public:
     void PostDelayedTask(const base::Closure& task, int64 delay_ms);
     void PostNonNestableTask(const base::Closure& task);
     void PostNonNestableDelayedTask(const base::Closure& task, int64 delay_ms);
+
+    class TaskValidChecker {
+    public:
+        virtual bool isValid(struct MessageLoopTag tag) = 0;
+    };
+
+    // 移除队列中的任务
+    void RemovePendingTasks(TaskValidChecker* checker);
 
     // 一种删除指定对象的PostTask, 当对象需要存活到MessageLoop的下一次循环时会
     // 用到(比如在IPC回调时直接删除RenderProcessHost并不好).
@@ -322,6 +336,8 @@ protected:
         // The task to run.
         base::Closure task;
 
+        struct MessageLoopTag tag;
+
         // Time this PendingTask was posted.
         base::TimeTicks time_posted;
 
@@ -333,6 +349,8 @@ protected:
 
         // OK to dispatch from a nested loop.
         bool nestable;
+
+        bool removed;
     };
 
     class TaskQueue : public std::queue<PendingTask>
@@ -341,6 +359,17 @@ protected:
         void Swap(TaskQueue* queue)
         {
             c.swap(queue->c); // 调用std::deque::swap
+        }
+
+        void RemoveTasksByTag(TaskValidChecker* checker)
+        {
+            for (auto it = c.begin(); it != c.end(); ++it)
+            {
+                if (!checker->isValid(it->tag))
+                {
+                    it->removed = true;
+                }
+            }
         }
     };
 

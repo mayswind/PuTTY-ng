@@ -207,6 +207,7 @@ void MessageLoop::PostTask(Task* task)
         base::Bind(&base::subtle::TaskClosureAdapter::Run,
         new base::subtle::TaskClosureAdapter(task, &should_leak_tasks_)),
         CalculateDelayedRuntime(0), true);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -217,6 +218,7 @@ void MessageLoop::PostDelayedTask(Task* task, int64 delay_ms)
         base::Bind(&base::subtle::TaskClosureAdapter::Run,
         new base::subtle::TaskClosureAdapter(task, &should_leak_tasks_)),
         CalculateDelayedRuntime(delay_ms), true);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -227,6 +229,19 @@ void MessageLoop::PostNonNestableTask(Task* task)
         base::Bind(&base::subtle::TaskClosureAdapter::Run,
         new base::subtle::TaskClosureAdapter(task, &should_leak_tasks_)),
         CalculateDelayedRuntime(0), false);
+    pending_task.removed = false;
+    AddToIncomingQueue(&pending_task);
+}
+
+void MessageLoop::PostNonNestableTask(Task* task, struct MessageLoopTag tag)
+{
+    CHECK(task);
+    PendingTask pending_task(
+        base::Bind(&base::subtle::TaskClosureAdapter::Run,
+        new base::subtle::TaskClosureAdapter(task, &should_leak_tasks_)),
+        CalculateDelayedRuntime(0), false);
+    pending_task.tag = tag;
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -237,6 +252,7 @@ void MessageLoop::PostNonNestableDelayedTask(Task* task, int64 delay_ms)
         base::Bind(&base::subtle::TaskClosureAdapter::Run,
         new base::subtle::TaskClosureAdapter(task, &should_leak_tasks_)),
         CalculateDelayedRuntime(delay_ms), false);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -244,6 +260,7 @@ void MessageLoop::PostTask(const base::Closure& task)
 {
     CHECK(!task.is_null());
     PendingTask pending_task(task, CalculateDelayedRuntime(0), true);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -251,6 +268,7 @@ void MessageLoop::PostDelayedTask(const base::Closure& task, int64 delay_ms)
 {
     CHECK(!task.is_null());
     PendingTask pending_task(task, CalculateDelayedRuntime(delay_ms), true);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -258,6 +276,7 @@ void MessageLoop::PostNonNestableTask(const base::Closure& task)
 {
     CHECK(!task.is_null());
     PendingTask pending_task(task, CalculateDelayedRuntime(0), false);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
 }
 
@@ -266,7 +285,19 @@ void MessageLoop::PostNonNestableDelayedTask(const base::Closure& task,
 {
     CHECK(!task.is_null());
     PendingTask pending_task(task, CalculateDelayedRuntime(delay_ms), false);
+    pending_task.removed = false;
     AddToIncomingQueue(&pending_task);
+}
+
+void MessageLoop::RemovePendingTasks(TaskValidChecker* checker)
+{
+    if (checker == NULL)
+    {
+        return;
+    }
+
+    work_queue_.RemoveTasksByTag(checker);
+    incoming_queue_.RemoveTasksByTag(checker);
 }
 
 void MessageLoop::Run()
@@ -629,6 +660,10 @@ bool MessageLoop::DoWork()
         {
             PendingTask pending_task = work_queue_.front();
             work_queue_.pop();
+            if (pending_task.removed)
+            {
+                continue;
+            }
             if(!pending_task.delayed_run_time.is_null())
             {
                 AddToDelayedWorkQueue(pending_task);
