@@ -49,6 +49,12 @@ static void ssh2_bare_bpp_free(BinaryPacketProtocol *bpp)
     sfree(s);
 }
 
+#define BPP_READ(ptr, len) do                                   \
+    {                                                           \
+        crMaybeWaitUntilV(bufchain_try_fetch_consume(           \
+                              s->bpp.in_raw, ptr, len));        \
+    } while (0)
+
 static void ssh2_bare_bpp_handle_input(BinaryPacketProtocol *bpp)
 {
     struct ssh2_bare_bpp_state *s =
@@ -60,8 +66,7 @@ static void ssh2_bare_bpp_handle_input(BinaryPacketProtocol *bpp)
         /* Read the length field. */
         {
             unsigned char lenbuf[4];
-            crMaybeWaitUntilV(bufchain_try_fetch_consume(
-                                  s->bpp.in_raw, lenbuf, 4));
+            BPP_READ(lenbuf, 4);
             s->packetlen = toint(GET_32BIT_MSB_FIRST(lenbuf));
         }
 
@@ -84,8 +89,7 @@ static void ssh2_bare_bpp_handle_input(BinaryPacketProtocol *bpp)
         /*
          * Read the remainder of the packet.
          */
-        crMaybeWaitUntilV(bufchain_try_fetch_consume(
-                              s->bpp.in_raw, s->data, s->packetlen));
+        BPP_READ(s->data, s->packetlen);
 
         /*
          * The data we just read is precisely the initial type byte
