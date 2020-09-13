@@ -1016,6 +1016,7 @@ void cleanup_exit(int);
     X(INT, NONE, logtype) \
     X(INT, NONE, logxfovr) \
     X(INT, NONE, logflush) \
+    X(INT, NONE, logheader) \
     X(INT, NONE, logomitpass) \
     X(INT, NONE, logomitdata) \
     X(INT, NONE, hide_mouseptr) \
