@@ -1213,9 +1213,7 @@ int NativePuttyController::on_reconfig()
 		new_font->charset != old_font->charset ||
 		conf_get_int(cfg, CONF_font_quality) != conf_get_int(prev_cfg, CONF_font_quality) ||
 		conf_get_int(cfg, CONF_vtmode) != conf_get_int(prev_cfg, CONF_vtmode) ||
-		conf_get_int(cfg, CONF_bold_style) != conf_get_int(prev_cfg, CONF_bold_style) ||
-		global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_DISABLED ||
-		global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_EITHER) {
+		conf_get_int(cfg, CONF_bold_style) != conf_get_int(prev_cfg, CONF_bold_style)) {
 		font_height_by_wheel = 0;
 		init_lvl = 2;
 	}
@@ -2038,30 +2036,19 @@ void NativePuttyController::setPagePos(const RECT* rc)
 
 void NativePuttyController::resize_term()
 {
-	if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_DISABLED) {
-	    /* A resize, well it better be a minimize. */
-	    reset_window(RESET_NONE);
-	} else {
-	    int width, height, w, h;
+    int width, height, w, h;
 
-	    page_->get_term_size(&width, &height);
-        prev_rows = term->rows;
-        prev_cols = term->cols;
-        if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_TERM) {
-            w = width / 10;
-            if (w < 1) w = 1;
-            h = height / 20;
-            if (h < 1) h = 1;
-//            save_global_isetting(WINDOW_HEIGHT_KEY, h);
-//            save_global_isetting(WINDOW_WIDTH_KEY, w);
-            term_size(term, h, w, conf_get_int(cfg, CONF_savelines));
-			reset_window(RESET_FONT);
-        } else if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) != RESIZE_FONT){
-            reset_window(RESET_FONT);
-		}else{
-            reset_window(RESET_WIN);
-		}
-	}
+    page_->get_term_size(&width, &height);
+    prev_rows = term->rows;
+    prev_cols = term->cols;
+    w = width / 10;
+    if (w < 1) w = 1;
+    h = height / 20;
+    if (h < 1) h = 1;
+//    save_global_isetting(WINDOW_HEIGHT_KEY, h);
+//    save_global_isetting(WINDOW_WIDTH_KEY, w);
+    term_size(term, h, w, conf_get_int(cfg, CONF_savelines));
+	reset_window(RESET_FONT);
 	sys_cursor_update();
 }
 
@@ -2083,8 +2070,6 @@ void NativePuttyController::reset_window(int reinit)
 
     page_->get_term_size(&win_width, &win_height);
 
-    if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) == RESIZE_DISABLED) reinit = 2;
-
     /* Are we being forced to reload the fonts ? */
     if (reinit == RESET_FONT) {
     	deinit_fonts();
@@ -2105,30 +2090,18 @@ void NativePuttyController::reset_window(int reinit)
         InvalidateRect(getNativePage(), NULL, TRUE);
     }
 
-    if (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) != RESIZE_TERM) {
-    	if (  font_width != win_width/term->cols || 
-    		font_height != win_height/term->rows) {
-    		  
-            deinit_fonts();
-            init_fonts(win_width/term->cols, win_height/term->rows);
-            offset_width = (win_width-font_width*term->cols)/2 + conf_get_int(cfg, CONF_window_border);
-            offset_height = (win_height-font_height*term->rows)/2 + conf_get_int(cfg, CONF_window_border);
-            InvalidateRect(getNativePage(), NULL, TRUE);
-    	}
-    } else {
-    	if (  font_width * term->cols != win_width || 
-    		font_height * term->rows != win_height) {
-    		  
-            /* Our only choice at this point is to change the 
-                * size of the terminal; Oh well.
-                */
-            term_size(term, win_height/font_height, win_width/font_width,
-                	conf_get_int(cfg, CONF_savelines));
-			offset_width = (win_width-font_width*term->cols)/2 + conf_get_int(cfg, CONF_window_border);
-			offset_height = (win_height-font_height*term->rows)/2 + conf_get_int(cfg, CONF_window_border);
-            InvalidateRect(getNativePage(), NULL, TRUE);
-    	}
-    }
+    if (  font_width * term->cols != win_width || 
+   		font_height * term->rows != win_height) {
+   		  
+        /* Our only choice at this point is to change the 
+             * size of the terminal; Oh well.
+             */
+        term_size(term, win_height/font_height, win_width/font_width,
+       	conf_get_int(cfg, CONF_savelines));
+		offset_width = (win_width-font_width*term->cols)/2 + conf_get_int(cfg, CONF_window_border);
+		offset_height = (win_height-font_height*term->rows)/2 + conf_get_int(cfg, CONF_window_border);
+        InvalidateRect(getNativePage(), NULL, TRUE);
+   	}
     return;
 }
 
@@ -2617,8 +2590,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return -1;
 	}
 	if (left_alt && wParam == VK_RETURN &&
-	    conf_get_int(cfg, CONF_fullscreenonaltenter) &&
-	    (global_conf_get_int(WINDOW_RESIZE_ACTION_KEY) != RESIZE_DISABLED)) {
+	    conf_get_int(cfg, CONF_fullscreenonaltenter)) {
  	    if ((HIWORD(lParam) & (KF_UP | KF_REPEAT)) != KF_REPEAT)
  		//not support full screen
 		//flip_full_screen();

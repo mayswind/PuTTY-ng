@@ -1073,10 +1073,7 @@ void move_window(Frontend *frontend, int x, int y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-	int resize_action = global_conf_get_int(WINDOW_RESIZE_ACTION_KEY);
-    if (resize_action == RESIZE_DISABLED || 
-        resize_action == RESIZE_FONT ||
-		IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))
+    if (IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))
        return;
 
     SetWindowPos(puttyController->getNativePage(), NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
@@ -1216,7 +1213,7 @@ void request_resize(Frontend *frontend, int w, int h)
 
  //   term_size(puttyController->term, h, w, puttyController->cfg->savelines);
 
- //   if (puttyController->cfg->resize_action != RESIZE_FONT && !IsZoomed(hwnd)) {
+ //   if (!IsZoomed(hwnd)) {
 	//width = puttyController->font_width * w;
 	//height = puttyController->font_height * h;
 

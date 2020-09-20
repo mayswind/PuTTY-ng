@@ -73,8 +73,6 @@ static const char *const saved_cmd_settings_folder = "__SavedCmds#";
 #define WINDOW_WIDTH_DEFAULT "80"
 #define WINDOW_HEIGHT_KEY "WindowRowSize"
 #define WINDOW_HEIGHT_DEFAULT "24"
-#define WINDOW_RESIZE_ACTION_KEY "WindowResizeAction"
-#define WINDOW_RESIZE_ACTION_DEFAULT "0"
 #define WINDOW_ALWAYS_TOP "WindowAlwaysOnTop"
 #define WINDOW_MAXIMIZED "WindowMaximized"
 
@@ -466,11 +464,6 @@ enum {
 enum {
     /* Taskbar flashing indication on bell (CONF_beep_ind) */
     B_IND_DISABLED, B_IND_FLASH, B_IND_STEADY
-};
-
-enum {
-    /* Resize actions (CONF_resize_action / Global Settings: WINDOW_RESIZE_ACTION_KEY) */
-    RESIZE_TERM, RESIZE_DISABLED, RESIZE_FONT, RESIZE_EITHER
 };
 
 enum {

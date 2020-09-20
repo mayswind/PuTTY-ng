@@ -233,18 +233,6 @@ void global_setup_config_box(struct controlbox *b)
 	c->generic.column = 1;
 	ctrl_columns(s, 1, 100);
 
-	/*
-	* Resize-by-changing-font is a Windows insanity.
-	*/
-	ctrl_radiobuttons(s, "When window is resized:", 'z', 1,
-		HELPCTX(window_resize),
-		global_key_radiobutton_handler,
-		P(WINDOW_RESIZE_ACTION_KEY),
-		"Change the number of rows and columns", I(RESIZE_TERM),
-		"Change the size of the font", I(RESIZE_FONT),
-		"Change font size only when maximised", I(RESIZE_EITHER),
-		"Forbid resizing completely", I(RESIZE_DISABLED), NULL);
-
 	s = ctrl_getset(b, WINDOW_SETTING_NAME, "main", NULL);
 	ctrl_checkbox(s, "Ensure window is always on top", 'e', HELPCTX(behaviour_alwaysontop), global_key_checkbox_handler0, P(WINDOW_ALWAYS_TOP));
 	ctrl_checkbox(s, "Maximize window on startup", '\0', HELPCTX(no_help), global_key_checkbox_handler0, P(WINDOW_MAXIMIZED));

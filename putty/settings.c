@@ -1792,9 +1792,6 @@ int get_default_int_value(char* key) {
 	else if (!strcmp(key, WINDOW_HEIGHT_KEY)) {
 		return atoi(WINDOW_HEIGHT_DEFAULT);
 	}
-	else if (!strcmp(key, WINDOW_RESIZE_ACTION_KEY)) {
-		return atoi(WINDOW_RESIZE_ACTION_DEFAULT);
-	}
 
 	return 0;
 }

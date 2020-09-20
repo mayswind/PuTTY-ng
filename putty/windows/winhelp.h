@@ -59,7 +59,6 @@
 #define WINHELP_CTX_bell_taskbar "bell.taskbar:config-belltaskbar"
 #define WINHELP_CTX_bell_overload "bell.overload:config-bellovl"
 #define WINHELP_CTX_window_size "window.size:config-winsize"
-#define WINHELP_CTX_window_resize "window.resize:config-winsizelock"
 #define WINHELP_CTX_window_scrollback "window.scrollback:config-scrollback"
 #define WINHELP_CTX_window_erased "window.erased:config-erasetoscrollback"
 #define WINHELP_CTX_behaviour_closewarn "behaviour.closewarn:config-warnonclose"
