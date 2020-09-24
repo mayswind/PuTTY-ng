@@ -147,25 +147,24 @@ void adjust_host(Conf *cfg)
 void bringToForeground(HWND hwnd)
 {
 	if (GetForegroundWindow() != hwnd){
-		BYTE keyState[256] = {0};
-		//to unlock SetForegroundWindow we need to imitate Alt pressing
-		if(::GetKeyboardState((LPBYTE)&keyState))
+		//relation time of SetForegroundWindow lock
+		DWORD lockTimeOut = 0;
+		HWND  hCurrWnd = GetForegroundWindow();
+		DWORD dwThisTID = GetCurrentThreadId(),
+			dwCurrTID = GetWindowThreadProcessId(hCurrWnd, 0);
+
+		//we need to bypass some limitations from Microsoft :)
+		if (dwThisTID != dwCurrTID)
 		{
-			if(!(keyState[VK_MENU] & 0x80))
-			{
-				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
-			}
+			AttachThreadInput(dwThisTID, dwCurrTID, TRUE);
+
+			SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &lockTimeOut, 0);
+			SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, 0, SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);
+
+			AllowSetForegroundWindow(ASFW_ANY);
 		}
 
 		SetForegroundWindow(hwnd);
-
-		if(::GetKeyboardState((LPBYTE)&keyState))
-		{
-			if(!(keyState[VK_MENU] & 0x80))
-			{
-				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-			}
-		}
 	}
 }
 
